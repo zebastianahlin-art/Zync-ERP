@@ -1,0 +1,9 @@
+# Application vendor directory (managed by Composer)
+zync-erp/vendor/
+
+# Environment files
+zync-erp/.env
+
+# OS
+.DS_Store
+Thumbs.db
