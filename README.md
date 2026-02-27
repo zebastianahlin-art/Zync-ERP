@@ -12,8 +12,8 @@ The application lives under the `/zync-erp/` directory. The repository root rema
 
 - PHP 8.3 or 8.4
 - [Composer](https://getcomposer.org/)
-- Apache with `mod_rewrite` enabled (or any compatible web server)
-- MariaDB (for future database features)
+- Nginx with PHP 8.4-FPM
+- MariaDB
 
 ### Local Setup
 
@@ -45,20 +45,22 @@ cp .env.example .env
 | `DB_USER`     | —                  | Database username                  |
 | `DB_PASS`     | —                  | Database password                  |
 
-### Apache Configuration
+### Deployment
 
-Set the `DocumentRoot` to the `zync-erp/public/` directory and ensure `mod_rewrite` is enabled. The included `public/.htaccess` routes all requests through `public/index.php`.
+The server runs **Ubuntu 24.04 LTS** with **Nginx + PHP 8.4-FPM + MariaDB 10.11**.
 
-```apache
-<VirtualHost *:80>
-    ServerName yourdomain.com
-    DocumentRoot /var/www/html/zync-erp/public
+See [`zync-erp/docs/SERVER_SETUP.md`](zync-erp/docs/SERVER_SETUP.md) for full server setup instructions (in Swedish), including Nginx configuration, package installation, and deploy steps.
 
-    <Directory /var/www/html/zync-erp/public>
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>
+The Nginx server block config is at [`zync-erp/nginx/zync-erp.conf`](zync-erp/nginx/zync-erp.conf).
+
+### Nginx Configuration
+
+Set the Nginx `root` to `zync-erp/public/`. The included config at `nginx/zync-erp.conf` routes all requests through `public/index.php` via `try_files`.
+
+```nginx
+sudo cp zync-erp/nginx/zync-erp.conf /etc/nginx/sites-available/zync-erp
+sudo ln -s /etc/nginx/sites-available/zync-erp /etc/nginx/sites-enabled/zync-erp
+sudo nginx -t && sudo systemctl reload nginx
 ```
 
 ### Directory Structure
@@ -77,8 +79,12 @@ zync-erp/
 ├── lang/
 │   └── en/                 # English language files
 ├── modules/                # ERP modules (future)
+├── docs/
+│   └── SERVER_SETUP.md     # Server setup instructions (Swedish)
+├── nginx/
+│   └── zync-erp.conf       # Nginx server block config
 ├── public/
-│   ├── .htaccess           # Apache URL rewrite rules
+│   ├── .htaccess           # Apache rewrite rules (unused on this server — Nginx)
 │   └── index.php           # Application entry point
 ├── storage/
 │   ├── cache/              # Cache files (git-ignored)
