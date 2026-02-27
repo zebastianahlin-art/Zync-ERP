@@ -1,0 +1,14 @@
+# Environment
+.env
+
+# Composer
+/vendor/
+
+# Storage runtime files
+storage/logs/*.log
+storage/cache/*
+storage/sessions/*
+
+# OS
+.DS_Store
+Thumbs.db
