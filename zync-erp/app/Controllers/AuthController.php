@@ -9,6 +9,7 @@ use App\Core\Controller;
 use App\Core\Flash;
 use App\Core\Request;
 use App\Core\Response;
+use App\Models\UserRepository;
 
 class AuthController extends Controller
 {
@@ -28,15 +29,18 @@ class AuthController extends Controller
     /** POST /login – validate credentials and log in. */
     public function login(Request $request): Response
     {
-        $username = (string) $request->input('username', '');
+        $email    = (string) $request->input('email', '');
         $password = (string) $request->input('password', '');
 
-        if ($username !== 'admin' || $password !== 'admin') {
-            Flash::set('error', 'Invalid username or password.');
+        $repo = new UserRepository();
+        $user = $repo->findByEmail($email);
+
+        if ($user === null || !password_verify($password, $user->passwordHash)) {
+            Flash::set('error', 'Invalid email or password.');
             return $this->redirect('/login');
         }
 
-        Auth::login(1);
+        Auth::login($user->id);
         return $this->redirect('/dashboard');
     }
 
