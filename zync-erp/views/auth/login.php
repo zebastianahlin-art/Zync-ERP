@@ -15,6 +15,8 @@
 
         <form method="POST" action="/login" class="space-y-4">
 
+            <?= App\Core\Csrf::field() ?>
+
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
                 <input

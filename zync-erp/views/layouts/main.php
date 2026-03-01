@@ -46,6 +46,22 @@
 
     <!-- Main content -->
     <main class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+
+        <?php
+        $flashError   = App\Core\Flash::get('error');
+        $flashSuccess = App\Core\Flash::get('success');
+        ?>
+        <?php if ($flashError !== null): ?>
+            <div class="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+                <?= htmlspecialchars($flashError, ENT_QUOTES, 'UTF-8') ?>
+            </div>
+        <?php endif; ?>
+        <?php if ($flashSuccess !== null): ?>
+            <div class="mb-6 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+                <?= htmlspecialchars($flashSuccess, ENT_QUOTES, 'UTF-8') ?>
+            </div>
+        <?php endif; ?>
+
         <?= $content ?>
     </main>
 

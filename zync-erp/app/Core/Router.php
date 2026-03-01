@@ -42,8 +42,8 @@ class Router
      */
     public function dispatch(Request $request): Response
     {
-        $method  = $request->method === 'HEAD' ? 'GET' : $request->method;
-        $path    = '/' . trim($request->path, '/');
+        $method = $request->method === 'HEAD' ? 'GET' : $request->method;
+        $path   = '/' . trim($request->path, '/');
 
         // Try exact match first.
         $handler = $this->routes[$method][$path] ?? null;
@@ -55,9 +55,11 @@ class Router
                 if (!str_contains($pattern, '{')) {
                     continue;
                 }
+
                 $regex = $this->patternToRegex($pattern);
                 if (preg_match($regex, $path, $matches)) {
                     $handler = $h;
+
                     // Collect named captures as params.
                     foreach ($matches as $k => $v) {
                         if (is_string($k)) {
@@ -78,10 +80,12 @@ class Router
         }
 
         $request->params = $params;
+
         $response = $this->call($handler, $request);
         if ($request->method === 'HEAD') {
             $response->suppressBody();
         }
+
         return $response;
     }
 

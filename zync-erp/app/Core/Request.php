@@ -42,7 +42,7 @@ class Request
         foreach ($_SERVER as $key => $value) {
             if (str_starts_with($key, 'HTTP_')) {
                 $name           = str_replace('_', '-', substr($key, 5));
-                $headers[$name] = $value;
+                $headers[$name] = (string) $value;
             }
         }
         return $headers;
@@ -61,5 +61,10 @@ class Request
     public function input(string $key, mixed $default = null): mixed
     {
         return $this->body[$key] ?? $this->query[$key] ?? $default;
+    }
+
+    public function param(string $key, mixed $default = null): mixed
+    {
+        return $this->params[$key] ?? $default;
     }
 }
