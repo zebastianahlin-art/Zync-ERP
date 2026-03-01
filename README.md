@@ -33,17 +33,33 @@ cp .env.example .env
 
 ### Environment Variables (`.env`)
 
-| Variable      | Default            | Description                        |
-|---------------|--------------------|------------------------------------|
-| `APP_NAME`    | `ZYNC ERP`         | Application display name           |
-| `APP_ENV`     | `production`       | Environment (`production`/`local`) |
-| `APP_DEBUG`   | `false`            | Enable debug output                |
-| `APP_URL`     | `https://...`      | Public URL of the application      |
-| `DB_HOST`     | `localhost`        | Database host                      |
-| `DB_PORT`     | `3306`             | Database port                      |
-| `DB_NAME`     | —                  | Database name                      |
-| `DB_USER`     | —                  | Database username                  |
-| `DB_PASS`     | —                  | Database password                  |
+| Variable         | Default            | Description                             |
+|------------------|--------------------|-----------------------------------------|
+| `APP_NAME`       | `ZYNC ERP`         | Application display name                |
+| `APP_ENV`        | `production`       | Environment (`production`/`local`)      |
+| `APP_DEBUG`      | `false`            | Enable debug output                     |
+| `APP_URL`        | `https://...`      | Public URL of the application           |
+| `DB_HOST`        | `localhost`        | Database host                           |
+| `DB_PORT`        | `3306`             | Database port                           |
+| `DB_NAME`        | —                  | Database name                           |
+| `DB_USER`        | —                  | Database username                       |
+| `DB_PASS`        | —                  | Database password                       |
+| `ADMIN_EMAIL`    | —                  | E-mail for the seeded admin user        |
+| `ADMIN_PASSWORD` | —                  | Plain-text password for the admin seed  |
+
+### Database Setup
+
+After configuring the `DB_*` and admin variables in `.env`, run the following from the `zync-erp/` directory:
+
+```bash
+# Run pending migrations (creates the migrations and users tables)
+php bin/migrate.php
+
+# Seed the initial admin user (reads ADMIN_EMAIL / ADMIN_PASSWORD from .env)
+php bin/seed.php
+```
+
+Both commands are idempotent and safe to run multiple times.
 
 ### Apache Configuration
 
