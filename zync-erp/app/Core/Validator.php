@@ -35,7 +35,10 @@ class Validator
         return $this;
     }
 
-    /** Ensure the field contains a valid e-mail address. */
+    /** Ensure the field contains a valid e-mail address.
+     *
+     * Empty values are silently skipped; chain required() first when the field is mandatory.
+     */
     public function email(string $field, string $label = ''): static
     {
         $label = $label ?: $field;

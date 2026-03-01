@@ -139,8 +139,10 @@ return $this->redirect('/customers');
 The main layout (`views/layouts/main.php`) automatically reads and displays both
 `success` and `error` flash keys at the top of the main content area.
 
-> **Note:** The login view reads the `error` flash itself (via the controller) to
-> display it inside the card. The layout handles all other contexts automatically.
+> **Note:** The login view reads the `error` flash itself via `Flash::get('error')` *inside the controller*
+> and passes the result as an `$error` variable to the view template, which renders it inline within the card.
+> By the time the layout runs, the flash has already been consumed from the session, so the layout shows
+> nothing for that key. All other controllers (e.g. dashboard) rely on the layout's automatic flash rendering.
 
 ---
 

@@ -32,12 +32,15 @@ class Csrf
     /**
      * Verify that $token matches the session token.
      * Uses a timing-safe comparison to prevent timing attacks.
+     * Returns false if no token has been generated in the session yet.
      */
     public static function verify(string $token): bool
     {
-        $expected = $_SESSION[self::SESSION_KEY] ?? '';
+        if (empty($_SESSION[self::SESSION_KEY])) {
+            return false;
+        }
 
-        return $token !== '' && hash_equals($expected, $token);
+        return $token !== '' && hash_equals((string) $_SESSION[self::SESSION_KEY], $token);
     }
 
     /**
