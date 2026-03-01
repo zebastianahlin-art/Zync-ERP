@@ -22,6 +22,9 @@ class Request
     /** @var array<string, string> */
     public readonly array $headers;
 
+    /** @var array<string, string> Route parameters extracted from dynamic path segments. */
+    public array $params = [];
+
     public function __construct()
     {
         $this->method  = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');

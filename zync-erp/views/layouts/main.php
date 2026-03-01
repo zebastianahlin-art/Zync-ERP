@@ -22,6 +22,7 @@
                 </div>
                 <div class="hidden sm:flex sm:items-center sm:space-x-6 text-sm text-gray-600">
                     <a href="/" class="hover:text-indigo-600 transition-colors">Home</a>
+                    <a href="/customers" class="hover:text-indigo-600 transition-colors">Customers</a>
                 </div>
                 <!-- Mobile menu toggle -->
                 <button
@@ -39,6 +40,7 @@
         <!-- Mobile menu -->
         <div x-show="open" class="sm:hidden border-t border-gray-100 px-4 py-2 space-y-1">
             <a href="/" class="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">Home</a>
+            <a href="/customers" class="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">Customers</a>
         </div>
     </nav>
 
