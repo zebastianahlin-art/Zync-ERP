@@ -26,6 +26,22 @@ return function (App $app) {
         $group->post('/customers/{id}', [\App\Controllers\CustomerController::class, 'update']);
         $group->post('/customers/{id}/delete', [\App\Controllers\CustomerController::class, 'destroy']);
 
+        // Supplier routes
+        $group->get('/suppliers', [\App\Controllers\SupplierController::class, 'index']);
+        $group->get('/suppliers/create', [\App\Controllers\SupplierController::class, 'create']);
+        $group->post('/suppliers', [\App\Controllers\SupplierController::class, 'store']);
+        $group->get('/suppliers/{id}/edit', [\App\Controllers\SupplierController::class, 'edit']);
+        $group->post('/suppliers/{id}', [\App\Controllers\SupplierController::class, 'update']);
+        $group->post('/suppliers/{id}/delete', [\App\Controllers\SupplierController::class, 'destroy']);
+
+        // Article routes
+        $group->get('/articles', [\App\Controllers\ArticleController::class, 'index']);
+        $group->get('/articles/create', [\App\Controllers\ArticleController::class, 'create']);
+        $group->post('/articles', [\App\Controllers\ArticleController::class, 'store']);
+        $group->get('/articles/{id}/edit', [\App\Controllers\ArticleController::class, 'edit']);
+        $group->post('/articles/{id}', [\App\Controllers\ArticleController::class, 'update']);
+        $group->post('/articles/{id}/delete', [\App\Controllers\ArticleController::class, 'destroy']);
+
         // Theme preference
         $group->post('/settings/theme', function (
             \Psr\Http\Message\ServerRequestInterface $request,
