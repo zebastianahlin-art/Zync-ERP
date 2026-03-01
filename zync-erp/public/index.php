@@ -15,6 +15,13 @@ define('BASE_PATH', dirname(__DIR__));
 // ── Autoloader ───────────────────────────────────────────────────────────────
 require BASE_PATH . '/vendor/autoload.php';
 
+// ── Session ──────────────────────────────────────────────────────────────────
+session_set_cookie_params([
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
+session_start();
+
 // ── Bootstrap ────────────────────────────────────────────────────────────────
 $app = new App\Core\App(BASE_PATH);
 
@@ -22,6 +29,12 @@ $app = new App\Core\App(BASE_PATH);
 $router = $app->router();
 
 $router->get('/', 'HomeController@index');
+
+$router->get('/login',  'AuthController@showLogin');
+$router->post('/login', 'AuthController@login');
+$router->get('/logout', 'AuthController@logout');
+
+$router->get('/dashboard', 'DashboardController@index');
 
 // ── Run ──────────────────────────────────────────────────────────────────────
 $app->run();
