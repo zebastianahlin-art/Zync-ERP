@@ -28,6 +28,7 @@ $app = \DI\Bridge\Slim\Bridge::create($container);
 session_set_cookie_params([
     'httponly' => true,
     'samesite' => 'Lax',
+    'secure'   => ($_ENV['APP_ENV'] ?? 'production') === 'production',
 ]);
 if (session_status() === PHP_SESSION_NONE) {
     session_start();

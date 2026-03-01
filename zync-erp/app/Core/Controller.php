@@ -56,6 +56,8 @@ abstract class Controller
      * Returns null when authenticated so callers can continue normally:
      *
      *   if ($guard = $this->requireAuth($response)) return $guard;
+     *
+     * @deprecated Use AuthMiddleware instead of calling this in controllers.
      */
     protected function requireAuth(ResponseInterface $response): ?ResponseInterface
     {
