@@ -45,7 +45,29 @@ class Router
         $method  = $request->method === 'HEAD' ? 'GET' : $request->method;
         $path    = '/' . trim($request->path, '/');
 
+        // Try exact match first.
         $handler = $this->routes[$method][$path] ?? null;
+        $params  = [];
+
+        // Fall back to dynamic segment matching.
+        if ($handler === null) {
+            foreach ($this->routes[$method] ?? [] as $pattern => $h) {
+                if (!str_contains($pattern, '{')) {
+                    continue;
+                }
+                $regex = $this->patternToRegex($pattern);
+                if (preg_match($regex, $path, $matches)) {
+                    $handler = $h;
+                    // Collect named captures as params.
+                    foreach ($matches as $k => $v) {
+                        if (is_string($k)) {
+                            $params[$k] = $v;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
 
         if ($handler === null) {
             $response = $this->notFound();
@@ -55,11 +77,19 @@ class Router
             return $response;
         }
 
+        $request->params = $params;
         $response = $this->call($handler, $request);
         if ($request->method === 'HEAD') {
             $response->suppressBody();
         }
         return $response;
+    }
+
+    /** Convert a route pattern like /customers/{id}/edit into a named-capture regex. */
+    private function patternToRegex(string $pattern): string
+    {
+        $regex = preg_replace('/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/', '(?P<$1>[^/]+)', $pattern);
+        return '#^' . $regex . '$#';
     }
 
     /** Resolve and call the handler. */

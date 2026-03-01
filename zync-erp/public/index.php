@@ -36,5 +36,12 @@ $router->get('/logout', 'AuthController@logout');
 
 $router->get('/dashboard', 'DashboardController@index');
 
+$router->get('/customers',              'CustomerController@index');
+$router->get('/customers/create',       'CustomerController@create');
+$router->post('/customers',             'CustomerController@store');
+$router->get('/customers/{id}/edit',    'CustomerController@edit');
+$router->post('/customers/{id}',        'CustomerController@update');
+$router->post('/customers/{id}/delete', 'CustomerController@destroy');
+
 // ── Run ──────────────────────────────────────────────────────────────────────
 $app->run();
