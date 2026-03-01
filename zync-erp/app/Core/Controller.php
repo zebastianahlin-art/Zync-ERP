@@ -4,64 +4,66 @@ declare(strict_types=1);
 
 namespace App\Core;
 
-use App\Core\Auth;
-use App\Core\Flash;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Base Controller
  *
- * Provides convenience methods for building responses.
+ * Provides convenience methods for building PSR-7 responses.
  */
 abstract class Controller
 {
-    protected View     $view;
-    protected Response $response;
+    protected View $view;
 
     public function __construct()
     {
-        $viewsDir       = dirname(__DIR__, 2) . '/views';
-        $this->view     = new View($viewsDir);
-        $this->response = new Response();
+        $viewsDir   = dirname(__DIR__, 2) . '/views';
+        $this->view = new View($viewsDir);
     }
 
     /**
-     * Render a view and return an HTML Response.
+     * Render a view and write HTML to the PSR-7 response body.
      *
      * @param array<string, mixed> $data
      */
-    protected function render(string $view, array $data = [], ?string $layout = 'main'): Response
+    protected function render(ResponseInterface $response, string $view, array $data = [], ?string $layout = 'main'): ResponseInterface
     {
         $html = $this->view->render($view, $data, $layout);
-        return $this->response->html($html);
+        $response->getBody()->write($html);
+        return $response;
     }
 
-    /** Return a JSON Response. */
-    protected function json(mixed $data, int $status = 200): Response
+    /** Write JSON to the PSR-7 response. */
+    protected function json(ResponseInterface $response, mixed $data, int $status = 200): ResponseInterface
     {
-        return $this->response->json($data, $status);
+        $response->getBody()->write((string) json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        return $response
+            ->withHeader('Content-Type', 'application/json; charset=UTF-8')
+            ->withStatus($status);
     }
 
-    /** Redirect to another URL. */
-    protected function redirect(string $url, int $status = 302): Response
+    /** Return a redirect PSR-7 response. */
+    protected function redirect(ResponseInterface $response, string $url, int $status = 302): ResponseInterface
     {
-        return $this->response->redirect($url, $status);
+        return $response
+            ->withHeader('Location', $url)
+            ->withStatus($status);
     }
 
     /**
      * Require an authenticated session.
      *
-     * If the user is not logged in, stores a flash error and redirects to /login.
      * Returns null when authenticated so callers can continue normally:
      *
-     *   if ($guard = $this->requireAuth()) return $guard;
+     *   if ($guard = $this->requireAuth($response)) return $guard;
      */
-    protected function requireAuth(): ?Response
+    protected function requireAuth(ResponseInterface $response): ?ResponseInterface
     {
         if (Auth::check()) {
             return null;
         }
 
         Flash::set('error', 'Please log in to continue.');
-        return $this->redirect('/login');
+        return $this->redirect($response, '/login');
     }
 }
