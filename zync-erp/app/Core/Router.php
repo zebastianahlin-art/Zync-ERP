@@ -9,12 +9,10 @@ namespace App\Core;
  *
  * Supports GET and POST route registration.
  * Handlers may be a closure or a 'Controller@method' string.
- * Dynamic segments are declared with curly braces: {param}.
  *
  * Example:
  *   $router->get('/', fn(Request $req) => ...);
  *   $router->get('/about', 'HomeController@about');
- *   $router->get('/customers/{id}/edit', 'CustomerController@edit');
  */
 class Router
 {
@@ -40,7 +38,6 @@ class Router
      * Dispatch the current request to its registered handler.
      *
      * HEAD requests are resolved using the GET route table (RFC 7231 §4.3.2).
-     * Dynamic segments ({param}) are matched after exact routes.
      * Returns a Response object ready to send.
      */
     public function dispatch(Request $request): Response
@@ -48,7 +45,31 @@ class Router
         $method = $request->method === 'HEAD' ? 'GET' : $request->method;
         $path   = '/' . trim($request->path, '/');
 
-        [$handler, $params] = $this->match($method, $path);
+        // Try exact match first.
+        $handler = $this->routes[$method][$path] ?? null;
+        $params  = [];
+
+        // Fall back to dynamic segment matching.
+        if ($handler === null) {
+            foreach ($this->routes[$method] ?? [] as $pattern => $h) {
+                if (!str_contains($pattern, '{')) {
+                    continue;
+                }
+
+                $regex = $this->patternToRegex($pattern);
+                if (preg_match($regex, $path, $matches)) {
+                    $handler = $h;
+
+                    // Collect named captures as params.
+                    foreach ($matches as $k => $v) {
+                        if (is_string($k)) {
+                            $params[$k] = $v;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
 
         if ($handler === null) {
             $response = $this->notFound();
@@ -58,63 +79,21 @@ class Router
             return $response;
         }
 
-        // Inject matched route params into the request
-        $request->setParams($params);
-
-        // CSRF check for state-changing requests
-        if ($method === 'POST') {
-            $token = (string) ($request->body['_token'] ?? '');
-            if (!Csrf::verify($token)) {
-                $response = new Response();
-                $response->html('<h1>419 – CSRF Token Mismatch</h1>', 419);
-                if ($request->method === 'HEAD') {
-                    $response->suppressBody();
-                }
-                return $response;
-            }
-        }
+        $request->params = $params;
 
         $response = $this->call($handler, $request);
         if ($request->method === 'HEAD') {
             $response->suppressBody();
         }
+
         return $response;
     }
 
-    /**
-     * Match a method + path against registered routes.
-     * Tries exact match first, then parameterised patterns.
-     *
-     * @return array{0: mixed, 1: array<string, string>}
-     */
-    private function match(string $method, string $path): array
+    /** Convert a route pattern like /customers/{id}/edit into a named-capture regex. */
+    private function patternToRegex(string $pattern): string
     {
-        // 1. Exact match (fast path)
-        if (isset($this->routes[$method][$path])) {
-            return [$this->routes[$method][$path], []];
-        }
-
-        // 2. Parameterised match
-        foreach ($this->routes[$method] ?? [] as $route => $handler) {
-            if (!str_contains($route, '{')) {
-                continue;
-            }
-
-            $pattern = preg_replace('/\{([^}]+)\}/', '(?P<$1>[^/]+)', $route);
-            $pattern = '#^' . $pattern . '$#';
-
-            if (preg_match($pattern, $path, $matches)) {
-                // Keep only named captures (string keys)
-                $params = array_filter(
-                    $matches,
-                    fn($k) => is_string($k),
-                    ARRAY_FILTER_USE_KEY
-                );
-                return [$handler, $params];
-            }
-        }
-
-        return [null, []];
+        $regex = preg_replace('/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/', '(?P<$1>[^/]+)', $pattern);
+        return '#^' . $regex . '$#';
     }
 
     /** Resolve and call the handler. */

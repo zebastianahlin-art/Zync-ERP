@@ -22,7 +22,7 @@ class Request
     /** @var array<string, string> */
     public readonly array $headers;
 
-    /** Route parameters extracted from dynamic segments (e.g. {id}). */
+    /** @var array<string, string> Route parameters extracted from dynamic path segments. */
     public array $params = [];
 
     public function __construct()
@@ -42,7 +42,7 @@ class Request
         foreach ($_SERVER as $key => $value) {
             if (str_starts_with($key, 'HTTP_')) {
                 $name           = str_replace('_', '-', substr($key, 5));
-                $headers[$name] = $value;
+                $headers[$name] = (string) $value;
             }
         }
         return $headers;
@@ -63,22 +63,8 @@ class Request
         return $this->body[$key] ?? $this->query[$key] ?? $default;
     }
 
-    /**
-     * Retrieve a route parameter by name, with an optional default.
-     * Route params are populated by the Router from dynamic segments like {id}.
-     */
     public function param(string $key, mixed $default = null): mixed
     {
         return $this->params[$key] ?? $default;
-    }
-
-    /**
-     * Set route parameters (called by Router after matching a dynamic route).
-     *
-     * @param array<string, string> $params
-     */
-    public function setParams(array $params): void
-    {
-        $this->params = $params;
     }
 }
