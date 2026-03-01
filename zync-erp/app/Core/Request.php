@@ -22,6 +22,9 @@ class Request
     /** @var array<string, string> */
     public readonly array $headers;
 
+    /** Route parameters extracted from dynamic segments (e.g. {id}). */
+    public array $params = [];
+
     public function __construct()
     {
         $this->method  = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
@@ -58,5 +61,24 @@ class Request
     public function input(string $key, mixed $default = null): mixed
     {
         return $this->body[$key] ?? $this->query[$key] ?? $default;
+    }
+
+    /**
+     * Retrieve a route parameter by name, with an optional default.
+     * Route params are populated by the Router from dynamic segments like {id}.
+     */
+    public function param(string $key, mixed $default = null): mixed
+    {
+        return $this->params[$key] ?? $default;
+    }
+
+    /**
+     * Set route parameters (called by Router after matching a dynamic route).
+     *
+     * @param array<string, string> $params
+     */
+    public function setParams(array $params): void
+    {
+        $this->params = $params;
     }
 }

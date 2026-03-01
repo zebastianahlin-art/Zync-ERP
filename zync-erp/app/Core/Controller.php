@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use App\Core\Auth;
+use App\Core\Flash;
+
 /**
  * Base Controller
  *
@@ -42,5 +45,23 @@ abstract class Controller
     protected function redirect(string $url, int $status = 302): Response
     {
         return $this->response->redirect($url, $status);
+    }
+
+    /**
+     * Require an authenticated session.
+     *
+     * If the user is not logged in, stores a flash error and redirects to /login.
+     * Returns null when authenticated so callers can continue normally:
+     *
+     *   if ($guard = $this->requireAuth()) return $guard;
+     */
+    protected function requireAuth(): ?Response
+    {
+        if (Auth::check()) {
+            return null;
+        }
+
+        Flash::set('error', 'Please log in to continue.');
+        return $this->redirect('/login');
     }
 }

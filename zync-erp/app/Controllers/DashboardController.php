@@ -14,8 +14,8 @@ class DashboardController extends Controller
     /** GET /dashboard – protected dashboard page. */
     public function index(Request $request): Response
     {
-        if (!Auth::check()) {
-            return $this->redirect('/login');
+        if ($guard = $this->requireAuth()) {
+            return $guard;
         }
 
         return $this->render('dashboard/index', [
