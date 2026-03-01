@@ -9,39 +9,39 @@ declare(strict_types=1);
  * All requests are routed through this file via .htaccess.
  */
 
-// ── Paths ────────────────────────────────────────────────────────────────────
-define('BASE_PATH', dirname(__DIR__));
-
 // ── Autoloader ───────────────────────────────────────────────────────────────
-require BASE_PATH . '/vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
+
+// ── Load .env ────────────────────────────────────────────────────────────────
+$dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->safeLoad();
+
+// ── Container ────────────────────────────────────────────────────────────────
+$containerBuilder = new \DI\ContainerBuilder();
+$containerBuilder->addDefinitions(__DIR__ . '/../config/container.php');
+$container = $containerBuilder->build();
+
+// ── Slim App ─────────────────────────────────────────────────────────────────
+$app = \DI\Bridge\Slim\Bridge::create($container);
 
 // ── Session ──────────────────────────────────────────────────────────────────
 session_set_cookie_params([
     'httponly' => true,
     'samesite' => 'Lax',
 ]);
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-// ── Bootstrap ────────────────────────────────────────────────────────────────
-$app = new App\Core\App(BASE_PATH);
+// ── Error middleware ──────────────────────────────────────────────────────────
+$app->addErrorMiddleware(
+    (bool) ($_ENV['APP_DEBUG'] ?? false),
+    true,
+    true
+);
 
 // ── Routes ───────────────────────────────────────────────────────────────────
-$router = $app->router();
-
-$router->get('/', 'HomeController@index');
-
-$router->get('/login',  'AuthController@showLogin');
-$router->post('/login', 'AuthController@login');
-$router->get('/logout', 'AuthController@logout');
-
-$router->get('/dashboard', 'DashboardController@index');
-
-$router->get('/customers',              'CustomerController@index');
-$router->get('/customers/create',       'CustomerController@create');
-$router->post('/customers',             'CustomerController@store');
-$router->get('/customers/{id}/edit',    'CustomerController@edit');
-$router->post('/customers/{id}',        'CustomerController@update');
-$router->post('/customers/{id}/delete', 'CustomerController@destroy');
+(require __DIR__ . '/../config/routes.php')($app);
 
 // ── Run ──────────────────────────────────────────────────────────────────────
 $app->run();

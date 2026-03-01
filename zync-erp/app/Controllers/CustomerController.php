@@ -7,9 +7,9 @@ namespace App\Controllers;
 use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Flash;
-use App\Core\Request;
-use App\Core\Response;
 use App\Models\CustomerRepository;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 class CustomerController extends Controller
 {
@@ -22,13 +22,13 @@ class CustomerController extends Controller
     }
 
     /** GET /customers */
-    public function index(Request $request): Response
+    public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         if (!Auth::check()) {
-            return $this->redirect('/login');
+            return $this->redirect($response, '/login');
         }
 
-        return $this->render('customers/index', [
+        return $this->render($response, 'customers/index', [
             'title'     => 'Customers – ZYNC ERP',
             'customers' => $this->repo->all(),
             'success'   => Flash::get('success'),
@@ -36,13 +36,13 @@ class CustomerController extends Controller
     }
 
     /** GET /customers/create */
-    public function create(Request $request): Response
+    public function create(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         if (!Auth::check()) {
-            return $this->redirect('/login');
+            return $this->redirect($response, '/login');
         }
 
-        return $this->render('customers/create', [
+        return $this->render($response, 'customers/create', [
             'title'  => 'New Customer – ZYNC ERP',
             'errors' => [],
             'old'    => [],
@@ -50,17 +50,17 @@ class CustomerController extends Controller
     }
 
     /** POST /customers */
-    public function store(Request $request): Response
+    public function store(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         if (!Auth::check()) {
-            return $this->redirect('/login');
+            return $this->redirect($response, '/login');
         }
 
         $data   = $this->extractData($request);
         $errors = $this->validate($data);
 
         if (!empty($errors)) {
-            return $this->render('customers/create', [
+            return $this->render($response, 'customers/create', [
                 'title'  => 'New Customer – ZYNC ERP',
                 'errors' => $errors,
                 'old'    => $data,
@@ -71,7 +71,7 @@ class CustomerController extends Controller
             $this->repo->create($data);
         } catch (\PDOException $e) {
             $errors = $this->handleUniqueViolation($e, $errors);
-            return $this->render('customers/create', [
+            return $this->render($response, 'customers/create', [
                 'title'  => 'New Customer – ZYNC ERP',
                 'errors' => $errors,
                 'old'    => $data,
@@ -79,22 +79,22 @@ class CustomerController extends Controller
         }
 
         Flash::set('success', 'Customer created successfully.');
-        return $this->redirect('/customers');
+        return $this->redirect($response, '/customers');
     }
 
     /** GET /customers/{id}/edit */
-    public function edit(Request $request): Response
+    public function edit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         if (!Auth::check()) {
-            return $this->redirect('/login');
+            return $this->redirect($response, '/login');
         }
 
-        $customer = $this->repo->find((int) $request->params['id']);
+        $customer = $this->repo->find((int) $args['id']);
         if ($customer === null) {
-            return $this->notFound();
+            return $this->notFound($response);
         }
 
-        return $this->render('customers/edit', [
+        return $this->render($response, 'customers/edit', [
             'title'    => 'Edit Customer – ZYNC ERP',
             'customer' => $customer,
             'errors'   => [],
@@ -102,23 +102,23 @@ class CustomerController extends Controller
     }
 
     /** POST /customers/{id} */
-    public function update(Request $request): Response
+    public function update(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         if (!Auth::check()) {
-            return $this->redirect('/login');
+            return $this->redirect($response, '/login');
         }
 
-        $id       = (int) $request->params['id'];
+        $id       = (int) $args['id'];
         $customer = $this->repo->find($id);
         if ($customer === null) {
-            return $this->notFound();
+            return $this->notFound($response);
         }
 
         $data   = $this->extractData($request);
         $errors = $this->validate($data);
 
         if (!empty($errors)) {
-            return $this->render('customers/edit', [
+            return $this->render($response, 'customers/edit', [
                 'title'    => 'Edit Customer – ZYNC ERP',
                 'customer' => $customer,
                 'errors'   => $errors,
@@ -129,7 +129,7 @@ class CustomerController extends Controller
             $this->repo->update($id, $data);
         } catch (\PDOException $e) {
             $errors = $this->handleUniqueViolation($e, $errors);
-            return $this->render('customers/edit', [
+            return $this->render($response, 'customers/edit', [
                 'title'    => 'Edit Customer – ZYNC ERP',
                 'customer' => $customer,
                 'errors'   => $errors,
@@ -137,34 +137,35 @@ class CustomerController extends Controller
         }
 
         Flash::set('success', 'Customer updated successfully.');
-        return $this->redirect('/customers');
+        return $this->redirect($response, '/customers');
     }
 
     /** POST /customers/{id}/delete */
-    public function destroy(Request $request): Response
+    public function destroy(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         if (!Auth::check()) {
-            return $this->redirect('/login');
+            return $this->redirect($response, '/login');
         }
 
-        $id = (int) $request->params['id'];
+        $id = (int) $args['id'];
         if ($this->repo->find($id) !== null) {
             $this->repo->delete($id);
             Flash::set('success', 'Customer deleted.');
         }
 
-        return $this->redirect('/customers');
+        return $this->redirect($response, '/customers');
     }
 
     /** @return array<string, string> */
-    private function extractData(Request $request): array
+    private function extractData(ServerRequestInterface $request): array
     {
+        $body = (array) $request->getParsedBody();
         return [
-            'name'       => trim((string) $request->input('name', '')),
-            'org_number' => trim((string) $request->input('org_number', '')),
-            'email'      => trim((string) $request->input('email', '')),
-            'phone'      => trim((string) $request->input('phone', '')),
-            'address'    => trim((string) $request->input('address', '')),
+            'name'       => trim((string) ($body['name'] ?? '')),
+            'org_number' => trim((string) ($body['org_number'] ?? '')),
+            'email'      => trim((string) ($body['email'] ?? '')),
+            'phone'      => trim((string) ($body['phone'] ?? '')),
+            'address'    => trim((string) ($body['address'] ?? '')),
         ];
     }
 
@@ -208,8 +209,9 @@ class CustomerController extends Controller
         return $errors;
     }
 
-    private function notFound(): Response
+    private function notFound(ResponseInterface $response): ResponseInterface
     {
-        return $this->response->html('<h1>404 – Customer Not Found</h1>', 404);
+        $response->getBody()->write('<h1>404 – Customer Not Found</h1>');
+        return $response->withStatus(404);
     }
 }
