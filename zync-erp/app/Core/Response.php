@@ -9,8 +9,9 @@ namespace App\Core;
  */
 class Response
 {
-    private int    $statusCode = 200;
-    private string $body       = '';
+    private int    $statusCode   = 200;
+    private string $body         = '';
+    private bool   $suppressBody = false;
 
     /** @var array<string, string> */
     private array $headers = [];
@@ -52,6 +53,16 @@ class Response
         return $this->setStatus($status)->setHeader('Location', $url);
     }
 
+    /**
+     * Suppress the response body (e.g. for HEAD requests per RFC 7231 §4.3.2).
+     * Status code and headers are still sent.
+     */
+    public function suppressBody(): static
+    {
+        $this->suppressBody = true;
+        return $this;
+    }
+
     public function send(): void
     {
         if (headers_sent()) {
@@ -65,6 +76,9 @@ class Response
             header("{$name}: {$value}");
         }
 
-        echo $this->body;
+        // HEAD requests must not include a response body (RFC 7231 §4.3.2).
+        if (!$this->suppressBody) {
+            echo $this->body;
+        }
     }
 }

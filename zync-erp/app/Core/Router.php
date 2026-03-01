@@ -37,20 +37,29 @@ class Router
     /**
      * Dispatch the current request to its registered handler.
      *
+     * HEAD requests are resolved using the GET route table (RFC 7231 §4.3.2).
      * Returns a Response object ready to send.
      */
     public function dispatch(Request $request): Response
     {
-        $method  = $request->method;
+        $method  = $request->method === 'HEAD' ? 'GET' : $request->method;
         $path    = '/' . trim($request->path, '/');
 
         $handler = $this->routes[$method][$path] ?? null;
 
         if ($handler === null) {
-            return $this->notFound();
+            $response = $this->notFound();
+            if ($request->method === 'HEAD') {
+                $response->suppressBody();
+            }
+            return $response;
         }
 
-        return $this->call($handler, $request);
+        $response = $this->call($handler, $request);
+        if ($request->method === 'HEAD') {
+            $response->suppressBody();
+        }
+        return $response;
     }
 
     /** Resolve and call the handler. */
