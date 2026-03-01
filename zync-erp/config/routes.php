@@ -25,11 +25,36 @@ return function (App $app) {
         $group->get('/customers/{id}/edit', [\App\Controllers\CustomerController::class, 'edit']);
         $group->post('/customers/{id}', [\App\Controllers\CustomerController::class, 'update']);
         $group->post('/customers/{id}/delete', [\App\Controllers\CustomerController::class, 'destroy']);
+
+        // Theme preference
+        $group->post('/settings/theme', function (
+            \Psr\Http\Message\ServerRequestInterface $request,
+            \Psr\Http\Message\ResponseInterface      $response
+        ): \Psr\Http\Message\ResponseInterface {
+            $body  = (array) $request->getParsedBody();
+            $theme = in_array($body['theme'] ?? '', ['dark', 'light'], true) ? $body['theme'] : 'light';
+            $id    = \App\Core\Auth::id();
+            if ($id !== null) {
+                \App\Core\Database::pdo()
+                    ->prepare('UPDATE users SET theme = ? WHERE id = ?')
+                    ->execute([$theme, $id]);
+                // Clear cached user so next Auth::user() picks up new theme
+                unset($_SESSION['_user_cache']);
+            }
+            $response->getBody()->write((string) json_encode(['success' => true]));
+            return $response->withHeader('Content-Type', 'application/json');
+        });
     })->add(new CsrfMiddleware())->add(new AuthMiddleware());
 
     // Admin routes — require Chef level (7) or higher
-    // (add admin routes here as they are created)
-    // $app->group('/admin', function (RouteCollectorProxy $group) {
-    //     ...
-    // })->add(new \App\Middleware\RoleMiddleware(minLevel: 7))->add(new AuthMiddleware());
+    $app->group('/admin', function (RouteCollectorProxy $group) {
+        $group->get('', [\App\Controllers\AdminController::class, 'index']);
+        $group->get('/users', [\App\Controllers\AdminController::class, 'users']);
+        $group->get('/users/create', [\App\Controllers\AdminController::class, 'createUser']);
+        $group->post('/users', [\App\Controllers\AdminController::class, 'storeUser']);
+        $group->get('/users/{id}/edit', [\App\Controllers\AdminController::class, 'editUser']);
+        $group->post('/users/{id}', [\App\Controllers\AdminController::class, 'updateUser']);
+        $group->post('/users/{id}/toggle', [\App\Controllers\AdminController::class, 'toggleUser']);
+    })->add(new CsrfMiddleware())->add(new \App\Middleware\RoleMiddleware(minLevel: 7))->add(new AuthMiddleware());
 };
+

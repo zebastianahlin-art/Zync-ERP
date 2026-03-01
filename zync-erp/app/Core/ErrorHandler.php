@@ -4,108 +4,132 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Log\LoggerInterface;
+use Slim\Exception\HttpNotFoundException;
+use Slim\Exception\HttpForbiddenException;
+use Slim\Interfaces\CallableResolverInterface;
+use Slim\Interfaces\ErrorHandlerInterface;
+
 /**
- * ErrorHandler
+ * Custom Slim 4 error handler.
  *
- * Registers PHP error/exception handlers and writes to storage/logs/.
- * In production, generic messages are shown; in debug mode, full details.
+ * - API routes (/api/*): always returns JSON
+ * - Production: renders clean Swedish error views (404 / 403 / 500)
+ * - Development: delegates to Slim's default behaviour (full stack trace)
+ * - 500 errors are always logged via LoggerInterface
  */
-class ErrorHandler
+class ErrorHandler implements ErrorHandlerInterface
 {
-    private string $logDir;
-    private bool   $debug;
+    public function __construct(
+        private readonly CallableResolverInterface $callableResolver,
+        private readonly ResponseFactoryInterface  $responseFactory,
+        private readonly LoggerInterface           $logger,
+    ) {}
 
-    public function __construct(string $logDir, bool $debug = false)
-    {
-        $this->logDir = rtrim($logDir, '/\\');
-        $this->debug  = $debug;
-    }
+    public function __invoke(
+        ServerRequestInterface $request,
+        \Throwable             $exception,
+        bool                   $displayErrorDetails,
+        bool                   $logErrors,
+        bool                   $logErrorDetails
+    ): ResponseInterface {
+        $statusCode = $this->statusCode($exception);
+        $path       = $request->getUri()->getPath();
+        $isApi      = str_starts_with($path, '/api/');
 
-    /** Register all handlers. */
-    public function register(): void
-    {
-        set_error_handler([$this, 'handleError']);
-        set_exception_handler([$this, 'handleException']);
-        register_shutdown_function([$this, 'handleShutdown']);
-    }
-
-    /** Convert PHP errors to exceptions (for uniform handling). */
-    public function handleError(
-        int    $errno,
-        string $errstr,
-        string $errfile = '',
-        int    $errline = 0
-    ): bool {
-        if (!(error_reporting() & $errno)) {
-            return false;
-        }
-        throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
-    }
-
-    /** Handle uncaught exceptions. */
-    public function handleException(\Throwable $e): void
-    {
-        $this->log($e);
-        $this->respond($e);
-    }
-
-    /** Catch fatal errors that bypass set_error_handler. */
-    public function handleShutdown(): void
-    {
-        $error = error_get_last();
-        if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
-            $e = new \ErrorException(
-                $error['message'],
-                0,
-                $error['type'],
-                $error['file'],
-                $error['line']
-            );
-            $this->log($e);
-            $this->respond($e);
-        }
-    }
-
-    /** Write the exception to a daily log file. */
-    private function log(\Throwable $e): void
-    {
-        if (!is_dir($this->logDir)) {
-            @mkdir($this->logDir, 0755, true);
+        // Log 500 errors
+        if ($statusCode === 500) {
+            $this->logger->error($exception->getMessage(), ['exception' => $exception]);
         }
 
-        $file    = $this->logDir . '/' . date('Y-m-d') . '.log';
-        $message = sprintf(
-            "[%s] %s: %s in %s on line %d\n%s\n",
-            date('Y-m-d H:i:s'),
-            get_class($e),
-            $e->getMessage(),
-            $e->getFile(),
-            $e->getLine(),
-            $e->getTraceAsString()
+        // API: always JSON
+        if ($isApi) {
+            return $this->jsonResponse($statusCode, $exception->getMessage());
+        }
+
+        // Debug mode: rethrow so Slim shows full trace
+        if ($displayErrorDetails) {
+            return $this->debugResponse($statusCode, $exception);
+        }
+
+        // Production: clean Swedish error page
+        return $this->htmlResponse($statusCode);
+    }
+
+    private function statusCode(\Throwable $e): int
+    {
+        if ($e instanceof HttpNotFoundException) {
+            return 404;
+        }
+        if ($e instanceof HttpForbiddenException) {
+            return 403;
+        }
+        if ($e instanceof \Slim\Exception\HttpException) {
+            return $e->getCode();
+        }
+        return 500;
+    }
+
+    private function jsonResponse(int $status, string $message): ResponseInterface
+    {
+        $code = match ($status) {
+            404     => 'NOT_FOUND',
+            403     => 'FORBIDDEN',
+            default => 'INTERNAL_ERROR',
+        };
+
+        $response = $this->responseFactory->createResponse($status);
+        $response->getBody()->write((string) json_encode([
+            'success' => false,
+            'error'   => [
+                'code'    => $code,
+                'message' => $message,
+            ],
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
+        return $response->withHeader('Content-Type', 'application/json; charset=UTF-8');
+    }
+
+    private function htmlResponse(int $status): ResponseInterface
+    {
+        $viewFile = dirname(__DIR__, 2) . '/views/errors/' . $status . '.php';
+
+        if (!is_file($viewFile)) {
+            $viewFile = dirname(__DIR__, 2) . '/views/errors/500.php';
+        }
+
+        $view    = new View(dirname(__DIR__, 2) . '/views');
+        $content = $view->render('errors/' . $status, ['title' => $this->pageTitle($status)]);
+
+        $response = $this->responseFactory->createResponse($status);
+        $response->getBody()->write($content);
+        return $response->withHeader('Content-Type', 'text/html; charset=UTF-8');
+    }
+
+    private function debugResponse(int $status, \Throwable $e): ResponseInterface
+    {
+        $html = '<pre style="font-family:monospace;padding:1rem;background:#1e1e1e;color:#d4d4d4;overflow:auto;">';
+        $html .= htmlspecialchars(
+            get_class($e) . ': ' . $e->getMessage() . "\n\nin " . $e->getFile() . ':' . $e->getLine() . "\n\n" . $e->getTraceAsString(),
+            ENT_QUOTES | ENT_SUBSTITUTE,
+            'UTF-8'
         );
+        $html .= '</pre>';
 
-        @file_put_contents($file, $message, FILE_APPEND | LOCK_EX);
+        $response = $this->responseFactory->createResponse($status);
+        $response->getBody()->write($html);
+        return $response->withHeader('Content-Type', 'text/html; charset=UTF-8');
     }
 
-    /** Send an HTTP error response to the browser. */
-    private function respond(\Throwable $e): void
+    private function pageTitle(int $status): string
     {
-        if (!headers_sent()) {
-            http_response_code(500);
-            header('Content-Type: text/html; charset=UTF-8');
-        }
-
-        if ($this->debug) {
-            echo '<pre style="font-family:monospace;padding:1rem;">';
-            echo htmlspecialchars(
-                get_class($e) . ': ' . $e->getMessage() . "\n\n" . $e->getTraceAsString(),
-                ENT_QUOTES | ENT_SUBSTITUTE,
-                'UTF-8'
-            );
-            echo '</pre>';
-        } else {
-            echo '<h1>500 – Internal Server Error</h1>';
-            echo '<p>Something went wrong. Please try again later.</p>';
-        }
+        return match ($status) {
+            404     => '404 – Sidan hittades inte – ZYNC ERP',
+            403     => '403 – Åtkomst nekad – ZYNC ERP',
+            default => '500 – Serverfel – ZYNC ERP',
+        };
     }
 }

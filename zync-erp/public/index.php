@@ -35,11 +35,17 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // ── Error middleware ──────────────────────────────────────────────────────────
-$app->addErrorMiddleware(
+$errorMiddleware = $app->addErrorMiddleware(
     (bool) ($_ENV['APP_DEBUG'] ?? false),
     true,
     true
 );
+$errorHandler = new \App\Core\ErrorHandler(
+    $app->getCallableResolver(),
+    $app->getResponseFactory(),
+    $container->get(\Psr\Log\LoggerInterface::class)
+);
+$errorMiddleware->setDefaultErrorHandler($errorHandler);
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 (require __DIR__ . '/../config/routes.php')($app);
