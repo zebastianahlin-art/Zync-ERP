@@ -7,3 +7,6 @@ zync-erp/.env
 # OS
 .DS_Store
 Thumbs.db
+
+# PHPUnit cache
+zync-erp/.phpunit.result.cache

@@ -1,8 +1,12 @@
 <!DOCTYPE html>
+<?php
+$_layoutUser  = \App\Core\Auth::user();
+$_dbTheme     = $_layoutUser['theme'] ?? 'light';
+$_themeJs     = htmlspecialchars($_dbTheme, ENT_QUOTES, 'UTF-8');
+?>
 <html lang="sv" class="h-full bg-gray-50 dark:bg-gray-900"
-      x-data="{ darkMode: localStorage.getItem('theme') === 'dark' || (<?php $u = \App\Core\Auth::user(); echo $u ? "'" . htmlspecialchars($u['theme'] ?? 'light', ENT_QUOTES, 'UTF-8') . "'" : "'light'"; ?> === 'dark' && !localStorage.getItem('theme')) }"
-      :class="{ 'dark': darkMode }"
-      x-init="darkMode = localStorage.getItem('theme') === 'dark' || (<?php echo $u ? "'" . htmlspecialchars($u['theme'] ?? 'light', ENT_QUOTES, 'UTF-8') . "'" : "'light'"; ?> === 'dark' && !localStorage.getItem('theme'))">
+      x-data="{ darkMode: localStorage.getItem('theme') !== null ? localStorage.getItem('theme') === 'dark' : '<?= $_themeJs ?>' === 'dark' }"
+      :class="{ 'dark': darkMode }">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,7 +31,7 @@
                     <a href="/" class="text-xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400">ZYNC ERP</a>
                 </div>
                 <div class="hidden sm:flex sm:items-center sm:space-x-6 text-sm text-gray-600 dark:text-gray-300">
-                    <?php $currentUser = \App\Core\Auth::user(); ?>
+                    <?php $currentUser = $_layoutUser; ?>
                     <?php if ($currentUser): ?>
                         <a href="/dashboard" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Dashboard</a>
                         <a href="/customers" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Kunder</a>

@@ -131,8 +131,8 @@ class AdminController extends Controller
         }
 
         $this->repo->toggleActive($id);
-        $status = $user['is_active'] ? 'inaktiverad' : 'aktiverad';
-        Flash::set('success', "Användaren har {$status}.");
+        $actionLabel = $user['is_active'] ? 'inaktiverad' : 'aktiverad';
+        Flash::set('success', "Användaren har {$actionLabel}.");
         return $this->redirect($response, '/admin/users');
     }
 
