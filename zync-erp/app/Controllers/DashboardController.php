@@ -19,8 +19,9 @@ class DashboardController extends Controller
         }
 
         return $this->render($response, 'dashboard/index', [
-            'title'  => 'Dashboard – ZYNC ERP',
-            'userId' => Auth::id(),
+            'title'       => 'Dashboard – ZYNC ERP',
+            'userId'      => Auth::id(),
+            'currentUser' => Auth::user(),
         ]);
     }
 }

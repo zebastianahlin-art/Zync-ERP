@@ -1,9 +1,19 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-gray-50">
+<?php
+$_layoutUser  = \App\Core\Auth::user();
+$_dbTheme     = $_layoutUser['theme'] ?? 'light';
+$_themeJs     = htmlspecialchars($_dbTheme, ENT_QUOTES, 'UTF-8');
+?>
+<html lang="sv" class="h-full bg-gray-50 dark:bg-gray-900"
+      x-data="{ darkMode: localStorage.getItem('theme') !== null ? localStorage.getItem('theme') === 'dark' : '<?= $_themeJs ?>' === 'dark' }"
+      :class="{ 'dark': darkMode }">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($title ?? 'ZYNC ERP', ENT_QUOTES, 'UTF-8') ?></title>
+
+    <!-- Tailwind CSS dark mode config -->
+    <script>tailwind = { darkMode: 'class' };</script>
 
     <!-- Tailwind CSS (CDN – no build step required) -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,23 +21,58 @@
     <!-- Alpine.js (CDN) -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="h-full font-sans antialiased">
+<body class="h-full font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
 
     <!-- Navigation -->
-    <nav class="bg-white shadow-sm" x-data="{ open: false }">
+    <nav class="bg-white dark:bg-gray-800 shadow-sm" x-data="{ open: false }">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="flex h-16 items-center justify-between">
                 <div class="flex items-center space-x-2">
-                    <span class="text-xl font-bold tracking-tight text-indigo-600">ZYNC ERP</span>
+                    <a href="/" class="text-xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400">ZYNC ERP</a>
                 </div>
-                <div class="hidden sm:flex sm:items-center sm:space-x-6 text-sm text-gray-600">
-                    <a href="/" class="hover:text-indigo-600 transition-colors">Home</a>
-                    <a href="/customers" class="hover:text-indigo-600 transition-colors">Customers</a>
+                <div class="hidden sm:flex sm:items-center sm:space-x-6 text-sm text-gray-600 dark:text-gray-300">
+                    <?php $currentUser = $_layoutUser; ?>
+                    <?php if ($currentUser): ?>
+                        <a href="/dashboard" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Dashboard</a>
+                        <a href="/customers" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Kunder</a>
+                        <?php if (($currentUser['role_level'] ?? 0) >= 7): ?>
+                            <a href="/admin" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Admin</a>
+                        <?php endif; ?>
+                        <a href="/logout" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Logga ut</a>
+                    <?php else: ?>
+                        <a href="/login" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Logga in</a>
+                    <?php endif; ?>
+
+                    <!-- Dark mode toggle -->
+                    <button
+                        @click="
+                            darkMode = !darkMode;
+                            localStorage.setItem('theme', darkMode ? 'dark' : 'light');
+                            <?php if ($currentUser): ?>
+                            fetch('/settings/theme', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                body: 'theme=' + (darkMode ? 'dark' : 'light') + '&_csrf=' + encodeURIComponent(document.querySelector('meta[name=csrf-token]')?.content ?? '')
+                            });
+                            <?php endif; ?>
+                        "
+                        class="rounded-lg p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        aria-label="Växla tema"
+                    >
+                        <svg x-show="!darkMode" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                        </svg>
+                        <svg x-show="darkMode" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M12 7a5 5 0 100 10A5 5 0 0012 7z"/>
+                        </svg>
+                    </button>
                 </div>
                 <!-- Mobile menu toggle -->
                 <button
                     @click="open = !open"
-                    class="sm:hidden rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                    class="sm:hidden rounded-md p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700"
                     aria-label="Toggle menu"
                 >
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,11 +83,24 @@
             </div>
         </div>
         <!-- Mobile menu -->
-        <div x-show="open" class="sm:hidden border-t border-gray-100 px-4 py-2 space-y-1">
-            <a href="/" class="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">Home</a>
-            <a href="/customers" class="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">Customers</a>
+        <div x-show="open" class="sm:hidden border-t border-gray-100 dark:border-gray-700 px-4 py-2 space-y-1">
+            <?php if ($currentUser): ?>
+                <a href="/dashboard" class="block rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600">Dashboard</a>
+                <a href="/customers" class="block rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600">Kunder</a>
+                <?php if (($currentUser['role_level'] ?? 0) >= 7): ?>
+                    <a href="/admin" class="block rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600">Admin</a>
+                <?php endif; ?>
+                <a href="/logout" class="block rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600">Logga ut</a>
+            <?php else: ?>
+                <a href="/login" class="block rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600">Logga in</a>
+            <?php endif; ?>
         </div>
     </nav>
+
+    <!-- CSRF meta tag for JS fetch requests -->
+    <?php if (class_exists(\App\Core\Csrf::class)): ?>
+        <meta name="csrf-token" content="<?= htmlspecialchars(\App\Core\Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
+    <?php endif; ?>
 
     <!-- Main content -->
     <main class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -52,12 +110,12 @@
         $flashSuccess = App\Core\Flash::get('success');
         ?>
         <?php if ($flashError !== null): ?>
-            <div class="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div class="mb-6 rounded-lg bg-red-50 dark:bg-red-900/30 px-4 py-3 text-sm text-red-700 dark:text-red-400">
                 <?= htmlspecialchars($flashError, ENT_QUOTES, 'UTF-8') ?>
             </div>
         <?php endif; ?>
         <?php if ($flashSuccess !== null): ?>
-            <div class="mb-6 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+            <div class="mb-6 rounded-lg bg-green-50 dark:bg-green-900/30 px-4 py-3 text-sm text-green-700 dark:text-green-400">
                 <?= htmlspecialchars($flashSuccess, ENT_QUOTES, 'UTF-8') ?>
             </div>
         <?php endif; ?>
@@ -66,7 +124,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-gray-200 mt-16 py-6 text-center text-xs text-gray-400">
+    <footer class="border-t border-gray-200 dark:border-gray-700 mt-16 py-6 text-center text-xs text-gray-400 dark:text-gray-500">
         &copy; <?= date('Y') ?> ZYNC ERP. All rights reserved.
     </footer>
 
