@@ -15,19 +15,6 @@ class EmployeeController extends Controller
 {
     private EmployeeRepository $repo;
 
-    private const TYPE_LABELS = [
-        'full_time'  => 'Heltid',
-        'part_time'  => 'Deltid',
-        'consultant' => 'Konsult',
-        'intern'     => 'Praktikant',
-    ];
-
-    private const STATUS_LABELS = [
-        'active'     => 'Aktiv',
-        'on_leave'   => 'Tjänstledig',
-        'terminated' => 'Avslutad',
-    ];
-
     public function __construct()
     {
         parent::__construct();
@@ -37,18 +24,16 @@ class EmployeeController extends Controller
     /** GET /employees */
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $params = $request->getQueryParams();
-        $status = $params['status'] ?? null;
-        $deptId = isset($params['department']) ? (int) $params['department'] : null;
+        $params  = $request->getQueryParams();
+        $status  = $params['status'] ?? null;
+        $deptId  = isset($params['department']) ? (int) $params['department'] : null;
 
         return $this->render($response, 'employees/index', [
-            'title'        => 'Personal – ZYNC ERP',
-            'employees'    => $this->repo->all($status, $deptId),
-            'departments'  => $this->repo->allDepartments(),
-            'stats'        => $this->repo->stats(),
-            'typeLabels'   => self::TYPE_LABELS,
-            'statusLabels' => self::STATUS_LABELS,
-            'filters'      => ['status' => $status, 'department' => $deptId],
+            'title'       => 'Personal – ZYNC ERP',
+            'employees'   => $this->repo->all($status, $deptId),
+            'departments' => $this->repo->allDepartments(),
+            'stats'       => $this->repo->stats(),
+            'filter'      => ['status' => $status, 'department' => $deptId],
         ]);
     }
 
@@ -56,15 +41,13 @@ class EmployeeController extends Controller
     public function create(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         return $this->render($response, 'employees/form', [
-            'title'        => 'Ny anställd – ZYNC ERP',
-            'employee'     => ['employee_number' => $this->repo->nextNumber(), 'country' => 'Sverige', 'employment_type' => 'full_time', 'status' => 'active'],
-            'departments'  => $this->repo->allDepartments(),
-            'managers'     => $this->repo->allForManagerDropdown(),
-            'users'        => $this->repo->availableUsers(),
-            'typeLabels'   => self::TYPE_LABELS,
-            'statusLabels' => self::STATUS_LABELS,
-            'errors'       => [],
-            'isEdit'       => false,
+            'title'       => 'Ny anställd – ZYNC ERP',
+            'employee'    => ['employee_number' => $this->repo->nextNumber(), 'country' => 'Sverige', 'employment_type' => 'full_time', 'status' => 'active'],
+            'departments' => $this->repo->allDepartments(),
+            'managers'    => $this->repo->allForManagerDropdown(),
+            'users'       => $this->repo->availableUsers(),
+            'errors'      => [],
+            'isNew'       => true,
         ]);
     }
 
@@ -76,15 +59,13 @@ class EmployeeController extends Controller
 
         if (!empty($errors)) {
             return $this->render($response, 'employees/form', [
-                'title'        => 'Ny anställd – ZYNC ERP',
-                'employee'     => $data,
-                'departments'  => $this->repo->allDepartments(),
-                'managers'     => $this->repo->allForManagerDropdown(),
-                'users'        => $this->repo->availableUsers(),
-                'typeLabels'   => self::TYPE_LABELS,
-                'statusLabels' => self::STATUS_LABELS,
-                'errors'       => $errors,
-                'isEdit'       => false,
+                'title'       => 'Ny anställd – ZYNC ERP',
+                'employee'    => $data,
+                'departments' => $this->repo->allDepartments(),
+                'managers'    => $this->repo->allForManagerDropdown(),
+                'users'       => $this->repo->availableUsers(),
+                'errors'      => $errors,
+                'isNew'       => true,
             ]);
         }
 
@@ -104,15 +85,13 @@ class EmployeeController extends Controller
         }
 
         return $this->render($response, 'employees/form', [
-            'title'        => 'Redigera anställd – ZYNC ERP',
-            'employee'     => $emp,
-            'departments'  => $this->repo->allDepartments(),
-            'managers'     => $this->repo->allForManagerDropdown((int) $args['id']),
-            'users'        => $this->repo->availableUsers($emp['user_id'] ? (int) $emp['user_id'] : null),
-            'typeLabels'   => self::TYPE_LABELS,
-            'statusLabels' => self::STATUS_LABELS,
-            'errors'       => [],
-            'isEdit'       => true,
+            'title'       => 'Redigera anställd – ZYNC ERP',
+            'employee'    => $emp,
+            'departments' => $this->repo->allDepartments(),
+            'managers'    => $this->repo->allForManagerDropdown((int) $args['id']),
+            'users'       => $this->repo->availableUsers($emp['user_id'] ? (int) $emp['user_id'] : null),
+            'errors'      => [],
+            'isNew'       => false,
         ]);
     }
 
@@ -131,15 +110,13 @@ class EmployeeController extends Controller
 
         if (!empty($errors)) {
             return $this->render($response, 'employees/form', [
-                'title'        => 'Redigera anställd – ZYNC ERP',
-                'employee'     => array_merge($emp, $data),
-                'departments'  => $this->repo->allDepartments(),
-                'managers'     => $this->repo->allForManagerDropdown($id),
-                'users'        => $this->repo->availableUsers($emp['user_id'] ? (int) $emp['user_id'] : null),
-                'typeLabels'   => self::TYPE_LABELS,
-                'statusLabels' => self::STATUS_LABELS,
-                'errors'       => $errors,
-                'isEdit'       => true,
+                'title'       => 'Redigera anställd – ZYNC ERP',
+                'employee'    => array_merge($emp, $data),
+                'departments' => $this->repo->allDepartments(),
+                'managers'    => $this->repo->allForManagerDropdown($id),
+                'users'       => $this->repo->availableUsers($emp['user_id'] ? (int) $emp['user_id'] : null),
+                'errors'      => $errors,
+                'isNew'       => false,
             ]);
         }
 
@@ -190,12 +167,8 @@ class EmployeeController extends Controller
         } elseif ($this->repo->numberExists($data['employee_number'], $excludeId)) {
             $errors['employee_number'] = 'Numret används redan.';
         }
-        if ($data['first_name'] === '') {
-            $errors['first_name'] = 'Förnamn är obligatoriskt.';
-        }
-        if ($data['last_name'] === '') {
-            $errors['last_name'] = 'Efternamn är obligatoriskt.';
-        }
+        if ($data['first_name'] === '') $errors['first_name'] = 'Förnamn är obligatoriskt.';
+        if ($data['last_name'] === '')  $errors['last_name']  = 'Efternamn är obligatoriskt.';
         return $errors;
     }
 }

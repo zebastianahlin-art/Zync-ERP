@@ -57,6 +57,57 @@ return function (App $app) {
         $group->post("/employees/{id}", [\App\Controllers\EmployeeController::class, "update"]);
         $group->post("/employees/{id}/delete", [\App\Controllers\EmployeeController::class, "destroy"]);
 
+        // Certificate routes
+        $group->get("/certificates", [\App\Controllers\CertificateController::class, "index"]);
+        $group->get("/certificates/create", [\App\Controllers\CertificateController::class, "create"]);
+        $group->post("/certificates", [\App\Controllers\CertificateController::class, "store"]);
+        $group->get("/certificates/{id}/edit", [\App\Controllers\CertificateController::class, "edit"]);
+        $group->post("/certificates/{id}", [\App\Controllers\CertificateController::class, "update"]);
+        $group->post("/certificates/{id}/delete", [\App\Controllers\CertificateController::class, "destroy"]);
+        $group->get("/certificates/{id}/download", [\App\Controllers\CertificateController::class, "download"]);
+
+        // Certificate routes
+
+        // Equipment routes
+        $group->get("/equipment", [\App\Controllers\EquipmentController::class, "index"]);
+        $group->get("/equipment/tree", [\App\Controllers\EquipmentController::class, "tree"]);
+        $group->get("/equipment/create", [\App\Controllers\EquipmentController::class, "create"]);
+        $group->post("/equipment", [\App\Controllers\EquipmentController::class, "store"]);
+        $group->get("/equipment/{id}", [\App\Controllers\EquipmentController::class, "show"]);
+        $group->get("/equipment/{id}/edit", [\App\Controllers\EquipmentController::class, "edit"]);
+        $group->post("/equipment/{id}", [\App\Controllers\EquipmentController::class, "update"]);
+        $group->post("/equipment/{id}/delete", [\App\Controllers\EquipmentController::class, "destroy"]);
+        $group->post("/equipment/{id}/documents", [\App\Controllers\EquipmentController::class, "uploadDocument"]);
+        $group->get("/equipment/{id}/documents/{docId}/download", [\App\Controllers\EquipmentController::class, "downloadDocument"]);
+        $group->post("/equipment/{id}/documents/{docId}/delete", [\App\Controllers\EquipmentController::class, "deleteDocument"]);
+        $group->post("/equipment/{id}/spare-parts", [\App\Controllers\EquipmentController::class, "addSparePart"]);
+        $group->post("/equipment/{id}/spare-parts/{spareId}/delete", [\App\Controllers\EquipmentController::class, "removeSparePart"]);
+
+        // Fault report routes
+        $group->get("/maintenance/faults", [\App\Controllers\FaultReportController::class, "index"]);
+        $group->get("/maintenance/faults/create", [\App\Controllers\FaultReportController::class, "create"]);
+        $group->post("/maintenance/faults", [\App\Controllers\FaultReportController::class, "store"]);
+        $group->get("/maintenance/faults/{id}", [\App\Controllers\FaultReportController::class, "show"]);
+        $group->get("/maintenance/faults/{id}/edit", [\App\Controllers\FaultReportController::class, "edit"]);
+        $group->post("/maintenance/faults/{id}", [\App\Controllers\FaultReportController::class, "update"]);
+        $group->post("/maintenance/faults/{id}/status", [\App\Controllers\FaultReportController::class, "updateStatus"]);
+        $group->post("/maintenance/faults/{id}/delete", [\App\Controllers\FaultReportController::class, "destroy"]);
+
+        // Work order routes
+        $group->get("/maintenance/work-orders", [\App\Controllers\WorkOrderController::class, "index"]);
+        $group->get("/maintenance/work-orders/create", [\App\Controllers\WorkOrderController::class, "create"]);
+        $group->post("/maintenance/work-orders", [\App\Controllers\WorkOrderController::class, "store"]);
+        $group->get("/maintenance/work-orders/{id}", [\App\Controllers\WorkOrderController::class, "show"]);
+        $group->get("/maintenance/work-orders/{id}/edit", [\App\Controllers\WorkOrderController::class, "edit"]);
+        $group->post("/maintenance/work-orders/{id}", [\App\Controllers\WorkOrderController::class, "update"]);
+        $group->post("/maintenance/work-orders/{id}/status", [\App\Controllers\WorkOrderController::class, "updateStatus"]);
+        $group->post("/maintenance/work-orders/{id}/delete", [\App\Controllers\WorkOrderController::class, "destroy"]);
+        $group->post("/maintenance/work-orders/{id}/time", [\App\Controllers\WorkOrderController::class, "addTime"]);
+        $group->post("/maintenance/work-orders/{id}/comments", [\App\Controllers\WorkOrderController::class, "addComment"]);
+        $group->post("/maintenance/work-orders/{id}/materials", [\App\Controllers\WorkOrderController::class, "withdrawMaterial"]);
+
+        // Employee routes
+
         // Inventory
         $group->get("/inventory", [\App\Controllers\InventoryController::class, "index"]);
         $group->get("/inventory/detail", [\App\Controllers\InventoryController::class, "detail"]);

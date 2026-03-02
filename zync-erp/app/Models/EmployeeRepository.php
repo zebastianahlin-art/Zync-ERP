@@ -32,6 +32,7 @@ class EmployeeRepository
         }
 
         $sql .= ' ORDER BY e.last_name ASC, e.first_name ASC';
+
         $stmt = Database::pdo()->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -56,7 +57,7 @@ class EmployeeRepository
         return $row ?: null;
     }
 
-    /** Insert a new employee. */
+    /** Create a new employee. */
     public function create(array $data): int
     {
         $stmt = Database::pdo()->prepare('
@@ -69,7 +70,7 @@ class EmployeeRepository
                  :department_id, :manager_id, :user_id, :hire_date, :birth_date,
                  :address, :city, :postal_code, :country, :employment_type, :status, :salary, :notes, :created_by)
         ');
-        $stmt->execute($this->bindParams($data));
+        $stmt->execute($this->bind($data));
         return (int) Database::pdo()->lastInsertId();
     }
 
@@ -82,13 +83,14 @@ class EmployeeRepository
                 email = :email, phone = :phone, title = :title,
                 department_id = :department_id, manager_id = :manager_id, user_id = :user_id,
                 hire_date = :hire_date, birth_date = :birth_date,
-                address = :address, city = :city, postal_code = :postal_code, country = :country,
-                employment_type = :employment_type, status = :status, salary = :salary, notes = :notes
+                address = :address, city = :city, postal_code = :postal_code,
+                country = :country, employment_type = :employment_type,
+                status = :status, salary = :salary, notes = :notes
             WHERE id = :id AND is_deleted = 0
         ');
-        $params = $this->bindParams($data);
-        $params['id'] = $id;
+        $params = $this->bind($data);
         unset($params['created_by']);
+        $params['id'] = $id;
         $stmt->execute($params);
     }
 
@@ -112,7 +114,7 @@ class EmployeeRepository
         return (int) $stmt->fetchColumn() > 0;
     }
 
-    /** Next suggested employee number. */
+    /** Generate next employee number. */
     public function nextNumber(): string
     {
         $max = Database::pdo()->query("SELECT MAX(employee_number) FROM employees WHERE employee_number REGEXP '^EMP[0-9]+$'")->fetchColumn();
@@ -124,39 +126,37 @@ class EmployeeRepository
         return 'EMP' . str_pad((string) $num, 4, '0', STR_PAD_LEFT);
     }
 
-    /** All employees for manager dropdown (optionally excluding one). */
-    public function allForManagerDropdown(?int $excludeId = null): array
-    {
-        $sql = "SELECT id, first_name, last_name, employee_number FROM employees WHERE is_deleted = 0 AND status = 'active'";
-        $params = [];
-        if ($excludeId !== null) {
-            $sql .= ' AND id != ?';
-            $params[] = $excludeId;
-        }
-        $sql .= ' ORDER BY last_name ASC, first_name ASC';
-        $stmt = Database::pdo()->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
-    }
-
-    /** All departments for dropdown. */
+    /** Departments for dropdown. */
     public function allDepartments(): array
     {
         return Database::pdo()->query('SELECT id, name FROM departments WHERE is_deleted = 0 ORDER BY name ASC')->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    /** All active users not yet linked to an employee (for dropdown). */
+    /** Employees for manager dropdown. */
+    public function allForManagerDropdown(?int $excludeId = null): array
+    {
+        $sql = "SELECT id, CONCAT(first_name, ' ', last_name) AS full_name, employee_number FROM employees WHERE is_deleted = 0 AND status = 'active'";
+        $params = [];
+        if ($excludeId !== null) {
+            $sql .= ' AND id != ?';
+            $params[] = $excludeId;
+        }
+        $sql .= ' ORDER BY last_name, first_name';
+        $stmt = Database::pdo()->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /** Active users not yet linked to an employee (for dropdown). */
     public function availableUsers(?int $currentUserId = null): array
     {
-        $sql = 'SELECT u.id, u.username, u.full_name FROM users u
-                WHERE u.is_deleted = 0 AND u.is_active = 1
-                AND u.id NOT IN (SELECT user_id FROM employees WHERE user_id IS NOT NULL AND is_deleted = 0';
+        $sql = 'SELECT u.id, u.username, u.full_name FROM users u WHERE u.is_deleted = 0 AND u.is_active = 1 AND (u.id NOT IN (SELECT user_id FROM employees WHERE user_id IS NOT NULL AND is_deleted = 0)';
         $params = [];
         if ($currentUserId !== null) {
-            $sql .= ' AND user_id != ?';
+            $sql .= ' OR u.id = ?';
             $params[] = $currentUserId;
         }
-        $sql .= ') ORDER BY u.username ASC';
+        $sql .= ') ORDER BY u.username';
         $stmt = Database::pdo()->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -167,15 +167,15 @@ class EmployeeRepository
     {
         $pdo = Database::pdo();
         return [
-            'total'       => (int) $pdo->query("SELECT COUNT(*) FROM employees WHERE is_deleted = 0")->fetchColumn(),
-            'active'      => (int) $pdo->query("SELECT COUNT(*) FROM employees WHERE is_deleted = 0 AND status = 'active'")->fetchColumn(),
-            'on_leave'    => (int) $pdo->query("SELECT COUNT(*) FROM employees WHERE is_deleted = 0 AND status = 'on_leave'")->fetchColumn(),
-            'terminated'  => (int) $pdo->query("SELECT COUNT(*) FROM employees WHERE is_deleted = 0 AND status = 'terminated'")->fetchColumn(),
+            'total'      => (int) $pdo->query("SELECT COUNT(*) FROM employees WHERE is_deleted = 0")->fetchColumn(),
+            'active'     => (int) $pdo->query("SELECT COUNT(*) FROM employees WHERE is_deleted = 0 AND status = 'active'")->fetchColumn(),
+            'on_leave'   => (int) $pdo->query("SELECT COUNT(*) FROM employees WHERE is_deleted = 0 AND status = 'on_leave'")->fetchColumn(),
+            'terminated' => (int) $pdo->query("SELECT COUNT(*) FROM employees WHERE is_deleted = 0 AND status = 'terminated'")->fetchColumn(),
         ];
     }
 
-    /** @return array<string, mixed> */
-    private function bindParams(array $data): array
+    /** Bind helper. */
+    private function bind(array $data): array
     {
         return [
             'employee_number' => $data['employee_number'],
@@ -195,7 +195,7 @@ class EmployeeRepository
             'country'         => $data['country'] ?: 'Sverige',
             'employment_type' => $data['employment_type'] ?: 'full_time',
             'status'          => $data['status'] ?: 'active',
-            'salary'          => $data['salary'] !== '' ? $data['salary'] : null,
+            'salary'          => $data['salary'] ?: null,
             'notes'           => $data['notes'] ?: null,
             'created_by'      => $data['created_by'] ?? null,
         ];
