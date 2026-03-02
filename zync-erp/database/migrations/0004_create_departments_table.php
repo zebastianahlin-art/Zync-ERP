@@ -5,7 +5,7 @@ declare(strict_types=1);
 /**
  * Migration: create departments table (DOC-02 §2.3)
  */
-function up(\PDO $pdo): void
+return function (\PDO $pdo): void
 {
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS departments (
@@ -27,4 +27,4 @@ function up(\PDO $pdo): void
             CONSTRAINT fk_departments_parent  FOREIGN KEY (parent_id)  REFERENCES departments(id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
-}
+};

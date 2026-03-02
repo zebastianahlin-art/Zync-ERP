@@ -5,7 +5,7 @@ declare(strict_types=1);
 /**
  * Migration: create roles table (DOC-02 §2.2)
  */
-function up(\PDO $pdo): void
+return function (\PDO $pdo): void
 {
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS roles (
@@ -23,4 +23,4 @@ function up(\PDO $pdo): void
             UNIQUE KEY idx_roles_slug (slug)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
-}
+};

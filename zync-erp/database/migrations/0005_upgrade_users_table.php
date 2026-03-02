@@ -10,7 +10,7 @@ declare(strict_types=1);
  * On a fresh install, CREATE TABLE IF NOT EXISTS handles the case where
  * the table does not yet exist.
  */
-function up(\PDO $pdo): void
+return function (\PDO $pdo): void
 {
     // Ensure the table exists with at minimum the core columns.
     $pdo->exec("
@@ -124,4 +124,4 @@ function up(\PDO $pdo): void
     if (!$hasFk('fk_users_department')) {
         $pdo->exec('ALTER TABLE users ADD CONSTRAINT fk_users_department FOREIGN KEY (department_id) REFERENCES departments(id)');
     }
-}
+};

@@ -5,7 +5,7 @@ declare(strict_types=1);
 /**
  * Migration: create permissions table (DOC-02 §2.4)
  */
-function up(\PDO $pdo): void
+return function (\PDO $pdo): void
 {
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS permissions (
@@ -21,4 +21,4 @@ function up(\PDO $pdo): void
             UNIQUE KEY idx_permissions_unique (module, action, resource)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
-}
+};

@@ -7,7 +7,7 @@ declare(strict_types=1);
  *
  * audit_log is immutable: no updated_at, no is_deleted, no created_by.
  */
-function up(\PDO $pdo): void
+return function (\PDO $pdo): void
 {
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS audit_log (
@@ -29,4 +29,4 @@ function up(\PDO $pdo): void
             CONSTRAINT fk_audit_user FOREIGN KEY (user_id) REFERENCES users(id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
-}
+};

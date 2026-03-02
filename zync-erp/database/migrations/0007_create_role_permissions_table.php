@@ -5,7 +5,7 @@ declare(strict_types=1);
 /**
  * Migration: create role_permissions table (DOC-02 §2.5)
  */
-function up(\PDO $pdo): void
+return function (\PDO $pdo): void
 {
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS role_permissions (
@@ -20,4 +20,4 @@ function up(\PDO $pdo): void
             CONSTRAINT fk_rp_permission FOREIGN KEY (permission_id) REFERENCES permissions(id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
-}
+};
