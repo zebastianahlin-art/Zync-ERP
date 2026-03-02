@@ -13,9 +13,8 @@ declare(strict_types=1);
 define('BASE_PATH', dirname(__DIR__));
 
 require BASE_PATH . '/vendor/autoload.php';
-require BASE_PATH . '/app/Core/EnvLoader.php';
 
-loadEnv(BASE_PATH . '/.env');
+Dotenv\Dotenv::createImmutable(BASE_PATH)->safeLoad();
 
 use App\Core\Database;
 
@@ -51,8 +50,10 @@ foreach ($pending as $file) {
     $name = basename($file);
     echo "Running migration: {$name} … ";
 
-    require $file;
-    up($pdo);
+    $migration = require $file;
+    if (is_callable($migration)) {
+        $migration($pdo);
+    }
 
     $stmt = $pdo->prepare('INSERT INTO migrations (migration) VALUES (?)');
     $stmt->execute([$name]);

@@ -5,7 +5,7 @@ declare(strict_types=1);
 /**
  * Migration: create users table
  */
-function up(\PDO $pdo): void
+return function (\PDO $pdo): void
 {
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS users (
@@ -18,4 +18,4 @@ function up(\PDO $pdo): void
             UNIQUE KEY users_email_unique (email)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
-}
+};

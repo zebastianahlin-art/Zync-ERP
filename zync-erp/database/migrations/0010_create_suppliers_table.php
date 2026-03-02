@@ -5,7 +5,7 @@ declare(strict_types=1);
 /**
  * Migration: create suppliers table
  */
-function up_0010(\PDO $pdo): void
+return function (\PDO $pdo): void
 {
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS suppliers (
@@ -31,4 +31,4 @@ function up_0010(\PDO $pdo): void
             UNIQUE KEY idx_suppliers_email (email)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
-}
+};

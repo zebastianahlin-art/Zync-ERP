@@ -5,7 +5,7 @@ declare(strict_types=1);
 /**
  * Migration: create articles table
  */
-function up_0011(\PDO $pdo): void
+return function (\PDO $pdo): void
 {
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS articles (
@@ -31,4 +31,4 @@ function up_0011(\PDO $pdo): void
             CONSTRAINT fk_articles_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE SET NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
-}
+};

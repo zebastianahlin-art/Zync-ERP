@@ -5,7 +5,7 @@ declare(strict_types=1);
 /**
  * Migration: create user_sessions table (DOC-02 §2.6)
  */
-function up(\PDO $pdo): void
+return function (\PDO $pdo): void
 {
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS user_sessions (
@@ -27,4 +27,4 @@ function up(\PDO $pdo): void
             CONSTRAINT fk_sessions_user FOREIGN KEY (user_id) REFERENCES users(id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
-}
+};
