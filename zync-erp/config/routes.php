@@ -56,6 +56,19 @@ return function (App $app) {
         $group->get("/employees/{id}/edit", [\App\Controllers\EmployeeController::class, "edit"]);
         $group->post("/employees/{id}", [\App\Controllers\EmployeeController::class, "update"]);
         $group->post("/employees/{id}/delete", [\App\Controllers\EmployeeController::class, "destroy"]);
+
+        // Inventory
+        $group->get("/inventory", [\App\Controllers\InventoryController::class, "index"]);
+        $group->get("/inventory/detail", [\App\Controllers\InventoryController::class, "detail"]);
+        $group->get("/inventory/move", [\App\Controllers\InventoryController::class, "moveForm"]);
+        $group->post("/inventory/move", [\App\Controllers\InventoryController::class, "moveStore"]);
+        $group->get("/inventory/transactions", [\App\Controllers\InventoryController::class, "transactions"]);
+        $group->get("/inventory/warehouses", [\App\Controllers\InventoryController::class, "warehouses"]);
+        $group->get("/inventory/warehouses/create", [\App\Controllers\InventoryController::class, "warehouseCreate"]);
+        $group->post("/inventory/warehouses", [\App\Controllers\InventoryController::class, "warehouseStore"]);
+        $group->get("/inventory/warehouses/{id}/edit", [\App\Controllers\InventoryController::class, "warehouseEdit"]);
+        $group->post("/inventory/warehouses/{id}", [\App\Controllers\InventoryController::class, "warehouseUpdate"]);
+        $group->post("/inventory/warehouses/{id}/delete", [\App\Controllers\InventoryController::class, "warehouseDestroy"]);
         // Article routes
         $group->get('/articles', [\App\Controllers\ArticleController::class, 'index']);
         $group->get('/articles/create', [\App\Controllers\ArticleController::class, 'create']);
