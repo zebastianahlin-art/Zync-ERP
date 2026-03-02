@@ -215,10 +215,11 @@ class PurchaseOrderRepository
 
     private function generateNumber(): string
     {
-        $year = date('Y');
-        $stmt = Database::pdo()->query(
-            "SELECT COUNT(*) FROM purchase_orders WHERE YEAR(created_at) = {$year}"
+        $year = (int) date('Y');
+        $stmt = Database::pdo()->prepare(
+            "SELECT COUNT(*) FROM purchase_orders WHERE YEAR(created_at) = ?"
         );
+        $stmt->execute([$year]);
         $count = (int) $stmt->fetchColumn() + 1;
         return "IO-{$year}-" . str_pad((string) $count, 4, '0', STR_PAD_LEFT);
     }

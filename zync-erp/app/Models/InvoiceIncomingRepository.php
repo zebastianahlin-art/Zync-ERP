@@ -228,10 +228,12 @@ class InvoiceIncomingRepository
     private function nextNumber(): string
     {
         $year = date('Y');
-        $last = Database::pdo()->query(
-            "SELECT internal_number FROM invoices_incoming WHERE internal_number LIKE 'LF{$year}%' ORDER BY internal_number DESC LIMIT 1"
-        )->fetchColumn();
-        $seq = $last ? (int) substr($last, 6) + 1 : 1;
+        $stmt = Database::pdo()->prepare(
+            "SELECT internal_number FROM invoices_incoming WHERE internal_number LIKE ? ORDER BY internal_number DESC LIMIT 1"
+        );
+        $stmt->execute(['LF' . $year . '%']);
+        $last = $stmt->fetchColumn();
+        $seq = $last ? (int) substr((string) $last, 6) + 1 : 1;
         return 'LF' . $year . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
     }
 }

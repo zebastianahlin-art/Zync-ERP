@@ -224,10 +224,12 @@ class InvoiceOutgoingRepository
     private function nextNumber(): string
     {
         $year = date('Y');
-        $last = Database::pdo()->query(
-            "SELECT invoice_number FROM invoices_outgoing WHERE invoice_number LIKE 'F{$year}%' ORDER BY invoice_number DESC LIMIT 1"
-        )->fetchColumn();
-        $seq = $last ? (int) substr($last, 5) + 1 : 1;
+        $stmt = Database::pdo()->prepare(
+            "SELECT invoice_number FROM invoices_outgoing WHERE invoice_number LIKE ? ORDER BY invoice_number DESC LIMIT 1"
+        );
+        $stmt->execute(['F' . $year . '%']);
+        $last = $stmt->fetchColumn();
+        $seq = $last ? (int) substr((string) $last, 5) + 1 : 1;
         return 'F' . $year . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
     }
 }

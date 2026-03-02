@@ -188,10 +188,12 @@ class JournalEntryRepository
     {
         $year = date('Y');
         $prefix = $series . $year;
-        $last = Database::pdo()->query(
-            "SELECT voucher_number FROM journal_entries WHERE voucher_number LIKE '{$prefix}%' ORDER BY voucher_number DESC LIMIT 1"
-        )->fetchColumn();
-        $seq = $last ? (int) substr($last, strlen($prefix)) + 1 : 1;
+        $stmt = Database::pdo()->prepare(
+            "SELECT voucher_number FROM journal_entries WHERE voucher_number LIKE ? ORDER BY voucher_number DESC LIMIT 1"
+        );
+        $stmt->execute([$prefix . '%']);
+        $last = $stmt->fetchColumn();
+        $seq = $last ? (int) substr((string) $last, strlen($prefix)) + 1 : 1;
         return $prefix . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
     }
 }

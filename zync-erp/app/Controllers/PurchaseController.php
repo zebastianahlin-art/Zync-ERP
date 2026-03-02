@@ -108,6 +108,8 @@ class PurchaseController extends Controller
             'lines' => $this->reqRepo->getLines($id),
             'articles' => $this->getArticles(),
             'suppliers' => $this->getSuppliers(),
+            'accounts' => $this->getAccounts(),
+            'costCenters' => $this->getCostCenters(),
             'success' => Flash::get('success'),
             'error' => Flash::get('error'),
         ]);
@@ -266,6 +268,8 @@ class PurchaseController extends Controller
             'order' => $order,
             'lines' => $this->orderRepo->getLines($id),
             'articles' => $this->getArticles(),
+            'accounts' => $this->getAccounts(),
+            'costCenters' => $this->getCostCenters(),
             'success' => Flash::get('success'),
             'error' => Flash::get('error'),
         ]);
