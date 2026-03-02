@@ -6,6 +6,9 @@ use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\CsrfMiddleware;
+use App\Middleware\JwtAuthMiddleware;
+use App\Core\JwtService;
+use App\Controllers\Api\AuthApiController;
 
 return function (App $app) {
     // Public routes (no auth required)
@@ -81,5 +84,17 @@ return function (App $app) {
         $group->post('/users/{id}', [\App\Controllers\AdminController::class, 'updateUser']);
         $group->post('/users/{id}/toggle', [\App\Controllers\AdminController::class, 'toggleUser']);
     })->add(new CsrfMiddleware())->add(new \App\Middleware\RoleMiddleware(minLevel: 7))->add(new AuthMiddleware());
+
+    // Public API routes (no JWT required)
+    $app->group('/api/v1', function (RouteCollectorProxy $group) {
+        $group->post('/login', [AuthApiController::class, 'login']);
+        $group->post('/2fa/verify', [AuthApiController::class, 'verify2fa']);
+    });
+
+    // Protected API routes (JWT required)
+    $app->group('/api/v1', function (RouteCollectorProxy $group) {
+        $group->post('/token/refresh', [AuthApiController::class, 'refresh']);
+        $group->get('/me', [AuthApiController::class, 'me']);
+    })->add(new JwtAuthMiddleware(new JwtService()));
 };
 
