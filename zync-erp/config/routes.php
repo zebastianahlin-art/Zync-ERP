@@ -69,6 +69,19 @@ return function (App $app) {
         $group->get("/inventory/warehouses/{id}/edit", [\App\Controllers\InventoryController::class, "warehouseEdit"]);
         $group->post("/inventory/warehouses/{id}", [\App\Controllers\InventoryController::class, "warehouseUpdate"]);
         $group->post("/inventory/warehouses/{id}/delete", [\App\Controllers\InventoryController::class, "warehouseDestroy"]);
+
+        // Machines
+        $group->get("/machines", [\App\Controllers\MachineController::class, "index"]);
+        $group->get("/machines/create", [\App\Controllers\MachineController::class, "create"]);
+        $group->post("/machines", [\App\Controllers\MachineController::class, "store"]);
+        $group->get("/machines/{id}", [\App\Controllers\MachineController::class, "show"]);
+        $group->get("/machines/{id}/edit", [\App\Controllers\MachineController::class, "edit"]);
+        $group->post("/machines/{id}", [\App\Controllers\MachineController::class, "update"]);
+        $group->post("/machines/{id}/delete", [\App\Controllers\MachineController::class, "destroy"]);
+        $group->post("/machines/{id}/spare-parts", [\App\Controllers\MachineController::class, "addSparePart"]);
+        $group->post("/machines/{id}/spare-parts/{spId}/delete", [\App\Controllers\MachineController::class, "removeSparePart"]);
+        $group->post("/machines/{id}/documents", [\App\Controllers\MachineController::class, "uploadDocument"]);
+        $group->post("/machines/{id}/documents/{docId}/delete", [\App\Controllers\MachineController::class, "removeDocument"]);
         // Article routes
         $group->get('/articles', [\App\Controllers\ArticleController::class, 'index']);
         $group->get('/articles/create', [\App\Controllers\ArticleController::class, 'create']);
