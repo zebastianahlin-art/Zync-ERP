@@ -36,6 +36,8 @@ $_themeJs     = htmlspecialchars($_dbTheme, ENT_QUOTES, 'UTF-8');
                         <a href="/dashboard" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Dashboard</a>
                         <a href="/customers" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Kunder</a>
                         <a href="/suppliers" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Leverantörer</a>
+                        <a href="/departments" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Avdelningar</a>
+                        <a href="/employees" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Personal</a>
                         <a href="/articles" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Artiklar</a>
                         <?php if (($currentUser['role_level'] ?? 0) >= 7): ?>
                             <a href="/admin" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Admin</a>
@@ -91,6 +93,8 @@ $_themeJs     = htmlspecialchars($_dbTheme, ENT_QUOTES, 'UTF-8');
                 <a href="/dashboard" class="block rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600">Dashboard</a>
                 <a href="/customers" class="block rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600">Kunder</a>
                 <a href="/suppliers" class="block rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600">Leverantörer</a>
+                <a href="/departments" class="block rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600">Avdelningar</a>
+                <a href="/employees" class="block rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600">Personal</a>
                 <a href="/articles" class="block rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600">Artiklar</a>
                 <?php if (($currentUser['role_level'] ?? 0) >= 7): ?>
                     <a href="/admin" class="block rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600">Admin</a>

@@ -41,6 +41,21 @@ return function (App $app) {
         $group->post('/suppliers/{id}', [\App\Controllers\SupplierController::class, 'update']);
         $group->post('/suppliers/{id}/delete', [\App\Controllers\SupplierController::class, 'destroy']);
 
+        // Department routes
+        $group->get("/departments", [\App\Controllers\DepartmentController::class, "index"]);
+        $group->get("/departments/create", [\App\Controllers\DepartmentController::class, "create"]);
+        $group->post("/departments", [\App\Controllers\DepartmentController::class, "store"]);
+        $group->get("/departments/{id}/edit", [\App\Controllers\DepartmentController::class, "edit"]);
+        $group->post("/departments/{id}", [\App\Controllers\DepartmentController::class, "update"]);
+        $group->post("/departments/{id}/delete", [\App\Controllers\DepartmentController::class, "destroy"]);
+
+        // Employee routes
+        $group->get("/employees", [\App\Controllers\EmployeeController::class, "index"]);
+        $group->get("/employees/create", [\App\Controllers\EmployeeController::class, "create"]);
+        $group->post("/employees", [\App\Controllers\EmployeeController::class, "store"]);
+        $group->get("/employees/{id}/edit", [\App\Controllers\EmployeeController::class, "edit"]);
+        $group->post("/employees/{id}", [\App\Controllers\EmployeeController::class, "update"]);
+        $group->post("/employees/{id}/delete", [\App\Controllers\EmployeeController::class, "destroy"]);
         // Article routes
         $group->get('/articles', [\App\Controllers\ArticleController::class, 'index']);
         $group->get('/articles/create', [\App\Controllers\ArticleController::class, 'create']);

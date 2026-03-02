@@ -54,6 +54,7 @@
                                 <a href="/admin/users/<?= (int) $user['id'] ?>/edit"
                                    class="text-indigo-600 hover:underline">Redigera</a>
                                 <form method="POST" action="/admin/users/<?= (int) $user['id'] ?>/toggle" class="inline">
+                                        <?= \App\Core\Csrf::field() ?>
                                     <button type="submit"
                                             class="<?= $user['is_active'] ? 'text-red-600' : 'text-green-600' ?> hover:underline bg-transparent border-0 p-0 cursor-pointer">
                                         <?= $user['is_active'] ? 'Inaktivera' : 'Aktivera' ?>
