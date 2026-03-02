@@ -68,6 +68,27 @@ class Auth
     /** Remove authentication data from the session. */
     public static function logout(): void
     {
-        unset($_SESSION[self::SESSION_KEY], $_SESSION['_user_cache']);
+        unset($_SESSION[self::SESSION_KEY], $_SESSION['_user_cache'], $_SESSION['2fa_pending']);
+    }
+
+    /**
+     * Mark the session as requiring 2FA verification.
+     * Called after successful password login when the user has 2FA enabled.
+     */
+    public static function set2faPending(): void
+    {
+        $_SESSION['2fa_pending'] = true;
+    }
+
+    /** Returns true when the user is logged in but 2FA verification is still pending. */
+    public static function is2faPending(): bool
+    {
+        return isset($_SESSION['2fa_pending']) && $_SESSION['2fa_pending'] === true;
+    }
+
+    /** Mark 2FA as completed for this session. */
+    public static function complete2fa(): void
+    {
+        unset($_SESSION['2fa_pending']);
     }
 }

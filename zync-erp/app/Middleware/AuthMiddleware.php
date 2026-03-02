@@ -16,12 +16,25 @@ use App\Core\Auth;
  * On failure:
  *  - API paths (/api/*) receive a 401 JSON response.
  *  - Web paths are redirected to /login.
+ *
+ * When 2FA verification is pending, web paths are redirected to /2fa/verify.
  */
 class AuthMiddleware implements MiddlewareInterface
 {
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if (Auth::check()) {
+            // If 2FA is pending, the user must complete verification first
+            if (Auth::is2faPending()) {
+                $path = $request->getUri()->getPath();
+                if (!str_starts_with($path, '/2fa/')) {
+                    $response = new \Slim\Psr7\Response();
+                    return $response
+                        ->withHeader('Location', '/2fa/verify')
+                        ->withStatus(302);
+                }
+            }
+
             $user = Auth::user();
             if ($user) {
                 $request = $request->withAttribute('user', $user);

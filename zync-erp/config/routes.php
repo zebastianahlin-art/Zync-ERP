@@ -14,6 +14,10 @@ return function (App $app) {
     $app->post('/login', [\App\Controllers\AuthController::class, 'login']);
     $app->get('/logout', [\App\Controllers\AuthController::class, 'logout']);
 
+    // 2FA verification — requires session login but not full 2FA completion
+    $app->get('/2fa/verify', [\App\Controllers\TwoFactorController::class, 'verify']);
+    $app->post('/2fa/verify', [\App\Controllers\TwoFactorController::class, 'verifyPost']);
+
     // Protected routes — require authentication
     $app->group('', function (RouteCollectorProxy $group) {
         $group->get('/dashboard', [\App\Controllers\DashboardController::class, 'index']);
@@ -60,6 +64,11 @@ return function (App $app) {
             $response->getBody()->write((string) json_encode(['success' => true]));
             return $response->withHeader('Content-Type', 'application/json');
         });
+
+        // 2FA setup and management (requires full authentication)
+        $group->get('/2fa/setup', [\App\Controllers\TwoFactorController::class, 'setup']);
+        $group->post('/2fa/enable', [\App\Controllers\TwoFactorController::class, 'enable']);
+        $group->post('/2fa/disable', [\App\Controllers\TwoFactorController::class, 'disable']);
     })->add(new CsrfMiddleware())->add(new AuthMiddleware());
 
     // Admin routes — require Chef level (7) or higher

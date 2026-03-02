@@ -37,11 +37,18 @@ class AuthController extends Controller
         $user = $repo->findByEmail($email);
 
         if ($user === null || !password_verify($password, $user->passwordHash)) {
-            Flash::set('error', 'Invalid email or password.');
+            Flash::set('error', 'Felaktig e-postadress eller lösenord.');
             return $this->redirect($response, '/login');
         }
 
         Auth::login($user->id);
+
+        // If the user has 2FA enabled, redirect to the verification step
+        if (!empty($user->totpEnabled)) {
+            Auth::set2faPending();
+            return $this->redirect($response, '/2fa/verify');
+        }
+
         return $this->redirect($response, '/dashboard');
     }
 
