@@ -1,0 +1,29 @@
+# Copilot coding agent setup steps
+# These steps run BEFORE the firewall is enabled, allowing
+# dependencies to be downloaded without restrictions.
+#
+# See: https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/customize-the-agent-environment
+
+name: "Copilot Setup Steps"
+on: workflow_dispatch
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: pdo, pdo_mysql, mbstring, xml, curl
+          tools: composer:v2
+          coverage: xdebug
+
+      - name: Install Composer dependencies
+        working-directory: zync-erp
+        run: composer install --no-interaction --prefer-dist
