@@ -25,6 +25,13 @@ return function (App $app) {
     $app->group('', function (RouteCollectorProxy $group) {
         $group->get('/dashboard', [\App\Controllers\DashboardController::class, 'index']);
 
+        // My Page routes
+        $group->get("/my-page", [\App\Controllers\MyPageController::class, "index"]);
+        $group->get("/my-page/edit", [\App\Controllers\MyPageController::class, "editProfile"]);
+        $group->post("/my-page/update", [\App\Controllers\MyPageController::class, "updateProfile"]);
+        $group->post("/my-page/password", [\App\Controllers\MyPageController::class, "changePassword"]);
+        $group->post("/my-page/avatar", [\App\Controllers\MyPageController::class, "uploadAvatar"]);
+
         // Customer routes (will be migrated to companies module later)
         $group->get('/customers', [\App\Controllers\CustomerController::class, 'index']);
         $group->get('/customers/create', [\App\Controllers\CustomerController::class, 'create']);

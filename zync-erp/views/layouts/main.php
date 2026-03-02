@@ -55,6 +55,7 @@ $_themeJs     = htmlspecialchars($_dbTheme, ENT_QUOTES, 'UTF-8');
                             <a href="/admin" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Admin</a>
                         <?php endif; ?>
                         <a href="/2fa/setup" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">2FA</a>
+                        <a href="/my-page" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Min Sida</a>
                         <a href="/logout" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Logga ut</a>
                     <?php else: ?>
                         <a href="/login" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Logga in</a>
@@ -123,6 +124,7 @@ $_themeJs     = htmlspecialchars($_dbTheme, ENT_QUOTES, 'UTF-8');
                     <a href="/admin" class="block rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600">Admin</a>
                 <?php endif; ?>
                 <a href="/2fa/setup" class="block rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600">2FA</a>
+                <a href="/my-page" class="block rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600">Min Sida</a>
                 <a href="/logout" class="block rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600">Logga ut</a>
             <?php else: ?>
                 <a href="/login" class="block rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600">Logga in</a>
