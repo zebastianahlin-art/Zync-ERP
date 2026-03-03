@@ -293,7 +293,11 @@ $canApprove = $isSupervisor && in_array($wo['status'], ['work_completed','pendin
         <?php endif; ?>
 
         <!-- Approve all button for supervisors -->
-        <?php if ($isSupervisor && (count(array_filter($timeEntries, fn($t)=>!$t['is_approved'])) > 0 || count(array_filter($parts, fn($p)=>!$p['is_approved'])) > 0)): ?>
+        <?php
+        $hasUnapprovedTime = count(array_filter($timeEntries, fn($t) => !$t['is_approved'])) > 0;
+        $hasUnapprovedParts = count(array_filter($parts, fn($p) => !$p['is_approved'])) > 0;
+        if ($isSupervisor && ($hasUnapprovedTime || $hasUnapprovedParts)):
+        ?>
         <div class="p-5 border-t border-gray-200 dark:border-gray-700">
             <form method="POST" action="/maintenance/work-orders/<?= $wo['id'] ?>/approve-all" class="inline">
                 <?= \App\Core\Csrf::field() ?>
@@ -307,8 +311,9 @@ $canApprove = $isSupervisor && in_array($wo['status'], ['work_completed','pendin
 <script>
 function fillPartPrice(sel) {
     const opt = sel.options[sel.selectedIndex];
-    if (opt.value) {
-        document.getElementById('part-price').value = opt.dataset.price || '0';
+    const priceInput = document.getElementById('part-price');
+    if (opt.value && priceInput) {
+        priceInput.value = opt.dataset.price || '0';
     }
 }
 </script>
