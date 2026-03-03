@@ -15,10 +15,9 @@
                     <tr>
                         <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Nummer</th>
                         <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Titel</th>
-                        <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Maskin</th>
+                        <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Utrustning</th>
                         <th class="px-4 py-3 text-right text-gray-500 dark:text-gray-400">Timmar</th>
-                        <th class="px-4 py-3 text-right text-gray-500 dark:text-gray-400">Kostnad</th>
-                        <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Arkiverad</th>
+                        <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Uppdaterad</th>
                         <th class="px-4 py-3"></th>
                     </tr>
                 </thead>
@@ -26,22 +25,21 @@
                     <?php foreach ($workOrders as $wo): ?>
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td class="px-4 py-3 font-mono text-xs text-indigo-600 dark:text-indigo-400">
-                            <a href="/maintenance/work-orders/archive/<?= $wo['id'] ?>"><?= htmlspecialchars($wo['order_number'], ENT_QUOTES, 'UTF-8') ?></a>
+                            <a href="/maintenance/work-orders/archive/<?= $wo['id'] ?>"><?= htmlspecialchars($wo['wo_number'], ENT_QUOTES, 'UTF-8') ?></a>
                         </td>
                         <td class="px-4 py-3 text-gray-900 dark:text-white">
                             <a href="/maintenance/work-orders/archive/<?= $wo['id'] ?>" class="hover:underline"><?= htmlspecialchars($wo['title'], ENT_QUOTES, 'UTF-8') ?></a>
                         </td>
-                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400"><?= htmlspecialchars($wo['machine_name'] ?? $wo['equipment_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
-                        <td class="px-4 py-3 text-right text-gray-900 dark:text-white"><?= htmlspecialchars($wo['total_hours'], ENT_QUOTES, 'UTF-8') ?></td>
-                        <td class="px-4 py-3 text-right text-gray-900 dark:text-white"><?= number_format((float)$wo['total_cost'], 0, ',', ' ') ?> kr</td>
-                        <td class="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs"><?= htmlspecialchars(substr($wo['archived_at'] ?? '', 0, 10), ENT_QUOTES, 'UTF-8') ?></td>
+                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400"><?= htmlspecialchars($wo['equipment_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
+                        <td class="px-4 py-3 text-right text-gray-900 dark:text-white"><?= htmlspecialchars((string)($wo['actual_hours'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
+                        <td class="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs"><?= htmlspecialchars(substr($wo['updated_at'] ?? '', 0, 10), ENT_QUOTES, 'UTF-8') ?></td>
                         <td class="px-4 py-3 text-right">
                             <a href="/maintenance/work-orders/archive/<?= $wo['id'] ?>" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Visa</a>
                         </td>
                     </tr>
                     <?php endforeach; ?>
                     <?php if (empty($workOrders)): ?>
-                    <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">Arkivet är tomt</td></tr>
+                    <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">Arkivet är tomt</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

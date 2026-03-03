@@ -66,7 +66,7 @@
                 <div class="px-5 py-3 flex items-center justify-between">
                     <div>
                         <a href="/maintenance/work-orders/<?= $wo['id'] ?>" class="text-sm font-medium text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400"><?= htmlspecialchars($wo['title'], ENT_QUOTES, 'UTF-8') ?></a>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5"><?= htmlspecialchars($wo['order_number'], ENT_QUOTES, 'UTF-8') ?> · <?= htmlspecialchars($wo['machine_name'] ?? $wo['equipment_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5"><?= htmlspecialchars($wo['wo_number'], ENT_QUOTES, 'UTF-8') ?> · <?= htmlspecialchars($wo['equipment_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></p>
                     </div>
                     <a href="/maintenance/work-orders/<?= $wo['id'] ?>" class="px-2 py-1 text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded hover:bg-indigo-200 transition">Öppna →</a>
                 </div>
@@ -88,7 +88,7 @@
                 <div class="px-5 py-3 flex items-center justify-between">
                     <div>
                         <a href="/maintenance/work-orders/<?= $wo['id'] ?>" class="text-sm font-medium text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400"><?= htmlspecialchars($wo['title'], ENT_QUOTES, 'UTF-8') ?></a>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5"><?= htmlspecialchars($wo['order_number'], ENT_QUOTES, 'UTF-8') ?> · <?= htmlspecialchars($wo['assigned_to_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5"><?= htmlspecialchars($wo['wo_number'], ENT_QUOTES, 'UTF-8') ?> · <?= htmlspecialchars($wo['assigned_to_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></p>
                     </div>
                     <a href="/maintenance/work-orders/<?= $wo['id'] ?>" class="px-2 py-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded hover:bg-green-200 transition">Granska →</a>
                 </div>

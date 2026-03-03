@@ -10,16 +10,13 @@ class WorkOrderRepository
 {
     public function all(bool $archived = false): array
     {
-        $statusFilter = $archived ? "wo.status = 'archived'" : "wo.status != 'archived'";
+        $statusFilter = $archived ? "wo.status IN ('closed','cancelled')" : "wo.status NOT IN ('closed','cancelled')";
         $sql = "SELECT wo.*,
-                       m.name AS machine_name, e.name AS equipment_name,
-                       d.name AS department_name,
+                       e.name AS equipment_name,
                        u1.full_name AS assigned_to_name,
                        u2.full_name AS created_by_name
                 FROM work_orders wo
-                LEFT JOIN machines m ON wo.machine_id = m.id
                 LEFT JOIN equipment e ON wo.equipment_id = e.id
-                LEFT JOIN departments d ON wo.department_id = d.id
                 LEFT JOIN users u1 ON wo.assigned_to = u1.id
                 LEFT JOIN users u2 ON wo.created_by = u2.id
                 WHERE wo.is_deleted = 0 AND {$statusFilter}
@@ -31,25 +28,18 @@ class WorkOrderRepository
     {
         $stmt = Database::pdo()->prepare(
             "SELECT wo.*,
-                    m.name AS machine_name, e.name AS equipment_name,
-                    d.name AS department_name,
+                    e.name AS equipment_name,
                     u1.full_name AS assigned_to_name,
                     u2.full_name AS assigned_by_name,
-                    u3.full_name AS approved_by_name,
-                    u4.full_name AS closed_by_name,
-                    u5.full_name AS created_by_name,
-                    cc.name AS cost_center_name,
+                    u3.full_name AS completed_by_name,
+                    u4.full_name AS created_by_name,
                     fr.fault_number
              FROM work_orders wo
-             LEFT JOIN machines m ON wo.machine_id = m.id
              LEFT JOIN equipment e ON wo.equipment_id = e.id
-             LEFT JOIN departments d ON wo.department_id = d.id
              LEFT JOIN users u1 ON wo.assigned_to = u1.id
              LEFT JOIN users u2 ON wo.assigned_by = u2.id
-             LEFT JOIN users u3 ON wo.approved_by = u3.id
-             LEFT JOIN users u4 ON wo.closed_by = u4.id
-             LEFT JOIN users u5 ON wo.created_by = u5.id
-             LEFT JOIN cost_centers cc ON wo.cost_center_id = cc.id
+             LEFT JOIN users u3 ON wo.completed_by = u3.id
+             LEFT JOIN users u4 ON wo.created_by = u4.id
              LEFT JOIN fault_reports fr ON wo.fault_report_id = fr.id
              WHERE wo.id = ? AND wo.is_deleted = 0"
         );
@@ -59,23 +49,20 @@ class WorkOrderRepository
 
     public function getUnassigned(): array
     {
-        $sql = "SELECT wo.*, m.name AS machine_name, e.name AS equipment_name, d.name AS department_name
+        $sql = "SELECT wo.*, e.name AS equipment_name
                 FROM work_orders wo
-                LEFT JOIN machines m ON wo.machine_id = m.id
                 LEFT JOIN equipment e ON wo.equipment_id = e.id
-                LEFT JOIN departments d ON wo.department_id = d.id
-                WHERE wo.is_deleted = 0 AND wo.status = 'reported' AND wo.assigned_to IS NULL
-                ORDER BY FIELD(wo.priority,'critical','urgent','high','normal','low'), wo.created_at ASC";
+                WHERE wo.is_deleted = 0 AND wo.status = 'draft' AND wo.assigned_to IS NULL
+                ORDER BY FIELD(wo.priority,'critical','high','medium','low'), wo.created_at ASC";
         return Database::pdo()->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     public function getPendingApproval(): array
     {
-        $sql = "SELECT wo.*, u.full_name AS assigned_to_name, m.name AS machine_name
+        $sql = "SELECT wo.*, u.full_name AS assigned_to_name
                 FROM work_orders wo
                 LEFT JOIN users u ON wo.assigned_to = u.id
-                LEFT JOIN machines m ON wo.machine_id = m.id
-                WHERE wo.is_deleted = 0 AND wo.status IN ('work_completed','pending_approval')
+                WHERE wo.is_deleted = 0 AND wo.status = 'completed'
                 ORDER BY wo.completed_at ASC";
         return Database::pdo()->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
     }
@@ -83,12 +70,11 @@ class WorkOrderRepository
     public function getByAssignee(int $userId): array
     {
         $stmt = Database::pdo()->prepare(
-            "SELECT wo.*, m.name AS machine_name, e.name AS equipment_name
+            "SELECT wo.*, e.name AS equipment_name
              FROM work_orders wo
-             LEFT JOIN machines m ON wo.machine_id = m.id
              LEFT JOIN equipment e ON wo.equipment_id = e.id
-             WHERE wo.is_deleted = 0 AND wo.assigned_to = ? AND wo.status NOT IN ('closed','archived')
-             ORDER BY FIELD(wo.priority,'critical','urgent','high','normal','low'), wo.created_at ASC"
+             WHERE wo.is_deleted = 0 AND wo.assigned_to = ? AND wo.status NOT IN ('closed','cancelled')
+             ORDER BY FIELD(wo.priority,'critical','high','medium','low'), wo.created_at ASC"
         );
         $stmt->execute([$userId]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -99,11 +85,11 @@ class WorkOrderRepository
         $sql = "SELECT u.id, u.full_name,
                        COUNT(wo.id) AS total_orders,
                        SUM(CASE WHEN wo.status = 'in_progress' THEN 1 ELSE 0 END) AS in_progress,
-                       SUM(CASE WHEN wo.status = 'work_completed' THEN 1 ELSE 0 END) AS completed,
-                       COALESCE(SUM(wo.total_hours), 0) AS total_hours
+                       SUM(CASE WHEN wo.status = 'completed' THEN 1 ELSE 0 END) AS completed,
+                       COALESCE(SUM(wo.actual_hours), 0) AS total_hours
                 FROM users u
                 LEFT JOIN work_orders wo ON wo.assigned_to = u.id AND wo.is_deleted = 0
-                    AND wo.status NOT IN ('closed','archived')
+                    AND wo.status NOT IN ('closed','cancelled')
                 WHERE u.is_active = 1
                 GROUP BY u.id, u.full_name
                 HAVING total_orders > 0
@@ -146,27 +132,22 @@ class WorkOrderRepository
         $number = $this->generateOrderNumber();
         $stmt = Database::pdo()->prepare(
             "INSERT INTO work_orders
-             (order_number, title, description, work_type, machine_id, equipment_id,
-              fault_report_id, location, department_id, priority, planned_start, planned_end,
-              estimated_hours, downtime_hours, cost_center_id, created_by)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+             (wo_number, title, description, type, equipment_id,
+              fault_report_id, priority, planned_start, planned_end,
+              estimated_hours, created_by)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         $stmt->execute([
             $number,
             $data['title'],
             $data['description'] ?? null,
-            $data['work_type'] ?? 'corrective',
-            $data['machine_id'] ?: null,
+            $data['type'] ?? 'corrective',
             $data['equipment_id'] ?: null,
             $data['fault_report_id'] ?: null,
-            $data['location'] ?? null,
-            $data['department_id'] ?: null,
-            $data['priority'] ?? 'normal',
+            $data['priority'] ?? 'medium',
             $data['planned_start'] ?: null,
             $data['planned_end'] ?: null,
             $data['estimated_hours'] ?: null,
-            $data['downtime_hours'] ?: null,
-            $data['cost_center_id'] ?: null,
             $data['created_by'],
         ]);
         return (int) Database::pdo()->lastInsertId();
@@ -175,25 +156,20 @@ class WorkOrderRepository
     public function update(int $id, array $data): void
     {
         $stmt = Database::pdo()->prepare(
-            "UPDATE work_orders SET title=?, description=?, work_type=?, machine_id=?, equipment_id=?,
-             location=?, department_id=?, priority=?, planned_start=?, planned_end=?,
-             estimated_hours=?, downtime_hours=?, cost_center_id=?
+            "UPDATE work_orders SET title=?, description=?, type=?, equipment_id=?,
+             priority=?, planned_start=?, planned_end=?,
+             estimated_hours=?
              WHERE id=?"
         );
         $stmt->execute([
             $data['title'],
             $data['description'] ?? null,
-            $data['work_type'] ?? 'corrective',
-            $data['machine_id'] ?: null,
+            $data['type'] ?? 'corrective',
             $data['equipment_id'] ?: null,
-            $data['location'] ?? null,
-            $data['department_id'] ?: null,
-            $data['priority'] ?? 'normal',
+            $data['priority'] ?? 'medium',
             $data['planned_start'] ?: null,
             $data['planned_end'] ?: null,
             $data['estimated_hours'] ?: null,
-            $data['downtime_hours'] ?: null,
-            $data['cost_center_id'] ?: null,
             $id,
         ]);
     }
@@ -209,7 +185,7 @@ class WorkOrderRepository
     public function start(int $id): void
     {
         $stmt = Database::pdo()->prepare(
-            "UPDATE work_orders SET status='in_progress', started_at=NOW() WHERE id=?"
+            "UPDATE work_orders SET status='in_progress', actual_start=NOW() WHERE id=?"
         );
         $stmt->execute([$id]);
     }
@@ -217,7 +193,7 @@ class WorkOrderRepository
     public function complete(int $id, string $notes = ''): void
     {
         $stmt = Database::pdo()->prepare(
-            "UPDATE work_orders SET status='work_completed', completed_at=NOW(), completion_notes=? WHERE id=?"
+            "UPDATE work_orders SET status='completed', completed_at=NOW(), action_taken=? WHERE id=?"
         );
         $stmt->execute([$notes ?: null, $id]);
     }
@@ -225,7 +201,7 @@ class WorkOrderRepository
     public function submitForApproval(int $id): void
     {
         $stmt = Database::pdo()->prepare(
-            "UPDATE work_orders SET status='pending_approval' WHERE id=?"
+            "UPDATE work_orders SET status='completed' WHERE id=?"
         );
         $stmt->execute([$id]);
     }
@@ -233,7 +209,7 @@ class WorkOrderRepository
     public function approve(int $id, int $userId, string $notes = ''): void
     {
         $stmt = Database::pdo()->prepare(
-            "UPDATE work_orders SET status='approved', approved_by=?, approved_at=NOW(), approval_notes=? WHERE id=?"
+            "UPDATE work_orders SET status='closed', completed_by=?, notes=? WHERE id=?"
         );
         $stmt->execute([$userId, $notes ?: null, $id]);
     }
@@ -241,15 +217,15 @@ class WorkOrderRepository
     public function reject(int $id, int $userId, string $reason = ''): void
     {
         $stmt = Database::pdo()->prepare(
-            "UPDATE work_orders SET status='rejected', approved_by=?, approved_at=NOW(), rejected_reason=? WHERE id=?"
+            "UPDATE work_orders SET status='in_progress', notes=? WHERE id=?"
         );
-        $stmt->execute([$userId, $reason ?: null, $id]);
+        $stmt->execute([$reason ?: null, $id]);
     }
 
     public function close(int $id, int $userId): void
     {
         $stmt = Database::pdo()->prepare(
-            "UPDATE work_orders SET status='closed', closed_at=NOW(), closed_by=? WHERE id=?"
+            "UPDATE work_orders SET status='closed', completed_by=? WHERE id=?"
         );
         $stmt->execute([$userId, $id]);
     }
@@ -257,7 +233,7 @@ class WorkOrderRepository
     public function archive(int $id): void
     {
         $stmt = Database::pdo()->prepare(
-            "UPDATE work_orders SET status='archived', archived_at=NOW() WHERE id=?"
+            "UPDATE work_orders SET status='cancelled' WHERE id=?"
         );
         $stmt->execute([$id]);
     }
@@ -359,22 +335,10 @@ class WorkOrderRepository
         $stmt->execute([$id]);
         $hours = (float) $stmt->fetchColumn();
 
-        $stmtLabor = Database::pdo()->prepare(
-            "SELECT COALESCE(SUM(hours * COALESCE(hourly_rate, 0)), 0) FROM work_order_time_entries WHERE work_order_id = ?"
-        );
-        $stmtLabor->execute([$id]);
-        $laborCost = (float) $stmtLabor->fetchColumn();
-
         $stmt2 = Database::pdo()->prepare(
-            "SELECT COALESCE(SUM(total_price), 0) FROM work_order_parts WHERE work_order_id = ?"
+            "UPDATE work_orders SET actual_hours=? WHERE id=?"
         );
-        $stmt2->execute([$id]);
-        $materialCost = (float) $stmt2->fetchColumn();
-
-        $stmt3 = Database::pdo()->prepare(
-            "UPDATE work_orders SET total_hours=?, total_material_cost=?, total_cost=? WHERE id=?"
-        );
-        $stmt3->execute([$hours, $materialCost, $laborCost + $materialCost, $id]);
+        $stmt2->execute([$hours, $id]);
     }
 
     public function generateOrderNumber(): string

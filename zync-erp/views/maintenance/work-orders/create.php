@@ -16,32 +16,20 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Typ av arbete</label>
-                    <select name="work_type" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                    <select name="type" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                         <option value="corrective" selected>Avhjälpande</option>
                         <option value="preventive">Förebyggande</option>
-                        <option value="predictive">Prediktivt</option>
-                        <option value="emergency">Akut</option>
-                        <option value="improvement">Förbättring</option>
                         <option value="inspection">Inspektion</option>
+                        <option value="improvement">Förbättring</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prioritet</label>
                     <select name="priority" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                         <option value="low">Låg</option>
-                        <option value="normal" selected>Normal</option>
+                        <option value="medium" selected>Normal</option>
                         <option value="high">Hög</option>
-                        <option value="urgent">Brådskande</option>
                         <option value="critical">Kritisk</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Maskin</label>
-                    <select name="machine_id" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <option value="">—</option>
-                        <?php foreach ($machines as $m): ?>
-                        <option value="<?= $m['id'] ?>"><?= htmlspecialchars($m['machine_number'] . ' — ' . $m['name'], ENT_QUOTES, 'UTF-8') ?></option>
-                        <?php endforeach; ?>
                     </select>
                 </div>
                 <div>
@@ -52,28 +40,6 @@
                         <option value="<?= $e['id'] ?>"><?= htmlspecialchars($e['equipment_number'] . ' — ' . $e['name'], ENT_QUOTES, 'UTF-8') ?></option>
                         <?php endforeach; ?>
                     </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Avdelning</label>
-                    <select name="department_id" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <option value="">—</option>
-                        <?php foreach ($departments as $d): ?>
-                        <option value="<?= $d['id'] ?>"><?= htmlspecialchars($d['name'], ENT_QUOTES, 'UTF-8') ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kostnadsställe</label>
-                    <select name="cost_center_id" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <option value="">—</option>
-                        <?php foreach ($costCenters as $cc): ?>
-                        <option value="<?= $cc['id'] ?>"><?= htmlspecialchars($cc['code'] . ' ' . $cc['name'], ENT_QUOTES, 'UTF-8') ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Plats</label>
-                    <input type="text" name="location" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Planerad start</label>

@@ -13,9 +13,8 @@
                     <tr>
                         <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Nummer</th>
                         <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Titel</th>
-                        <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Maskin</th>
+                        <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Utrustning</th>
                         <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Prioritet</th>
-                        <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Avdelning</th>
                         <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Skapad</th>
                         <th class="px-4 py-3"></th>
                     </tr>
@@ -24,14 +23,13 @@
                     <?php foreach ($workOrders as $wo): ?>
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td class="px-4 py-3 font-mono text-xs text-indigo-600 dark:text-indigo-400">
-                            <a href="/maintenance/work-orders/<?= $wo['id'] ?>"><?= htmlspecialchars($wo['order_number'], ENT_QUOTES, 'UTF-8') ?></a>
+                            <a href="/maintenance/work-orders/<?= $wo['id'] ?>"><?= htmlspecialchars($wo['wo_number'], ENT_QUOTES, 'UTF-8') ?></a>
                         </td>
                         <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">
                             <a href="/maintenance/work-orders/<?= $wo['id'] ?>" class="hover:underline"><?= htmlspecialchars($wo['title'], ENT_QUOTES, 'UTF-8') ?></a>
                         </td>
-                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400"><?= htmlspecialchars($wo['machine_name'] ?? $wo['equipment_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
+                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400"><?= htmlspecialchars($wo['equipment_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
                         <td class="px-4 py-3 text-gray-600 dark:text-gray-400"><?= htmlspecialchars($wo['priority'], ENT_QUOTES, 'UTF-8') ?></td>
-                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400"><?= htmlspecialchars($wo['department_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
                         <td class="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs"><?= htmlspecialchars(substr($wo['created_at'], 0, 10), ENT_QUOTES, 'UTF-8') ?></td>
                         <td class="px-4 py-3">
                             <a href="/maintenance/work-orders/<?= $wo['id'] ?>" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Öppna &amp; tilldela →</a>
@@ -39,7 +37,7 @@
                     </tr>
                     <?php endforeach; ?>
                     <?php if (empty($workOrders)): ?>
-                    <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">Inga otilldelade arbetsordrar</td></tr>
+                    <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">Inga otilldelade arbetsordrar</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

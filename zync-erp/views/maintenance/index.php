@@ -121,7 +121,7 @@
                 <div class="px-5 py-3">
                     <div class="flex items-center justify-between">
                         <a href="/maintenance/work-orders/<?= $wo['id'] ?>" class="text-sm font-medium text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400"><?= htmlspecialchars($wo['title'], ENT_QUOTES, 'UTF-8') ?></a>
-                        <span class="text-xs text-gray-500 dark:text-gray-400"><?= htmlspecialchars($wo['order_number'], ENT_QUOTES, 'UTF-8') ?></span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400"><?= htmlspecialchars($wo['wo_number'], ENT_QUOTES, 'UTF-8') ?></span>
                     </div>
                     <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5"><?= htmlspecialchars($wo['assigned_to_name'] ?? 'Ej tilldelad', ENT_QUOTES, 'UTF-8') ?></div>
                 </div>

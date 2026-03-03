@@ -16,26 +16,17 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Typ av arbete</label>
-                    <select name="work_type" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <?php foreach (['corrective'=>'Avhjälpande','preventive'=>'Förebyggande','predictive'=>'Prediktivt','emergency'=>'Akut','improvement'=>'Förbättring','inspection'=>'Inspektion'] as $v=>$l): ?>
-                        <option value="<?= $v ?>"<?= $wo['work_type']===$v?' selected':'' ?>><?= $l ?></option>
+                    <select name="type" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                        <?php foreach (['corrective'=>'Avhjälpande','preventive'=>'Förebyggande','inspection'=>'Inspektion','improvement'=>'Förbättring'] as $v=>$l): ?>
+                        <option value="<?= $v ?>"<?= $wo['type']===$v?' selected':'' ?>><?= $l ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prioritet</label>
                     <select name="priority" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <?php foreach (['low'=>'Låg','normal'=>'Normal','high'=>'Hög','urgent'=>'Brådskande','critical'=>'Kritisk'] as $v=>$l): ?>
+                        <?php foreach (['low'=>'Låg','medium'=>'Normal','high'=>'Hög','critical'=>'Kritisk'] as $v=>$l): ?>
                         <option value="<?= $v ?>"<?= $wo['priority']===$v?' selected':'' ?>><?= $l ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Maskin</label>
-                    <select name="machine_id" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <option value="">—</option>
-                        <?php foreach ($machines as $m): ?>
-                        <option value="<?= $m['id'] ?>"<?= ($wo['machine_id']==$m['id'])?' selected':'' ?>><?= htmlspecialchars($m['machine_number'] . ' — ' . $m['name'], ENT_QUOTES, 'UTF-8') ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -47,28 +38,6 @@
                         <option value="<?= $e['id'] ?>"<?= ($wo['equipment_id']==$e['id'])?' selected':'' ?>><?= htmlspecialchars($e['equipment_number'] . ' — ' . $e['name'], ENT_QUOTES, 'UTF-8') ?></option>
                         <?php endforeach; ?>
                     </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Avdelning</label>
-                    <select name="department_id" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <option value="">—</option>
-                        <?php foreach ($departments as $d): ?>
-                        <option value="<?= $d['id'] ?>"<?= ($wo['department_id']==$d['id'])?' selected':'' ?>><?= htmlspecialchars($d['name'], ENT_QUOTES, 'UTF-8') ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kostnadsställe</label>
-                    <select name="cost_center_id" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <option value="">—</option>
-                        <?php foreach ($costCenters as $cc): ?>
-                        <option value="<?= $cc['id'] ?>"<?= ($wo['cost_center_id']==$cc['id'])?' selected':'' ?>><?= htmlspecialchars($cc['code'] . ' ' . $cc['name'], ENT_QUOTES, 'UTF-8') ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Plats</label>
-                    <input type="text" name="location" value="<?= htmlspecialchars($wo['location'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Planerad start</label>

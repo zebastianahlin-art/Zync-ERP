@@ -1,23 +1,22 @@
 <?php
 function woStatusBadgeShow(string $s): string {
     $m = [
-        'reported'         => ['Rapporterad','bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'],
-        'assigned'         => ['Tilldelad','bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'],
-        'in_progress'      => ['Pågående','bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'],
-        'work_completed'   => ['Arbete utfört','bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300'],
-        'pending_approval' => ['Väntar attestering','bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'],
-        'approved'         => ['Attesterad','bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'],
-        'rejected'         => ['Avvisad','bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'],
-        'closed'           => ['Avslutad','bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'],
-        'archived'         => ['Arkiverad','bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-500'],
+        'draft'       => ['Utkast','bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'],
+        'planned'     => ['Planerad','bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'],
+        'assigned'    => ['Tilldelad','bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'],
+        'in_progress' => ['Pågående','bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'],
+        'on_hold'     => ['Pausad','bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'],
+        'completed'   => ['Utfört','bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300'],
+        'closed'      => ['Avslutad','bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'],
+        'cancelled'   => ['Avbruten','bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'],
     ];
     return '<span class="inline-flex px-2 py-1 rounded-full text-xs font-medium '.($m[$s][1]??'bg-gray-100 text-gray-700').'">'.($m[$s][0]??$s).'</span>';
 }
 $isSupervisor = ($currentUser['role_level'] ?? 0) >= 5;
-$canEdit = in_array($wo['status'], ['reported','assigned','in_progress']);
-$canLogTime = in_array($wo['status'], ['assigned','in_progress','work_completed']);
+$canEdit = in_array($wo['status'], ['draft','planned','assigned','in_progress']);
+$canLogTime = in_array($wo['status'], ['assigned','in_progress','completed']);
 $canComplete = $wo['status'] === 'in_progress' && $wo['assigned_to'] == $currentUser['id'];
-$canApprove = $isSupervisor && in_array($wo['status'], ['work_completed','pending_approval']);
+$canApprove = $isSupervisor && $wo['status'] === 'completed';
 ?>
 <div class="space-y-6">
     <!-- Header -->
@@ -26,7 +25,7 @@ $canApprove = $isSupervisor && in_array($wo['status'], ['work_completed','pendin
             <a href="/maintenance/work-orders" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             </a>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white"><?= htmlspecialchars($wo['order_number'], ENT_QUOTES, 'UTF-8') ?></h1>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white"><?= htmlspecialchars($wo['wo_number'], ENT_QUOTES, 'UTF-8') ?></h1>
             <?= woStatusBadgeShow($wo['status']) ?>
         </div>
         <div class="flex gap-2 flex-wrap">
@@ -58,7 +57,7 @@ $canApprove = $isSupervisor && in_array($wo['status'], ['work_completed','pendin
                     <form method="POST" action="/maintenance/work-orders/<?= $wo['id'] ?>/approve">
                         <?= \App\Core\Csrf::field() ?>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kommentar (valfri)</label>
-                        <textarea name="approval_notes" rows="2" class="w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm mb-3"></textarea>
+                        <textarea name="notes" rows="2" class="w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm mb-3"></textarea>
                         <button type="submit" class="w-full bg-green-600 text-white py-2 rounded text-sm">Bekräfta godkännande</button>
                     </form>
                 </div>
@@ -67,14 +66,14 @@ $canApprove = $isSupervisor && in_array($wo['status'], ['work_completed','pendin
                     <form method="POST" action="/maintenance/work-orders/<?= $wo['id'] ?>/reject">
                         <?= \App\Core\Csrf::field() ?>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Anledning *</label>
-                        <textarea name="rejected_reason" rows="2" required class="w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm mb-3"></textarea>
+                        <textarea name="notes" rows="2" required class="w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm mb-3"></textarea>
                         <button type="submit" class="w-full bg-red-600 text-white py-2 rounded text-sm">Bekräfta avvisning</button>
                     </form>
                 </div>
             </div>
             <?php endif; ?>
 
-            <?php if ($isSupervisor && $wo['status'] === 'approved'): ?>
+            <?php if ($isSupervisor && $wo['status'] === 'completed'): ?>
             <form method="POST" action="/maintenance/work-orders/<?= $wo['id'] ?>/close" class="inline">
                 <?= \App\Core\Csrf::field() ?>
                 <button type="submit" class="px-3 py-2 text-sm bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition">Stäng order</button>
@@ -91,29 +90,26 @@ $canApprove = $isSupervisor && in_array($wo['status'], ['work_completed','pendin
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4"><?= htmlspecialchars($wo['title'], ENT_QUOTES, 'UTF-8') ?></h2>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-            <div><span class="text-gray-500 dark:text-gray-400">Typ:</span> <span class="ml-1 text-gray-900 dark:text-white"><?= htmlspecialchars($wo['work_type'], ENT_QUOTES, 'UTF-8') ?></span></div>
+            <div><span class="text-gray-500 dark:text-gray-400">Typ:</span> <span class="ml-1 text-gray-900 dark:text-white"><?= htmlspecialchars($wo['type'], ENT_QUOTES, 'UTF-8') ?></span></div>
             <div><span class="text-gray-500 dark:text-gray-400">Prioritet:</span> <span class="ml-1 text-gray-900 dark:text-white"><?= htmlspecialchars($wo['priority'], ENT_QUOTES, 'UTF-8') ?></span></div>
-            <div><span class="text-gray-500 dark:text-gray-400">Maskin:</span> <span class="ml-1 text-gray-900 dark:text-white"><?= htmlspecialchars($wo['machine_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></span></div>
             <div><span class="text-gray-500 dark:text-gray-400">Utrustning:</span> <span class="ml-1 text-gray-900 dark:text-white"><?= htmlspecialchars($wo['equipment_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></span></div>
             <div><span class="text-gray-500 dark:text-gray-400">Tilldelad:</span> <span class="ml-1 text-gray-900 dark:text-white"><?= htmlspecialchars($wo['assigned_to_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></span></div>
-            <div><span class="text-gray-500 dark:text-gray-400">Avdelning:</span> <span class="ml-1 text-gray-900 dark:text-white"><?= htmlspecialchars($wo['department_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></span></div>
             <div><span class="text-gray-500 dark:text-gray-400">Est. timmar:</span> <span class="ml-1 text-gray-900 dark:text-white"><?= htmlspecialchars($wo['estimated_hours'] ?? '—', ENT_QUOTES, 'UTF-8') ?></span></div>
-            <div><span class="text-gray-500 dark:text-gray-400">Tot. timmar:</span> <span class="ml-1 font-semibold text-gray-900 dark:text-white"><?= htmlspecialchars($wo['total_hours'], ENT_QUOTES, 'UTF-8') ?></span></div>
-            <div><span class="text-gray-500 dark:text-gray-400">Materialkostnad:</span> <span class="ml-1 font-semibold text-gray-900 dark:text-white"><?= number_format((float)$wo['total_material_cost'], 0, ',', ' ') ?> kr</span></div>
+            <div><span class="text-gray-500 dark:text-gray-400">Faktiska timmar:</span> <span class="ml-1 font-semibold text-gray-900 dark:text-white"><?= htmlspecialchars((string)($wo['actual_hours'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></span></div>
         </div>
         <?php if (!empty($wo['description'])): ?>
         <div class="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300">
             <?= nl2br(htmlspecialchars($wo['description'], ENT_QUOTES, 'UTF-8')) ?>
         </div>
         <?php endif; ?>
-        <?php if (!empty($wo['completion_notes'])): ?>
+        <?php if (!empty($wo['action_taken'])): ?>
         <div class="mt-3 p-3 bg-teal-50 dark:bg-teal-900/20 rounded-lg text-sm text-teal-800 dark:text-teal-200">
-            <strong>Slutkommentar:</strong> <?= nl2br(htmlspecialchars($wo['completion_notes'], ENT_QUOTES, 'UTF-8')) ?>
+            <strong>Utfört arbete:</strong> <?= nl2br(htmlspecialchars($wo['action_taken'], ENT_QUOTES, 'UTF-8')) ?>
         </div>
         <?php endif; ?>
-        <?php if ($wo['status'] === 'rejected' && !empty($wo['rejected_reason'])): ?>
+        <?php if (!empty($wo['notes'])): ?>
         <div class="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg text-sm text-red-800 dark:text-red-200">
-            <strong>Avvisad:</strong> <?= nl2br(htmlspecialchars($wo['rejected_reason'], ENT_QUOTES, 'UTF-8')) ?>
+            <strong>Noteringar:</strong> <?= nl2br(htmlspecialchars($wo['notes'], ENT_QUOTES, 'UTF-8')) ?>
         </div>
         <?php endif; ?>
     </div>

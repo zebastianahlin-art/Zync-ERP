@@ -39,29 +39,25 @@ class EquipmentRepository
         $number = $this->generateNumber();
         $stmt = Database::pdo()->prepare(
             "INSERT INTO equipment
-             (equipment_number, name, description, category, location, building, floor,
+             (equipment_number, name, description, type, location,
               department_id, parent_id, manufacturer, model, serial_number,
-              year_of_manufacture, installed_date, warranty_until, status, criticality, notes, created_by)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+              year_installed, status, criticality, notes, created_by)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         $stmt->execute([
             $number,
             $data['name'],
             $data['description'] ?? null,
-            $data['category'] ?? 'other',
+            $data['type'] ?? 'machine',
             $data['location'] ?? null,
-            $data['building'] ?? null,
-            $data['floor'] ?? null,
             $data['department_id'] ?: null,
             $data['parent_id'] ?: null,
             $data['manufacturer'] ?? null,
             $data['model'] ?? null,
             $data['serial_number'] ?? null,
-            $data['year_of_manufacture'] ?: null,
-            $data['installed_date'] ?: null,
-            $data['warranty_until'] ?: null,
+            $data['year_installed'] ?: null,
             $data['status'] ?? 'operational',
-            $data['criticality'] ?? 'medium',
+            $data['criticality'] ?? 'B',
             $data['notes'] ?? null,
             $data['created_by'] ?? null,
         ]);
@@ -71,28 +67,24 @@ class EquipmentRepository
     public function update(int $id, array $data): void
     {
         $stmt = Database::pdo()->prepare(
-            "UPDATE equipment SET name=?, description=?, category=?, location=?, building=?, floor=?,
+            "UPDATE equipment SET name=?, description=?, type=?, location=?,
              department_id=?, parent_id=?, manufacturer=?, model=?, serial_number=?,
-             year_of_manufacture=?, installed_date=?, warranty_until=?, status=?, criticality=?, notes=?
+             year_installed=?, status=?, criticality=?, notes=?
              WHERE id=?"
         );
         $stmt->execute([
             $data['name'],
             $data['description'] ?? null,
-            $data['category'] ?? 'other',
+            $data['type'] ?? 'machine',
             $data['location'] ?? null,
-            $data['building'] ?? null,
-            $data['floor'] ?? null,
             $data['department_id'] ?: null,
             $data['parent_id'] ?: null,
             $data['manufacturer'] ?? null,
             $data['model'] ?? null,
             $data['serial_number'] ?? null,
-            $data['year_of_manufacture'] ?: null,
-            $data['installed_date'] ?: null,
-            $data['warranty_until'] ?: null,
+            $data['year_installed'] ?: null,
             $data['status'] ?? 'operational',
-            $data['criticality'] ?? 'medium',
+            $data['criticality'] ?? 'B',
             $data['notes'] ?? null,
             $id,
         ]);
