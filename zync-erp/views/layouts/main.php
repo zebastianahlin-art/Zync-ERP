@@ -74,10 +74,20 @@ function mobileActive(string $path, string $currentPath): string {
                     <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
                         Drift <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-52 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
                         <a href="/equipment" class="block px-4 py-2 text-sm <?= mobileActive('/equipment', $currentPath) ?>">Utrustning</a>
                         <a href="/machines" class="block px-4 py-2 text-sm <?= mobileActive('/machines', $currentPath) ?>">Maskiner</a>
-                        <a href="/maintenance/faults" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance', $currentPath) ?>">Underhåll</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <a href="/maintenance" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance', $currentPath) ?>">Underhåll</a>
+                        <a href="/maintenance/faults" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/faults', $currentPath) ?>">Felanmälan</a>
+                        <a href="/maintenance/work-orders" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/work-orders', $currentPath) ?>">Arbetsordrar</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <a href="/maintenance/inspections" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/inspections', $currentPath) ?>">Besiktningar</a>
+                        <a href="/maintenance/work-orders/archive" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/work-orders/archive', $currentPath) ?>">Arkiv</a>
+                        <?php if (($_layoutUser['role_level'] ?? 0) >= 5): ?>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <a href="/maintenance/supervisor" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/supervisor', $currentPath) ?>">Arbetsledare</a>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -184,7 +194,14 @@ function mobileActive(string $path, string $currentPath): string {
         <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Drift</p>
         <a href="/equipment" class="block rounded px-3 py-2 text-sm <?= mobileActive('/equipment', $currentPath) ?>">Utrustning</a>
         <a href="/machines" class="block rounded px-3 py-2 text-sm <?= mobileActive('/machines', $currentPath) ?>">Maskiner</a>
-        <a href="/maintenance/faults" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance', $currentPath) ?>">Underhåll</a>
+        <a href="/maintenance" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance', $currentPath) ?>">Underhåll</a>
+        <a href="/maintenance/faults" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/faults', $currentPath) ?>">Felanmälan</a>
+        <a href="/maintenance/work-orders" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/work-orders', $currentPath) ?>">Arbetsordrar</a>
+        <a href="/maintenance/inspections" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/inspections', $currentPath) ?>">Besiktningar</a>
+        <a href="/maintenance/work-orders/archive" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/work-orders/archive', $currentPath) ?>">Arkiv</a>
+        <?php if (($_layoutUser['role_level'] ?? 0) >= 5): ?>
+        <a href="/maintenance/supervisor" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/supervisor', $currentPath) ?>">Arbetsledare</a>
+        <?php endif; ?>
 
         <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Lager & Inköp</p>
         <a href="/articles" class="block rounded px-3 py-2 text-sm <?= mobileActive('/articles', $currentPath) ?>">Artiklar</a>
