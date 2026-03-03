@@ -170,6 +170,79 @@ return function (App $app) {
         $group->get('/finance/reports/trial-balance', [\App\Controllers\FinanceController::class, 'trialBalance']);
         $group->get('/finance/reports/cost-centers', [\App\Controllers\FinanceController::class, 'costCenterReport']);
 
+        // ─── Maintenance (Underhåll) ──────────────────────────
+        $group->get('/maintenance', [\App\Controllers\MaintenanceController::class, 'dashboard']);
+
+        // Equipment (Utrustning)
+        $group->get('/equipment', [\App\Controllers\MaintenanceController::class, 'equipmentIndex']);
+        $group->get('/equipment/create', [\App\Controllers\MaintenanceController::class, 'equipmentCreate']);
+        $group->post('/equipment', [\App\Controllers\MaintenanceController::class, 'equipmentStore']);
+        $group->get('/equipment/{id}', [\App\Controllers\MaintenanceController::class, 'equipmentShow']);
+        $group->get('/equipment/{id}/edit', [\App\Controllers\MaintenanceController::class, 'equipmentEdit']);
+        $group->post('/equipment/{id}', [\App\Controllers\MaintenanceController::class, 'equipmentUpdate']);
+        $group->post('/equipment/{id}/delete', [\App\Controllers\MaintenanceController::class, 'equipmentDelete']);
+
+        // Machines (Maskiner)
+        $group->get('/machines', [\App\Controllers\MaintenanceController::class, 'machineIndex']);
+        $group->get('/machines/create', [\App\Controllers\MaintenanceController::class, 'machineCreate']);
+        $group->post('/machines', [\App\Controllers\MaintenanceController::class, 'machineStore']);
+        $group->get('/machines/{id}', [\App\Controllers\MaintenanceController::class, 'machineShow']);
+        $group->get('/machines/{id}/edit', [\App\Controllers\MaintenanceController::class, 'machineEdit']);
+        $group->post('/machines/{id}', [\App\Controllers\MaintenanceController::class, 'machineUpdate']);
+        $group->post('/machines/{id}/delete', [\App\Controllers\MaintenanceController::class, 'machineDelete']);
+
+        // Fault Reports (Felanmälningar)
+        $group->get('/maintenance/faults', [\App\Controllers\MaintenanceController::class, 'faultIndex']);
+        $group->get('/maintenance/faults/create', [\App\Controllers\MaintenanceController::class, 'faultCreate']);
+        $group->post('/maintenance/faults', [\App\Controllers\MaintenanceController::class, 'faultStore']);
+        $group->get('/maintenance/faults/{id}', [\App\Controllers\MaintenanceController::class, 'faultShow']);
+        $group->get('/maintenance/faults/{id}/edit', [\App\Controllers\MaintenanceController::class, 'faultEdit']);
+        $group->post('/maintenance/faults/{id}', [\App\Controllers\MaintenanceController::class, 'faultUpdate']);
+        $group->post('/maintenance/faults/{id}/delete', [\App\Controllers\MaintenanceController::class, 'faultDelete']);
+        $group->post('/maintenance/faults/{id}/acknowledge', [\App\Controllers\MaintenanceController::class, 'faultAcknowledge']);
+        $group->post('/maintenance/faults/{id}/assign', [\App\Controllers\MaintenanceController::class, 'faultAssign']);
+        $group->post('/maintenance/faults/{id}/convert', [\App\Controllers\MaintenanceController::class, 'faultConvert']);
+
+        // Work Orders (Arbetsordrar)
+        $group->get('/maintenance/work-orders', [\App\Controllers\MaintenanceController::class, 'workOrderIndex']);
+        $group->get('/maintenance/work-orders/create', [\App\Controllers\MaintenanceController::class, 'workOrderCreate']);
+        $group->post('/maintenance/work-orders', [\App\Controllers\MaintenanceController::class, 'workOrderStore']);
+        $group->get('/maintenance/work-orders/archive', [\App\Controllers\MaintenanceController::class, 'archiveIndex']);
+        $group->get('/maintenance/work-orders/archive/{id}', [\App\Controllers\MaintenanceController::class, 'archiveShow']);
+        $group->get('/maintenance/work-orders/{id}', [\App\Controllers\MaintenanceController::class, 'workOrderShow']);
+        $group->get('/maintenance/work-orders/{id}/edit', [\App\Controllers\MaintenanceController::class, 'workOrderEdit']);
+        $group->post('/maintenance/work-orders/{id}', [\App\Controllers\MaintenanceController::class, 'workOrderUpdate']);
+        $group->post('/maintenance/work-orders/{id}/delete', [\App\Controllers\MaintenanceController::class, 'workOrderDelete']);
+        $group->post('/maintenance/work-orders/{id}/start', [\App\Controllers\MaintenanceController::class, 'workOrderStart']);
+        $group->post('/maintenance/work-orders/{id}/complete', [\App\Controllers\MaintenanceController::class, 'workOrderComplete']);
+        $group->post('/maintenance/work-orders/{id}/time', [\App\Controllers\MaintenanceController::class, 'workOrderAddTime']);
+        $group->post('/maintenance/work-orders/{id}/time/{entryId}/delete', [\App\Controllers\MaintenanceController::class, 'workOrderDeleteTime']);
+        $group->post('/maintenance/work-orders/{id}/parts', [\App\Controllers\MaintenanceController::class, 'workOrderAddPart']);
+        $group->post('/maintenance/work-orders/{id}/parts/{partId}/delete', [\App\Controllers\MaintenanceController::class, 'workOrderDeletePart']);
+        $group->post('/maintenance/work-orders/{id}/approve', [\App\Controllers\MaintenanceController::class, 'workOrderApprove']);
+        $group->post('/maintenance/work-orders/{id}/reject', [\App\Controllers\MaintenanceController::class, 'workOrderReject']);
+        $group->post('/maintenance/work-orders/{id}/close', [\App\Controllers\MaintenanceController::class, 'workOrderClose']);
+        $group->post('/maintenance/work-orders/{id}/approve-time/{entryId}', [\App\Controllers\MaintenanceController::class, 'workOrderApproveTime']);
+        $group->post('/maintenance/work-orders/{id}/approve-part/{partId}', [\App\Controllers\MaintenanceController::class, 'workOrderApprovePart']);
+        $group->post('/maintenance/work-orders/{id}/approve-all', [\App\Controllers\MaintenanceController::class, 'workOrderApproveAll']);
+
+        // Supervisor (Arbetsledare)
+        $group->get('/maintenance/supervisor', [\App\Controllers\MaintenanceController::class, 'supervisorDashboard']);
+        $group->get('/maintenance/supervisor/unassigned', [\App\Controllers\MaintenanceController::class, 'supervisorUnassigned']);
+        $group->get('/maintenance/supervisor/pending-approval', [\App\Controllers\MaintenanceController::class, 'supervisorPendingApproval']);
+        $group->get('/maintenance/supervisor/my-team', [\App\Controllers\MaintenanceController::class, 'supervisorMyTeam']);
+        $group->get('/maintenance/supervisor/statistics', [\App\Controllers\MaintenanceController::class, 'supervisorStatistics']);
+
+        // Inspections (Besiktningar)
+        $group->get('/maintenance/inspections', [\App\Controllers\MaintenanceController::class, 'inspectionIndex']);
+        $group->get('/maintenance/inspections/create', [\App\Controllers\MaintenanceController::class, 'inspectionCreate']);
+        $group->post('/maintenance/inspections', [\App\Controllers\MaintenanceController::class, 'inspectionStore']);
+        $group->get('/maintenance/inspections/overdue', [\App\Controllers\MaintenanceController::class, 'inspectionOverdue']);
+        $group->get('/maintenance/inspections/{id}', [\App\Controllers\MaintenanceController::class, 'inspectionShow']);
+        $group->get('/maintenance/inspections/{id}/edit', [\App\Controllers\MaintenanceController::class, 'inspectionEdit']);
+        $group->post('/maintenance/inspections/{id}', [\App\Controllers\MaintenanceController::class, 'inspectionUpdate']);
+        $group->post('/maintenance/inspections/{id}/delete', [\App\Controllers\MaintenanceController::class, 'inspectionDelete']);
+        $group->post('/maintenance/inspections/{id}/record', [\App\Controllers\MaintenanceController::class, 'inspectionRecord']);
         // ─── Health & Safety (Hälsa & Säkerhet) ─────────────
         $group->get('/safety', [\App\Controllers\SafetyController::class, 'index']);
 
