@@ -171,7 +171,7 @@ $canApprove = $isSupervisor && in_array($wo['status'], ['work_completed','pendin
                     </tr>
                     <?php endforeach; ?>
                     <?php if (empty($timeEntries)): ?>
-                    <tr><td colspan="7" class="px-4 py-4 text-center text-gray-400 text-sm">Inga tidsposter</td></tr>
+                    <tr><td colspan="<?= $isSupervisor ? 7 : 6 ?>" class="px-4 py-4 text-center text-gray-400 text-sm">Inga tidsposter</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
@@ -256,7 +256,7 @@ $canApprove = $isSupervisor && in_array($wo['status'], ['work_completed','pendin
                     </tr>
                     <?php endforeach; ?>
                     <?php if (empty($parts)): ?>
-                    <tr><td colspan="7" class="px-4 py-4 text-center text-gray-400 text-sm">Inget material registrerat</td></tr>
+                    <tr><td colspan="<?= $isSupervisor ? 7 : 6 ?>" class="px-4 py-4 text-center text-gray-400 text-sm">Inget material registrerat</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
