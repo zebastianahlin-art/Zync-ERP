@@ -59,8 +59,8 @@ class MaintenanceController extends Controller
     {
         $data = (array) $request->getParsedBody();
 
-        if (empty($data['title']) && empty($data['name'])) {
-            Flash::set('error', 'Titel/namn krävs.');
+        if (empty($data['name'])) {
+            Flash::set('error', 'Namn krävs.');
             return $this->redirect($response, '/equipment/create');
         }
 
@@ -80,7 +80,7 @@ class MaintenanceController extends Controller
         }
 
         return $this->render($response, 'equipment/show', [
-            'title'     => ($equipment['title'] ?? $equipment['name'] ?? 'Utrustning') . ' – ZYNC ERP',
+            'title'     => ($equipment['name'] ?? 'Utrustning') . ' – ZYNC ERP',
             'equipment' => $equipment,
             'machines'  => $this->machineRepo->getByEquipment($id),
             'success'   => Flash::get('success'),
@@ -152,6 +152,7 @@ class MaintenanceController extends Controller
             return $this->redirect($response, '/machines/create');
         }
 
+        $data['created_by'] = Auth::user()['id'];
         $id = $this->machineRepo->create($data);
         Flash::set('success', 'Maskin skapad.');
         return $this->redirect($response, "/machines/{$id}");
@@ -274,7 +275,6 @@ class MaintenanceController extends Controller
         $user = Auth::user();
         $data['reported_by'] = $user['id'];
         $data['created_by']  = $user['id'];
-        $data['fault_number'] = $this->faultRepo->generateFaultNumber();
 
         $id = $this->faultRepo->create($data);
         Flash::set('success', 'Felrapport skapad.');
@@ -357,12 +357,7 @@ class MaintenanceController extends Controller
     {
         $id = (int) $args['id'];
         $data = (array) $request->getParsedBody();
-        $resolution = $data['resolution'] ?? null;
-
         $this->faultRepo->updateStatus($id, 'resolved', Auth::user()['id']);
-        if ($resolution !== null) {
-            $this->faultRepo->update($id, ['resolution' => $resolution]);
-        }
 
         Flash::set('success', 'Felrapport löst.');
         return $this->redirect($response, "/maintenance/faults/{$id}");
@@ -431,7 +426,7 @@ class MaintenanceController extends Controller
         }
 
         return $this->render($response, 'maintenance/work-orders/show', [
-            'title'       => ($order['work_order_number'] ?? 'Arbetsorder') . ' – ZYNC ERP',
+            'title'       => ($order['order_number'] ?? 'Arbetsorder') . ' – ZYNC ERP',
             'order'       => $order,
             'timeEntries' => $this->workOrderRepo->getTimeEntries($id),
             'parts'       => $this->workOrderRepo->getParts($id),
@@ -652,7 +647,7 @@ class MaintenanceController extends Controller
         }
 
         return $this->render($response, 'maintenance/work-orders/archive/show', [
-            'title'       => ($order['work_order_number'] ?? 'Arbetsorder') . ' – ZYNC ERP',
+            'title'       => ($order['order_number'] ?? 'Arbetsorder') . ' – ZYNC ERP',
             'order'       => $order,
             'timeEntries' => $this->workOrderRepo->getTimeEntries($id),
             'parts'       => $this->workOrderRepo->getParts($id),
@@ -762,8 +757,8 @@ class MaintenanceController extends Controller
     {
         $data = (array) $request->getParsedBody();
 
-        if (empty($data['title'])) {
-            Flash::set('error', 'Titel krävs.');
+        if (empty($data['scheduled_date'])) {
+            Flash::set('error', 'Schemalagt datum krävs.');
             return $this->redirect($response, '/maintenance/inspections/create');
         }
 
@@ -783,7 +778,7 @@ class MaintenanceController extends Controller
         }
 
         return $this->render($response, 'maintenance/inspections/show', [
-            'title'      => ($inspection['title'] ?? 'Inspektion') . ' – ZYNC ERP',
+            'title'      => ($inspection['inspection_number'] ?? 'Inspektion') . ' – ZYNC ERP',
             'inspection' => $inspection,
             'success'    => Flash::get('success'),
             'error'      => Flash::get('error'),
