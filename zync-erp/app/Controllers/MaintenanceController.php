@@ -347,8 +347,12 @@ class MaintenanceController extends Controller
     {
         $id = (int) $args['id'];
         $data = (array) $request->getParsedBody();
-        $assignedTo = $data['assigned_to'] ?? null;
-        $this->faultRepo->updateStatus($id, 'assigned', $assignedTo);
+        $assignedTo = (int) ($data['assigned_to'] ?? 0);
+        if (!$assignedTo) {
+            Flash::set('error', 'Välj en användare att tilldela till.');
+            return $this->redirect($response, "/maintenance/faults/{$id}");
+        }
+        $this->faultRepo->assign($id, $assignedTo, Auth::user()['id']);
         Flash::set('success', 'Felrapport tilldelad.');
         return $this->redirect($response, "/maintenance/faults/{$id}");
     }
@@ -480,7 +484,11 @@ class MaintenanceController extends Controller
     {
         $id = (int) $args['id'];
         $data = (array) $request->getParsedBody();
-        $assignedTo = $data['assigned_to'] ?? null;
+        $assignedTo = (int) ($data['assigned_to'] ?? 0);
+        if (!$assignedTo) {
+            Flash::set('error', 'Välj en användare att tilldela till.');
+            return $this->redirect($response, "/maintenance/work-orders/{$id}");
+        }
         $this->workOrderRepo->assign($id, $assignedTo, Auth::user()['id']);
         Flash::set('success', 'Arbetsorder tilldelad.');
         return $this->redirect($response, "/maintenance/work-orders/{$id}");
@@ -680,21 +688,21 @@ class MaintenanceController extends Controller
     public function supervisorUnassigned(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         return $this->render($response, 'maintenance/supervisor/unassigned', [
-            'title'      => 'Otilldelade arbetsorder – ZYNC ERP',
-            'unassigned' => $this->workOrderRepo->getUnassigned(),
-            'users'      => $this->getUsers(),
-            'success'    => Flash::get('success'),
-            'error'      => Flash::get('error'),
+            'title'        => 'Otilldelade arbetsorder – ZYNC ERP',
+            'workOrders'   => $this->workOrderRepo->getUnassigned(),
+            'users'        => $this->getUsers(),
+            'success'      => Flash::get('success'),
+            'error'        => Flash::get('error'),
         ]);
     }
 
     public function supervisorPendingApproval(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         return $this->render($response, 'maintenance/supervisor/pending-approval', [
-            'title'          => 'Väntar på godkännande – ZYNC ERP',
-            'pendingApproval' => $this->workOrderRepo->getPendingApproval(),
-            'success'        => Flash::get('success'),
-            'error'          => Flash::get('error'),
+            'title'       => 'Väntar på godkännande – ZYNC ERP',
+            'workOrders'  => $this->workOrderRepo->getPendingApproval(),
+            'success'     => Flash::get('success'),
+            'error'       => Flash::get('error'),
         ]);
     }
 
@@ -705,18 +713,12 @@ class MaintenanceController extends Controller
             fn($o) => ($o['status'] ?? '') !== 'archived'
         );
 
-        $grouped = [];
-        foreach ($allOrders as $order) {
-            $key = $order['assigned_to'] ?? 0;
-            $grouped[$key][] = $order;
-        }
-
         return $this->render($response, 'maintenance/supervisor/my-team', [
-            'title'   => 'Mitt team – ZYNC ERP',
-            'grouped' => $grouped,
-            'users'   => $this->getUsers(),
-            'success' => Flash::get('success'),
-            'error'   => Flash::get('error'),
+            'title'      => 'Mitt team – ZYNC ERP',
+            'workOrders' => array_values($allOrders),
+            'users'      => $this->getUsers(),
+            'success'    => Flash::get('success'),
+            'error'      => Flash::get('error'),
         ]);
     }
 

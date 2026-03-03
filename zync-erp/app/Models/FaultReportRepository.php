@@ -127,6 +127,16 @@ class FaultReportRepository
         $stmt->execute($params);
     }
 
+    public function assign(int $id, int $assignedTo, int $assignedBy): void
+    {
+        $stmt = Database::pdo()->prepare(
+            "UPDATE fault_reports
+             SET assigned_to = ?, assigned_by = ?, assigned_at = NOW(), status = 'assigned'
+             WHERE id = ?"
+        );
+        $stmt->execute([$assignedTo, $assignedBy, $id]);
+    }
+
     public function getOpen(): array
     {
         $sql = "SELECT f.*, m.name AS machine_name, e.name AS equipment_name,
