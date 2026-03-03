@@ -169,6 +169,74 @@ return function (App $app) {
         $group->get('/finance/reports/ledger', [\App\Controllers\FinanceController::class, 'ledger']);
         $group->get('/finance/reports/trial-balance', [\App\Controllers\FinanceController::class, 'trialBalance']);
         $group->get('/finance/reports/cost-centers', [\App\Controllers\FinanceController::class, 'costCenterReport']);
+
+        // ─── Health & Safety (Hälsa & Säkerhet) ─────────────
+        $group->get('/safety', [\App\Controllers\SafetyController::class, 'index']);
+
+        $group->get('/safety/risks', [\App\Controllers\SafetyController::class, 'risks']);
+        $group->get('/safety/risks/create', [\App\Controllers\SafetyController::class, 'createRisk']);
+        $group->post('/safety/risks', [\App\Controllers\SafetyController::class, 'storeRisk']);
+        $group->get('/safety/risks/{id}', [\App\Controllers\SafetyController::class, 'showRisk']);
+        $group->get('/safety/risks/{id}/edit', [\App\Controllers\SafetyController::class, 'editRisk']);
+        $group->post('/safety/risks/{id}', [\App\Controllers\SafetyController::class, 'updateRisk']);
+        $group->post('/safety/risks/{id}/delete', [\App\Controllers\SafetyController::class, 'deleteRisk']);
+        $group->post('/safety/risks/{id}/status', [\App\Controllers\SafetyController::class, 'updateRiskStatus']);
+
+        $group->get('/safety/reports', [\App\Controllers\SafetyController::class, 'reports']);
+        $group->get('/safety/reports/create', [\App\Controllers\SafetyController::class, 'createReport']);
+        $group->post('/safety/reports', [\App\Controllers\SafetyController::class, 'storeReport']);
+        $group->get('/safety/reports/{id}', [\App\Controllers\SafetyController::class, 'showReport']);
+        $group->get('/safety/reports/{id}/edit', [\App\Controllers\SafetyController::class, 'editReport']);
+        $group->post('/safety/reports/{id}', [\App\Controllers\SafetyController::class, 'updateReport']);
+        $group->post('/safety/reports/{id}/delete', [\App\Controllers\SafetyController::class, 'deleteReport']);
+        $group->post('/safety/reports/{id}/status', [\App\Controllers\SafetyController::class, 'updateReportStatus']);
+
+        $group->get('/safety/audits', [\App\Controllers\SafetyController::class, 'audits']);
+        $group->get('/safety/audits/create', [\App\Controllers\SafetyController::class, 'createAudit']);
+        $group->post('/safety/audits', [\App\Controllers\SafetyController::class, 'storeAudit']);
+        $group->get('/safety/audits/{id}', [\App\Controllers\SafetyController::class, 'showAudit']);
+        $group->get('/safety/audits/{id}/edit', [\App\Controllers\SafetyController::class, 'editAudit']);
+        $group->post('/safety/audits/{id}', [\App\Controllers\SafetyController::class, 'updateAudit']);
+        $group->post('/safety/audits/{id}/delete', [\App\Controllers\SafetyController::class, 'deleteAudit']);
+        $group->post('/safety/audits/{id}/status', [\App\Controllers\SafetyController::class, 'updateAuditStatus']);
+        $group->post('/safety/audits/{id}/responses', [\App\Controllers\SafetyController::class, 'saveAuditResponses']);
+
+        $group->get('/safety/audit-templates', [\App\Controllers\SafetyController::class, 'auditTemplates']);
+        $group->get('/safety/audit-templates/create', [\App\Controllers\SafetyController::class, 'createAuditTemplate']);
+        $group->post('/safety/audit-templates', [\App\Controllers\SafetyController::class, 'storeAuditTemplate']);
+        $group->get('/safety/audit-templates/{id}', [\App\Controllers\SafetyController::class, 'showAuditTemplate']);
+        $group->get('/safety/audit-templates/{id}/edit', [\App\Controllers\SafetyController::class, 'editAuditTemplate']);
+        $group->post('/safety/audit-templates/{id}', [\App\Controllers\SafetyController::class, 'updateAuditTemplate']);
+        $group->post('/safety/audit-templates/{id}/delete', [\App\Controllers\SafetyController::class, 'deleteAuditTemplate']);
+        $group->post('/safety/audit-templates/{id}/items', [\App\Controllers\SafetyController::class, 'addTemplateItem']);
+        $group->post('/safety/audit-templates/{id}/items/{itemId}/delete', [\App\Controllers\SafetyController::class, 'removeTemplateItem']);
+
+        $group->get('/safety/emergency', [\App\Controllers\SafetyController::class, 'emergency']);
+        $group->get('/safety/emergency/contacts', [\App\Controllers\SafetyController::class, 'emergencyContacts']);
+        $group->get('/safety/emergency/contacts/create', [\App\Controllers\SafetyController::class, 'createEmergencyContact']);
+        $group->post('/safety/emergency/contacts', [\App\Controllers\SafetyController::class, 'storeEmergencyContact']);
+        $group->get('/safety/emergency/contacts/{id}/edit', [\App\Controllers\SafetyController::class, 'editEmergencyContact']);
+        $group->post('/safety/emergency/contacts/{id}', [\App\Controllers\SafetyController::class, 'updateEmergencyContact']);
+        $group->post('/safety/emergency/contacts/{id}/delete', [\App\Controllers\SafetyController::class, 'deleteEmergencyContact']);
+
+        $group->get('/safety/emergency/procedures', [\App\Controllers\SafetyController::class, 'emergencyProcedures']);
+        $group->get('/safety/emergency/procedures/create', [\App\Controllers\SafetyController::class, 'createEmergencyProcedure']);
+        $group->post('/safety/emergency/procedures', [\App\Controllers\SafetyController::class, 'storeEmergencyProcedure']);
+        $group->get('/safety/emergency/procedures/{id}', [\App\Controllers\SafetyController::class, 'showEmergencyProcedure']);
+        $group->get('/safety/emergency/procedures/{id}/edit', [\App\Controllers\SafetyController::class, 'editEmergencyProcedure']);
+        $group->post('/safety/emergency/procedures/{id}', [\App\Controllers\SafetyController::class, 'updateEmergencyProcedure']);
+        $group->post('/safety/emergency/procedures/{id}/delete', [\App\Controllers\SafetyController::class, 'deleteEmergencyProcedure']);
+
+        $group->get('/safety/resources', [\App\Controllers\SafetyController::class, 'resources']);
+        $group->get('/safety/resources/map', [\App\Controllers\SafetyController::class, 'resourcesMap']);
+        $group->get('/safety/resources/overdue', [\App\Controllers\SafetyController::class, 'overdueInspections']);
+        $group->get('/safety/resources/create', [\App\Controllers\SafetyController::class, 'createResource']);
+        $group->post('/safety/resources', [\App\Controllers\SafetyController::class, 'storeResource']);
+        $group->get('/safety/resources/{id}', [\App\Controllers\SafetyController::class, 'showResource']);
+        $group->get('/safety/resources/{id}/edit', [\App\Controllers\SafetyController::class, 'editResource']);
+        $group->post('/safety/resources/{id}', [\App\Controllers\SafetyController::class, 'updateResource']);
+        $group->post('/safety/resources/{id}/delete', [\App\Controllers\SafetyController::class, 'deleteResource']);
+        $group->post('/safety/resources/{id}/inspect', [\App\Controllers\SafetyController::class, 'inspectResource']);
     })->add(new CsrfMiddleware())->add(new AuthMiddleware());
 
     // Admin routes — require Chef level (7) or higher
