@@ -82,9 +82,8 @@
                     <label for="insp_status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
                     <select id="insp_status" name="status" class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                         <option value="ok">OK</option>
-                        <option value="needs_inspection">Behöver kontroll</option>
-                        <option value="out_of_service">Ur drift</option>
-                        <option value="missing">Saknas</option>
+                        <option value="needs_attention">Behöver åtgärd</option>
+                        <option value="failed">Underkänd</option>
                     </select>
                 </div>
                 <div>
