@@ -113,6 +113,27 @@ function mobileActive(string $path, string $currentPath): string {
                     </div>
                 </div>
 
+                <!-- Dropdown: Hälsa & Säkerhet -->
+                <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
+                    <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
+                        H&S <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                        <a href="/safety" class="block px-4 py-2 text-sm <?= mobileActive('/safety', $currentPath) ?>">Översikt</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <a href="/safety/risks" class="block px-4 py-2 text-sm <?= mobileActive('/safety/risks', $currentPath) ?>">Risker &amp; Faror</a>
+                        <a href="/safety/reports" class="block px-4 py-2 text-sm <?= mobileActive('/safety/reports', $currentPath) ?>">Riskrapporter</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <a href="/safety/audits" class="block px-4 py-2 text-sm <?= mobileActive('/safety/audits', $currentPath) ?>">Audits</a>
+                        <a href="/safety/audit-templates" class="block px-4 py-2 text-sm <?= mobileActive('/safety/audit-templates', $currentPath) ?>">Audit-mallar</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <a href="/safety/emergency" class="block px-4 py-2 text-sm <?= mobileActive('/safety/emergency', $currentPath) ?>">Krishantering</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <a href="/safety/resources" class="block px-4 py-2 text-sm <?= mobileActive('/safety/resources', $currentPath) ?>">Nödresurser</a>
+                        <a href="/safety/resources/overdue" class="block px-4 py-2 text-sm <?= mobileActive('/safety/resources/overdue', $currentPath) ?>">Förfallna kontroller</a>
+                    </div>
+                </div>
+
                 <!-- Separator -->
                 <div class="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
 
@@ -197,6 +218,16 @@ function mobileActive(string $path, string $currentPath): string {
         <a href="/finance/invoices-in" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/invoices-in', $currentPath) ?>">Lev.fakturor</a>
         <a href="/finance/journal" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/journal', $currentPath) ?>">Bokföring</a>
         <a href="/finance/accounts" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/accounts', $currentPath) ?>">Kontoplan</a>
+
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Hälsa &amp; Säkerhet</p>
+        <a href="/safety" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety', $currentPath) ?>">Översikt</a>
+        <a href="/safety/risks" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/risks', $currentPath) ?>">Risker &amp; Faror</a>
+        <a href="/safety/reports" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/reports', $currentPath) ?>">Riskrapporter</a>
+        <a href="/safety/audits" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/audits', $currentPath) ?>">Audits</a>
+        <a href="/safety/audit-templates" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/audit-templates', $currentPath) ?>">Audit-mallar</a>
+        <a href="/safety/emergency" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/emergency', $currentPath) ?>">Krishantering</a>
+        <a href="/safety/resources" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/resources', $currentPath) ?>">Nödresurser</a>
+        <a href="/safety/resources/overdue" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/resources/overdue', $currentPath) ?>">Förfallna kontroller</a>
 
         <hr class="my-2 border-gray-200 dark:border-gray-700">
         <?php if (($_layoutUser['role_level'] ?? 0) >= 7): ?>
