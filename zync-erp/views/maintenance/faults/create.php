@@ -19,7 +19,7 @@
                     <select name="machine_id" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                         <option value="">—</option>
                         <?php foreach ($machines as $m): ?>
-                        <option value="<?= $m['id'] ?>"><?= htmlspecialchars($m['machine_number'] . ' — ' . $m['name'], ENT_QUOTES, 'UTF-8') ?></option>
+                        <option value="<?= $m['id'] ?>"><?= htmlspecialchars($m['code'] . ' — ' . $m['name'], ENT_QUOTES, 'UTF-8') ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>

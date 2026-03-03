@@ -43,7 +43,7 @@ function eqCritBadge(string $c): string {
                         <td class="px-4 py-3 text-gray-900 dark:text-white font-medium">
                             <a href="/equipment/<?= $eq['id'] ?>" class="hover:underline"><?= htmlspecialchars($eq['name'], ENT_QUOTES, 'UTF-8') ?></a>
                         </td>
-                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400"><?= htmlspecialchars($eq['category'], ENT_QUOTES, 'UTF-8') ?></td>
+                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400"><?= htmlspecialchars($eq['type'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
                         <td class="px-4 py-3 text-gray-600 dark:text-gray-400"><?= htmlspecialchars($eq['location'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
                         <td class="px-4 py-3 text-gray-600 dark:text-gray-400"><?= htmlspecialchars($eq['department_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
                         <td class="px-4 py-3"><?= eqStatusBadge($eq['status']) ?></td>

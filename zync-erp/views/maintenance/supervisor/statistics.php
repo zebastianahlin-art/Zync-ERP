@@ -24,7 +24,7 @@
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-4">
             <h2 class="font-semibold text-gray-900 dark:text-white mb-3">Per status</h2>
             <div class="space-y-2">
-                <?php $statusLabels = ['reported'=>'Rapporterad','assigned'=>'Tilldelad','in_progress'=>'Pågående','work_completed'=>'Arbete utfört','pending_approval'=>'Väntar attestering','approved'=>'Attesterad','rejected'=>'Avvisad','closed'=>'Avslutad','archived'=>'Arkiverad']; ?>
+                <?php $statusLabels = ['draft'=>'Utkast','planned'=>'Planerad','assigned'=>'Tilldelad','in_progress'=>'Pågående','on_hold'=>'Pausad','completed'=>'Utfört','closed'=>'Avslutad','cancelled'=>'Avbruten']; ?>
                 <?php foreach ($byStatus as $status => $count): ?>
                 <div class="flex items-center justify-between text-sm">
                     <span class="text-gray-600 dark:text-gray-400"><?= htmlspecialchars($statusLabels[$status] ?? $status, ENT_QUOTES, 'UTF-8') ?></span>
@@ -40,7 +40,7 @@
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-4">
             <h2 class="font-semibold text-gray-900 dark:text-white mb-3">Per typ</h2>
             <div class="space-y-2">
-                <?php $typeLabels = ['corrective'=>'Avhjälpande','preventive'=>'Förebyggande','predictive'=>'Prediktivt','emergency'=>'Akut','improvement'=>'Förbättring','inspection'=>'Inspektion']; ?>
+                <?php $typeLabels = ['corrective'=>'Avhjälpande','preventive'=>'Förebyggande','inspection'=>'Inspektion','improvement'=>'Förbättring']; ?>
                 <?php foreach ($byType as $type => $count): ?>
                 <div class="flex items-center justify-between text-sm">
                     <span class="text-gray-600 dark:text-gray-400"><?= htmlspecialchars($typeLabels[$type] ?? $type, ENT_QUOTES, 'UTF-8') ?></span>

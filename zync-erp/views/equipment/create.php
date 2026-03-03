@@ -16,15 +16,13 @@
                     <input type="text" name="name" required class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kategori</label>
-                    <select name="category" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <option value="production">Produktion</option>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Typ</label>
+                    <select name="type" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                         <option value="facility">Fastighet</option>
-                        <option value="utility">Allmännytta</option>
-                        <option value="safety">Säkerhet</option>
-                        <option value="transport">Transport</option>
-                        <option value="it">IT</option>
-                        <option value="other" selected>Övrigt</option>
+                        <option value="line">Linje</option>
+                        <option value="machine" selected>Maskin</option>
+                        <option value="component">Komponent</option>
+                        <option value="tool">Verktyg</option>
                     </select>
                 </div>
                 <div>
@@ -32,17 +30,16 @@
                     <select name="status" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                         <option value="operational" selected>Operativ</option>
                         <option value="maintenance">Underhåll</option>
-                        <option value="out_of_service">Ur drift</option>
+                        <option value="breakdown">Haveri</option>
                         <option value="decommissioned">Avvecklad</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kritikalitet</label>
                     <select name="criticality" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <option value="low">Låg</option>
-                        <option value="medium" selected>Medel</option>
-                        <option value="high">Hög</option>
-                        <option value="critical">Kritisk</option>
+                        <option value="A">A – Kritisk</option>
+                        <option value="B" selected>B – Viktig</option>
+                        <option value="C">C – Låg</option>
                     </select>
                 </div>
                 <div>
@@ -59,14 +56,6 @@
                     <input type="text" name="location" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Byggnad</label>
-                    <input type="text" name="building" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Våning</label>
-                    <input type="text" name="floor" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                </div>
-                <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tillverkare</label>
                     <input type="text" name="manufacturer" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                 </div>
@@ -79,16 +68,8 @@
                     <input type="text" name="serial_number" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tillverkningsår</label>
-                    <input type="number" name="year_of_manufacture" min="1900" max="2099" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Installerat datum</label>
-                    <input type="date" name="installed_date" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Garanti till</label>
-                    <input type="date" name="warranty_until" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Installationsår</label>
+                    <input type="number" name="year_installed" min="1900" max="2099" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                 </div>
                 <div class="sm:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Anteckningar</label>

@@ -15,27 +15,9 @@
                     <input type="text" name="name" required value="<?= htmlspecialchars($machine['name'], ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Utrustning (parent)</label>
-                    <select name="equipment_id" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <option value="">—</option>
-                        <?php foreach ($equipment as $e): ?>
-                        <option value="<?= $e['id'] ?>"<?= ($machine['equipment_id']==$e['id'])?' selected':'' ?>><?= htmlspecialchars($e['name'], ENT_QUOTES, 'UTF-8') ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Avdelning</label>
-                    <select name="department_id" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <option value="">—</option>
-                        <?php foreach ($departments as $d): ?>
-                        <option value="<?= $d['id'] ?>"<?= ($machine['department_id']==$d['id'])?' selected':'' ?>><?= htmlspecialchars($d['name'], ENT_QUOTES, 'UTF-8') ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
                     <select name="status" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <?php foreach (['running'=>'Igång','idle'=>'Idle','maintenance'=>'Underhåll','breakdown'=>'Haveri','decommissioned'=>'Avvecklad'] as $v=>$l): ?>
+                        <?php foreach (['operational'=>'Operativ','degraded'=>'Degraderad','down'=>'Nere','decommissioned'=>'Avvecklad'] as $v=>$l): ?>
                         <option value="<?= $v ?>"<?= $machine['status']===$v?' selected':'' ?>><?= $l ?></option>
                         <?php endforeach; ?>
                     </select>
@@ -43,7 +25,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kritikalitet</label>
                     <select name="criticality" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <?php foreach (['low'=>'Låg','medium'=>'Medel','high'=>'Hög','critical'=>'Kritisk'] as $v=>$l): ?>
+                        <?php foreach (['A'=>'A – Kritisk','B'=>'B – Viktig','C'=>'C – Låg'] as $v=>$l): ?>
                         <option value="<?= $v ?>"<?= $machine['criticality']===$v?' selected':'' ?>><?= $l ?></option>
                         <?php endforeach; ?>
                     </select>
@@ -65,24 +47,8 @@
                     <input type="text" name="serial_number" value="<?= htmlspecialchars($machine['serial_number'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tillverkningsår</label>
-                    <input type="number" name="year_of_manufacture" value="<?= htmlspecialchars($machine['year_of_manufacture'] ?? '', ENT_QUOTES, 'UTF-8') ?>" min="1900" max="2099" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Effekt (kW)</label>
-                    <input type="number" name="power_kw" step="0.01" min="0" value="<?= htmlspecialchars($machine['power_kw'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Serviceintervall (dagar)</label>
-                    <input type="number" name="maintenance_interval_days" min="1" value="<?= htmlspecialchars($machine['maintenance_interval_days'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Senaste service</label>
-                    <input type="date" name="last_maintenance_date" value="<?= htmlspecialchars($machine['last_maintenance_date'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nästa service</label>
-                    <input type="date" name="next_maintenance_date" value="<?= htmlspecialchars($machine['next_maintenance_date'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Installationsår</label>
+                    <input type="number" name="year_installed" value="<?= htmlspecialchars($machine['year_installed'] ?? '', ENT_QUOTES, 'UTF-8') ?>" min="1900" max="2099" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                 </div>
                 <div class="sm:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Beskrivning</label>

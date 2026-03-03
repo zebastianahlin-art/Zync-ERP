@@ -16,17 +16,17 @@
                     <input type="text" name="name" required value="<?= htmlspecialchars($equipment['name'], ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kategori</label>
-                    <select name="category" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <?php foreach (['production'=>'Produktion','facility'=>'Fastighet','utility'=>'Allmännytta','safety'=>'Säkerhet','transport'=>'Transport','it'=>'IT','other'=>'Övrigt'] as $v=>$l): ?>
-                        <option value="<?= $v ?>"<?= $equipment['category']===$v?' selected':'' ?>><?= $l ?></option>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Typ</label>
+                    <select name="type" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                        <?php foreach (['facility'=>'Fastighet','line'=>'Linje','machine'=>'Maskin','component'=>'Komponent','tool'=>'Verktyg'] as $v=>$l): ?>
+                        <option value="<?= $v ?>"<?= ($equipment['type']??'')===$v?' selected':'' ?>><?= $l ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
                     <select name="status" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <?php foreach (['operational'=>'Operativ','maintenance'=>'Underhåll','out_of_service'=>'Ur drift','decommissioned'=>'Avvecklad'] as $v=>$l): ?>
+                        <?php foreach (['operational'=>'Operativ','maintenance'=>'Underhåll','breakdown'=>'Haveri','decommissioned'=>'Avvecklad'] as $v=>$l): ?>
                         <option value="<?= $v ?>"<?= $equipment['status']===$v?' selected':'' ?>><?= $l ?></option>
                         <?php endforeach; ?>
                     </select>
@@ -34,8 +34,8 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kritikalitet</label>
                     <select name="criticality" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                        <?php foreach (['low'=>'Låg','medium'=>'Medel','high'=>'Hög','critical'=>'Kritisk'] as $v=>$l): ?>
-                        <option value="<?= $v ?>"<?= $equipment['criticality']===$v?' selected':'' ?>><?= $l ?></option>
+                        <?php foreach (['A'=>'A – Kritisk','B'=>'B – Viktig','C'=>'C – Låg'] as $v=>$l): ?>
+                        <option value="<?= $v ?>"<?= ($equipment['criticality']??'')===$v?' selected':'' ?>><?= $l ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -53,14 +53,6 @@
                     <input type="text" name="location" value="<?= htmlspecialchars($equipment['location'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Byggnad</label>
-                    <input type="text" name="building" value="<?= htmlspecialchars($equipment['building'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Våning</label>
-                    <input type="text" name="floor" value="<?= htmlspecialchars($equipment['floor'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                </div>
-                <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tillverkare</label>
                     <input type="text" name="manufacturer" value="<?= htmlspecialchars($equipment['manufacturer'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                 </div>
@@ -73,16 +65,8 @@
                     <input type="text" name="serial_number" value="<?= htmlspecialchars($equipment['serial_number'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tillverkningsår</label>
-                    <input type="number" name="year_of_manufacture" value="<?= htmlspecialchars($equipment['year_of_manufacture'] ?? '', ENT_QUOTES, 'UTF-8') ?>" min="1900" max="2099" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Installerat datum</label>
-                    <input type="date" name="installed_date" value="<?= htmlspecialchars($equipment['installed_date'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Garanti till</label>
-                    <input type="date" name="warranty_until" value="<?= htmlspecialchars($equipment['warranty_until'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Installationsår</label>
+                    <input type="number" name="year_installed" value="<?= htmlspecialchars($equipment['year_installed'] ?? '', ENT_QUOTES, 'UTF-8') ?>" min="1900" max="2099" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                 </div>
                 <div class="sm:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Anteckningar</label>

@@ -45,7 +45,7 @@ class MaintenanceController extends Controller
 
         $openFaults = count(array_filter($faults, fn($f) => !in_array($f['status'], ['resolved', 'closed'])));
         $activeWOs = count(array_filter($workOrders, fn($w) => in_array($w['status'], ['assigned', 'in_progress'])));
-        $pendingApproval = count(array_filter($workOrders, fn($w) => in_array($w['status'], ['work_completed', 'pending_approval'])));
+        $pendingApproval = count(array_filter($workOrders, fn($w) => $w['status'] === 'completed'));
         $overdueInspections = count($overdue);
 
         return $this->render($response, 'maintenance/index', [
@@ -355,12 +355,9 @@ class MaintenanceController extends Controller
         $woId = $this->woRepo->create([
             'title' => $fault['title'],
             'description' => $fault['description'],
-            'work_type' => 'corrective',
-            'machine_id' => $fault['machine_id'],
+            'type' => 'corrective',
             'equipment_id' => $fault['equipment_id'],
             'fault_report_id' => $faultId,
-            'location' => $fault['location'],
-            'department_id' => $fault['department_id'],
             'priority' => $fault['priority'],
             'created_by' => $user['id'],
         ]);
@@ -416,7 +413,7 @@ class MaintenanceController extends Controller
             return $this->redirect($response, '/maintenance/work-orders');
         }
         return $this->render($response, 'maintenance/work-orders/show', [
-            'title' => $wo['order_number'] . ' – ZYNC ERP',
+            'title' => $wo['wo_number'] . ' – ZYNC ERP',
             'wo' => $wo,
             'timeEntries' => $this->woRepo->getTimeEntries($id),
             'parts' => $this->woRepo->getParts($id),
@@ -530,7 +527,7 @@ class MaintenanceController extends Controller
     public function workOrderApprove(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $data = (array) $request->getParsedBody();
-        $this->woRepo->approve((int) $args['id'], Auth::user()['id'], $data['approval_notes'] ?? '');
+        $this->woRepo->approve((int) $args['id'], Auth::user()['id'], $data['notes'] ?? '');
         Flash::set('success', 'Arbetsorder godkänd.');
         return $this->redirect($response, "/maintenance/work-orders/{$args['id']}");
     }
@@ -538,7 +535,7 @@ class MaintenanceController extends Controller
     public function workOrderReject(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $data = (array) $request->getParsedBody();
-        $this->woRepo->reject((int) $args['id'], Auth::user()['id'], $data['rejected_reason'] ?? '');
+        $this->woRepo->reject((int) $args['id'], Auth::user()['id'], $data['notes'] ?? '');
         Flash::set('success', 'Arbetsorder avvisad.');
         return $this->redirect($response, "/maintenance/work-orders/{$args['id']}");
     }
@@ -588,7 +585,7 @@ class MaintenanceController extends Controller
             return $this->redirect($response, '/maintenance/work-orders/archive');
         }
         return $this->render($response, 'maintenance/work-orders/archive/show', [
-            'title' => $wo['order_number'] . ' (Arkiv) – ZYNC ERP',
+            'title' => $wo['wo_number'] . ' (Arkiv) – ZYNC ERP',
             'wo' => $wo,
             'timeEntries' => $this->woRepo->getTimeEntries($id),
             'parts' => $this->woRepo->getParts($id),
@@ -612,7 +609,7 @@ class MaintenanceController extends Controller
             'unassignedCount' => count(array_filter($faults, fn($f) => $f['status'] === 'reported')),
             'pendingApprovalCount' => count($this->woRepo->getPendingApproval()),
             'inProgressCount' => count(array_filter($workOrders, fn($w) => $w['status'] === 'in_progress')),
-            'closedThisMonth' => count(array_filter($workOrders, fn($w) => $w['status'] === 'closed' && strtotime($w['closed_at'] ?? '') >= strtotime('first day of this month'))),
+            'closedThisMonth' => count(array_filter($workOrders, fn($w) => $w['status'] === 'closed' && strtotime($w['updated_at'] ?? '') >= strtotime('first day of this month'))),
             'pendingApproval' => $this->woRepo->getPendingApproval(),
             'unassignedWOs' => $this->woRepo->getUnassigned(),
             'teamStats' => $this->woRepo->getTeamStats(),
@@ -674,7 +671,7 @@ class MaintenanceController extends Controller
 
         $byType = [];
         foreach ($workOrders as $wo) {
-            $byType[$wo['work_type']] = ($byType[$wo['work_type']] ?? 0) + 1;
+            $byType[$wo['type']] = ($byType[$wo['type']] ?? 0) + 1;
         }
 
         return $this->render($response, 'maintenance/supervisor/statistics', [

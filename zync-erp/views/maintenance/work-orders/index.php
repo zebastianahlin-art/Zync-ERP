@@ -1,20 +1,19 @@
 <?php
 function woStatusBadge(string $s): string {
     $m = [
-        'reported'         => ['Rapporterad','bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'],
-        'assigned'         => ['Tilldelad','bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'],
-        'in_progress'      => ['Pågående','bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'],
-        'work_completed'   => ['Arbete utfört','bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300'],
-        'pending_approval' => ['Väntar attestering','bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'],
-        'approved'         => ['Attesterad','bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'],
-        'rejected'         => ['Avvisad','bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'],
-        'closed'           => ['Avslutad','bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'],
-        'archived'         => ['Arkiverad','bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-500'],
+        'draft'       => ['Utkast','bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'],
+        'planned'     => ['Planerad','bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'],
+        'assigned'    => ['Tilldelad','bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'],
+        'in_progress' => ['Pågående','bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'],
+        'on_hold'     => ['Pausad','bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'],
+        'completed'   => ['Utfört','bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300'],
+        'closed'      => ['Avslutad','bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'],
+        'cancelled'   => ['Avbruten','bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'],
     ];
     return '<span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium '.($m[$s][1]??'bg-gray-100 text-gray-700').'">'.($m[$s][0]??$s).'</span>';
 }
 function woPrioBadge(string $p): string {
-    $m = ['low'=>['Låg','text-gray-500'],'normal'=>['Normal','text-blue-600'],'high'=>['Hög','text-orange-600'],'urgent'=>['Brådskande','text-red-600'],'critical'=>['Kritisk','text-red-700 font-bold']];
+    $m = ['low'=>['Låg','text-gray-500'],'medium'=>['Normal','text-blue-600'],'high'=>['Hög','text-orange-600'],'critical'=>['Kritisk','text-red-700 font-bold']];
     return '<span class="text-xs '.($m[$p][1]??'text-gray-500').'">'.($m[$p][0]??$p).'</span>';
 }
 ?>
@@ -35,7 +34,7 @@ function woPrioBadge(string $p): string {
                         <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Nummer</th>
                         <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Titel</th>
                         <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Typ</th>
-                        <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Maskin</th>
+                        <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Utrustning</th>
                         <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Prioritet</th>
                         <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Status</th>
                         <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400">Tilldelad</th>
@@ -46,13 +45,13 @@ function woPrioBadge(string $p): string {
                     <?php foreach ($workOrders as $wo): ?>
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td class="px-4 py-3 font-mono text-xs text-indigo-600 dark:text-indigo-400">
-                            <a href="/maintenance/work-orders/<?= $wo['id'] ?>"><?= htmlspecialchars($wo['order_number'], ENT_QUOTES, 'UTF-8') ?></a>
+                            <a href="/maintenance/work-orders/<?= $wo['id'] ?>"><?= htmlspecialchars($wo['wo_number'], ENT_QUOTES, 'UTF-8') ?></a>
                         </td>
                         <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">
                             <a href="/maintenance/work-orders/<?= $wo['id'] ?>" class="hover:underline"><?= htmlspecialchars($wo['title'], ENT_QUOTES, 'UTF-8') ?></a>
                         </td>
-                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400 text-xs"><?= htmlspecialchars($wo['work_type'], ENT_QUOTES, 'UTF-8') ?></td>
-                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400"><?= htmlspecialchars($wo['machine_name'] ?? $wo['equipment_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
+                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400 text-xs"><?= htmlspecialchars($wo['type'], ENT_QUOTES, 'UTF-8') ?></td>
+                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400"><?= htmlspecialchars($wo['equipment_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
                         <td class="px-4 py-3"><?= woPrioBadge($wo['priority']) ?></td>
                         <td class="px-4 py-3"><?= woStatusBadge($wo['status']) ?></td>
                         <td class="px-4 py-3 text-gray-600 dark:text-gray-400"><?= htmlspecialchars($wo['assigned_to_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
