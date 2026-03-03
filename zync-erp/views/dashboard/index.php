@@ -32,7 +32,7 @@ $greeting  = match (true) {
 <!-- KPI Cards -->
 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-10">
     <!-- Kunder -->
-    <a href="/customers" class="group rounded-xl bg-white dark:bg-gray-800 p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 hover:shadow-md hover:ring-indigo-300 dark:hover:ring-indigo-600 transition-all">
+    <a href="/sales/customers" class="group rounded-xl bg-white dark:bg-gray-800 p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 hover:shadow-md hover:ring-indigo-300 dark:hover:ring-indigo-600 transition-all">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Kunder</p>
@@ -100,7 +100,7 @@ $greeting  = match (true) {
 <div class="mb-10">
     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Snabbåtgärder</h2>
     <div class="flex flex-wrap gap-3">
-        <a href="/customers/create" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors">
+        <a href="/sales/customers/create" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Ny kund
         </a>
@@ -128,7 +128,7 @@ $greeting  = match (true) {
     <div class="rounded-xl bg-white dark:bg-gray-800 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
         <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 px-6 py-4">
             <h2 class="text-base font-semibold text-gray-900 dark:text-white">Senaste kunder</h2>
-            <a href="/customers" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Visa alla →</a>
+            <a href="/sales/customers" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Visa alla →</a>
         </div>
         <?php if (empty($recentCustomers)): ?>
             <p class="px-6 py-8 text-sm text-gray-400 dark:text-gray-500 text-center">Inga kunder ännu.</p>
@@ -140,7 +140,7 @@ $greeting  = match (true) {
                             <p class="text-sm font-medium text-gray-900 dark:text-white"><?= htmlspecialchars($c['name'], ENT_QUOTES, 'UTF-8') ?></p>
                             <p class="text-xs text-gray-500 dark:text-gray-400"><?= htmlspecialchars($c['email'] ?? '—', ENT_QUOTES, 'UTF-8') ?></p>
                         </div>
-                        <a href="/customers/<?= (int) $c['id'] ?>/edit" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Redigera</a>
+                        <a href="/sales/customers/<?= (int) $c['id'] ?>/edit" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Redigera</a>
                     </li>
                 <?php endforeach; ?>
             </ul>

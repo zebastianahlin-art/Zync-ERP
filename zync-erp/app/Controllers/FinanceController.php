@@ -7,8 +7,6 @@ namespace App\Controllers;
 use App\Core\Auth;
 use App\Core\Database;
 use App\Core\Flash;
-use App\Core\View;
-use App\Core\Controller;
 use App\Models\InvoiceOutgoingRepository;
 use App\Models\InvoiceIncomingRepository;
 use App\Models\JournalEntryRepository;
@@ -17,7 +15,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use PDO;
 
-class FinanceController extends Controller
+class FinanceController extends \App\Core\Controller
 {
     private InvoiceOutgoingRepository $invoicesOut;
     private InvoiceIncomingRepository $invoicesIn;
@@ -75,15 +73,15 @@ class FinanceController extends Controller
         return $this->redirect($response, "/finance/invoices-out/{$id}");
     }
 
-    public function showInvoiceOut(Request $request, Response $response, array $args): Response
+    public function showInvoiceOut(Request $request, Response $response, int $id): Response
     {
-        $invoice = $this->invoicesOut->find((int) $args['id']);
+        $invoice = $this->invoicesOut->find($id);
         if (!$invoice) return $this->redirect($response, '/finance/invoices-out');
 
         return $this->render($response, 'finance/invoices-out/show', [
             'title' => 'Faktura ' . $invoice['invoice_number'],
             'invoice' => $invoice,
-            'lines' => $this->invoicesOut->getLines((int) $args['id']),
+            'lines' => $this->invoicesOut->getLines($id),
             'articles' => $this->getArticles(),
             'accounts' => $this->getAccounts(),
             'costCenters' => $this->costCenters->all(),
@@ -92,9 +90,9 @@ class FinanceController extends Controller
         ]);
     }
 
-    public function editInvoiceOut(Request $request, Response $response, array $args): Response
+    public function editInvoiceOut(Request $request, Response $response, int $id): Response
     {
-        $invoice = $this->invoicesOut->find((int) $args['id']);
+        $invoice = $this->invoicesOut->find($id);
         if (!$invoice) return $this->redirect($response, '/finance/invoices-out');
 
         return $this->render($response, 'finance/invoices-out/edit', [
@@ -104,47 +102,47 @@ class FinanceController extends Controller
         ]);
     }
 
-    public function updateInvoiceOut(Request $request, Response $response, array $args): Response
+    public function updateInvoiceOut(Request $request, Response $response, int $id): Response
     {
-        $this->invoicesOut->update((int) $args['id'], (array) $request->getParsedBody());
+        $this->invoicesOut->update($id, (array) $request->getParsedBody());
         Flash::set('success', 'Faktura uppdaterad');
-        return $this->redirect($response, "/finance/invoices-out/{$args['id']}");
+        return $this->redirect($response, "/finance/invoices-out/{$id}");
     }
 
-    public function deleteInvoiceOut(Request $request, Response $response, array $args): Response
+    public function deleteInvoiceOut(Request $request, Response $response, int $id): Response
     {
-        $this->invoicesOut->delete((int) $args['id']);
+        $this->invoicesOut->delete($id);
         Flash::set('success', 'Faktura borttagen');
         return $this->redirect($response, '/finance/invoices-out');
     }
 
-    public function statusInvoiceOut(Request $request, Response $response, array $args): Response
+    public function statusInvoiceOut(Request $request, Response $response, int $id): Response
     {
         $data = (array) $request->getParsedBody();
-        $this->invoicesOut->updateStatus((int) $args['id'], $data['status']);
+        $this->invoicesOut->updateStatus($id, $data['status']);
         Flash::set('success', 'Status uppdaterad');
-        return $this->redirect($response, "/finance/invoices-out/{$args['id']}");
+        return $this->redirect($response, "/finance/invoices-out/{$id}");
     }
 
-    public function addLineOut(Request $request, Response $response, array $args): Response
+    public function addLineOut(Request $request, Response $response, int $id): Response
     {
-        $this->invoicesOut->addLine((int) $args['id'], (array) $request->getParsedBody());
+        $this->invoicesOut->addLine($id, (array) $request->getParsedBody());
         Flash::set('success', 'Rad tillagd');
-        return $this->redirect($response, "/finance/invoices-out/{$args['id']}");
+        return $this->redirect($response, "/finance/invoices-out/{$id}");
     }
 
-    public function removeLineOut(Request $request, Response $response, array $args): Response
+    public function removeLineOut(Request $request, Response $response, int $id, int $lineId): Response
     {
-        $this->invoicesOut->removeLine((int) $args['id'], (int) $args['lineId']);
+        $this->invoicesOut->removeLine($id, $lineId);
         Flash::set('success', 'Rad borttagen');
-        return $this->redirect($response, "/finance/invoices-out/{$args['id']}");
+        return $this->redirect($response, "/finance/invoices-out/{$id}");
     }
 
-    public function paymentOut(Request $request, Response $response, array $args): Response
+    public function paymentOut(Request $request, Response $response, int $id): Response
     {
         $data = (array) $request->getParsedBody();
         $this->invoicesOut->registerPayment(
-            (int) $args['id'],
+            $id,
             (float) $data['amount'],
             $data['payment_method'] ?? 'bank_transfer',
             $data['payment_date'],
@@ -152,7 +150,7 @@ class FinanceController extends Controller
             Auth::id()
         );
         Flash::set('success', 'Betalning registrerad');
-        return $this->redirect($response, "/finance/invoices-out/{$args['id']}");
+        return $this->redirect($response, "/finance/invoices-out/{$id}");
     }
 
     // ─── INKOMMANDE FAKTUROR (LEVERANTÖRSFAKTUROR) ───────
@@ -182,15 +180,15 @@ class FinanceController extends Controller
         return $this->redirect($response, "/finance/invoices-in/{$id}");
     }
 
-    public function showInvoiceIn(Request $request, Response $response, array $args): Response
+    public function showInvoiceIn(Request $request, Response $response, int $id): Response
     {
-        $invoice = $this->invoicesIn->find((int) $args['id']);
+        $invoice = $this->invoicesIn->find($id);
         if (!$invoice) return $this->redirect($response, '/finance/invoices-in');
 
         return $this->render($response, 'finance/invoices-in/show', [
             'title' => 'Lev.faktura ' . $invoice['internal_number'],
             'invoice' => $invoice,
-            'lines' => $this->invoicesIn->getLines((int) $args['id']),
+            'lines' => $this->invoicesIn->getLines($id),
             'articles' => $this->getArticles(),
             'accounts' => $this->getAccounts(),
             'costCenters' => $this->costCenters->all(),
@@ -199,9 +197,9 @@ class FinanceController extends Controller
         ]);
     }
 
-    public function editInvoiceIn(Request $request, Response $response, array $args): Response
+    public function editInvoiceIn(Request $request, Response $response, int $id): Response
     {
-        $invoice = $this->invoicesIn->find((int) $args['id']);
+        $invoice = $this->invoicesIn->find($id);
         if (!$invoice) return $this->redirect($response, '/finance/invoices-in');
 
         return $this->render($response, 'finance/invoices-in/edit', [
@@ -212,47 +210,47 @@ class FinanceController extends Controller
         ]);
     }
 
-    public function updateInvoiceIn(Request $request, Response $response, array $args): Response
+    public function updateInvoiceIn(Request $request, Response $response, int $id): Response
     {
-        $this->invoicesIn->update((int) $args['id'], (array) $request->getParsedBody());
+        $this->invoicesIn->update($id, (array) $request->getParsedBody());
         Flash::set('success', 'Faktura uppdaterad');
-        return $this->redirect($response, "/finance/invoices-in/{$args['id']}");
+        return $this->redirect($response, "/finance/invoices-in/{$id}");
     }
 
-    public function deleteInvoiceIn(Request $request, Response $response, array $args): Response
+    public function deleteInvoiceIn(Request $request, Response $response, int $id): Response
     {
-        $this->invoicesIn->delete((int) $args['id']);
+        $this->invoicesIn->delete($id);
         Flash::set('success', 'Faktura borttagen');
         return $this->redirect($response, '/finance/invoices-in');
     }
 
-    public function statusInvoiceIn(Request $request, Response $response, array $args): Response
+    public function statusInvoiceIn(Request $request, Response $response, int $id): Response
     {
         $data = (array) $request->getParsedBody();
-        $this->invoicesIn->updateStatus((int) $args['id'], $data['status'], Auth::id());
+        $this->invoicesIn->updateStatus($id, $data['status'], Auth::id());
         Flash::set('success', 'Status uppdaterad');
-        return $this->redirect($response, "/finance/invoices-in/{$args['id']}");
+        return $this->redirect($response, "/finance/invoices-in/{$id}");
     }
 
-    public function addLineIn(Request $request, Response $response, array $args): Response
+    public function addLineIn(Request $request, Response $response, int $id): Response
     {
-        $this->invoicesIn->addLine((int) $args['id'], (array) $request->getParsedBody());
+        $this->invoicesIn->addLine($id, (array) $request->getParsedBody());
         Flash::set('success', 'Rad tillagd');
-        return $this->redirect($response, "/finance/invoices-in/{$args['id']}");
+        return $this->redirect($response, "/finance/invoices-in/{$id}");
     }
 
-    public function removeLineIn(Request $request, Response $response, array $args): Response
+    public function removeLineIn(Request $request, Response $response, int $id, int $lineId): Response
     {
-        $this->invoicesIn->removeLine((int) $args['id'], (int) $args['lineId']);
+        $this->invoicesIn->removeLine($id, $lineId);
         Flash::set('success', 'Rad borttagen');
-        return $this->redirect($response, "/finance/invoices-in/{$args['id']}");
+        return $this->redirect($response, "/finance/invoices-in/{$id}");
     }
 
-    public function paymentIn(Request $request, Response $response, array $args): Response
+    public function paymentIn(Request $request, Response $response, int $id): Response
     {
         $data = (array) $request->getParsedBody();
         $this->invoicesIn->registerPayment(
-            (int) $args['id'],
+            $id,
             (float) $data['amount'],
             $data['payment_method'] ?? 'bank_transfer',
             $data['payment_date'],
@@ -260,7 +258,7 @@ class FinanceController extends Controller
             Auth::id()
         );
         Flash::set('success', 'Betalning registrerad');
-        return $this->redirect($response, "/finance/invoices-in/{$args['id']}");
+        return $this->redirect($response, "/finance/invoices-in/{$id}");
     }
 
     // ─── BOKFÖRING / VERIFIKATIONER ─────────────────────
@@ -307,15 +305,15 @@ class FinanceController extends Controller
         return $this->redirect($response, "/finance/journal/{$id}");
     }
 
-    public function showJournal(Request $request, Response $response, array $args): Response
+    public function showJournal(Request $request, Response $response, int $id): Response
     {
-        $entry = $this->journal->find((int) $args['id']);
+        $entry = $this->journal->find($id);
         if (!$entry) return $this->redirect($response, '/finance/journal');
 
         return $this->render($response, 'finance/journal/show', [
             'title' => 'Verifikation ' . $entry['voucher_number'],
             'entry' => $entry,
-            'lines' => $this->journal->getLines((int) $args['id']),
+            'lines' => $this->journal->getLines($id),
             'accounts' => $this->getAccounts(),
             'costCenters' => $this->costCenters->all(),
             'success' => Flash::get('success'),
@@ -323,23 +321,23 @@ class FinanceController extends Controller
         ]);
     }
 
-    public function addJournalLine(Request $request, Response $response, array $args): Response
+    public function addJournalLine(Request $request, Response $response, int $id): Response
     {
-        $this->journal->addLine((int) $args['id'], (array) $request->getParsedBody());
+        $this->journal->addLine($id, (array) $request->getParsedBody());
         Flash::set('success', 'Rad tillagd');
-        return $this->redirect($response, "/finance/journal/{$args['id']}");
+        return $this->redirect($response, "/finance/journal/{$id}");
     }
 
-    public function removeJournalLine(Request $request, Response $response, array $args): Response
+    public function removeJournalLine(Request $request, Response $response, int $id, int $lineId): Response
     {
-        $this->journal->removeLine((int) $args['id'], (int) $args['lineId']);
+        $this->journal->removeLine($id, $lineId);
         Flash::set('success', 'Rad borttagen');
-        return $this->redirect($response, "/finance/journal/{$args['id']}");
+        return $this->redirect($response, "/finance/journal/{$id}");
     }
 
-    public function deleteJournal(Request $request, Response $response, array $args): Response
+    public function deleteJournal(Request $request, Response $response, int $id): Response
     {
-        $this->journal->delete((int) $args['id']);
+        $this->journal->delete($id);
         Flash::set('success', 'Verifikation borttagen');
         return $this->redirect($response, '/finance/journal');
     }
@@ -383,10 +381,10 @@ class FinanceController extends Controller
         return $this->redirect($response, '/finance/accounts');
     }
 
-    public function editAccount(Request $request, Response $response, array $args): Response
+    public function editAccount(Request $request, Response $response, int $id): Response
     {
         $stmt = Database::pdo()->prepare("SELECT * FROM chart_of_accounts WHERE id = ?");
-        $stmt->execute([(int) $args['id']]);
+        $stmt->execute([$id]);
         $account = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$account) return $this->redirect($response, '/finance/accounts');
 
@@ -396,7 +394,7 @@ class FinanceController extends Controller
         ]);
     }
 
-    public function updateAccount(Request $request, Response $response, array $args): Response
+    public function updateAccount(Request $request, Response $response, int $id): Response
     {
         $data = (array) $request->getParsedBody();
         Database::pdo()->prepare(
@@ -410,7 +408,7 @@ class FinanceController extends Controller
             $data['vat_code'] ?: null,
             $data['description'] ?? null,
             isset($data['is_active']) ? 1 : 0,
-            (int) $args['id'],
+            $id,
         ]);
         Flash::set('success', 'Konto uppdaterat');
         return $this->redirect($response, '/finance/accounts');
@@ -443,9 +441,9 @@ class FinanceController extends Controller
         return $this->redirect($response, '/finance/cost-centers');
     }
 
-    public function editCostCenter(Request $request, Response $response, array $args): Response
+    public function editCostCenter(Request $request, Response $response, int $id): Response
     {
-        $cc = $this->costCenters->find((int) $args['id']);
+        $cc = $this->costCenters->find($id);
         if (!$cc) return $this->redirect($response, '/finance/cost-centers');
 
         return $this->render($response, 'finance/cost-centers/edit', [
@@ -457,16 +455,16 @@ class FinanceController extends Controller
         ]);
     }
 
-    public function updateCostCenter(Request $request, Response $response, array $args): Response
+    public function updateCostCenter(Request $request, Response $response, int $id): Response
     {
-        $this->costCenters->update((int) $args['id'], (array) $request->getParsedBody());
+        $this->costCenters->update($id, (array) $request->getParsedBody());
         Flash::set('success', 'Kostnadsställe uppdaterat');
         return $this->redirect($response, '/finance/cost-centers');
     }
 
-    public function deleteCostCenter(Request $request, Response $response, array $args): Response
+    public function deleteCostCenter(Request $request, Response $response, int $id): Response
     {
-        $this->costCenters->delete((int) $args['id']);
+        $this->costCenters->delete($id);
         Flash::set('success', 'Kostnadsställe borttaget');
         return $this->redirect($response, '/finance/cost-centers');
     }
@@ -552,10 +550,10 @@ class FinanceController extends Controller
     private function getPurchaseOrders(): array
     {
         return Database::pdo()->query(
-            "SELECT po.id, po.order_number, s.name AS supplier_name 
-             FROM purchase_orders po 
-             LEFT JOIN suppliers s ON po.supplier_id = s.id 
-             WHERE po.is_deleted = 0 
+            "SELECT po.id, po.order_number, s.name AS supplier_name
+             FROM purchase_orders po
+             LEFT JOIN suppliers s ON po.supplier_id = s.id
+             WHERE po.is_deleted = 0
              ORDER BY po.order_number DESC"
         )->fetchAll(PDO::FETCH_ASSOC);
     }

@@ -15,6 +15,24 @@ function mobileActive(string $path, string $currentPath): string {
         ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
         : 'text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600';
 }
+
+// Dropdown-helper: undvik repetition
+function dropdown(string $label, string $icon, array $items, string $currentPath, string $width = 'w-48'): string {
+    $svg = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>';
+    $html = '<div class="relative" x-data="{show:false}" @mouseenter="show=true" @mouseleave="show=false">';
+    $html .= '<button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">' . $icon . ' ' . $label . ' ' . $svg . '</button>';
+    $html .= '<div x-show="show" x-transition class="absolute left-0 mt-1 ' . $width . ' bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">';
+    foreach ($items as $item) {
+        if ($item === '---') {
+            $html .= '<hr class="my-1 border-gray-200 dark:border-gray-700">';
+        } else {
+            $active = mobileActive($item['path'], $currentPath);
+            $html .= '<a href="' . $item['path'] . '" class="block px-4 py-2 text-sm ' . $active . '">' . $item['label'] . '</a>';
+        }
+    }
+    $html .= '</div></div>';
+    return $html;
+}
 ?>
 <html lang="sv" class="h-full bg-gray-50 dark:bg-gray-900"
       x-data="{ darkMode: localStorage.getItem('theme') !== null ? localStorage.getItem('theme') === 'dark' : '<?= $_themeJs ?>' === 'dark' }"
@@ -33,7 +51,7 @@ function mobileActive(string $path, string $currentPath): string {
 <body class="h-full font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
 
 <!-- Navigation -->
-<nav class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50" x-data="{ open: false, dropdowns: {} }">
+<nav class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50" x-data="{ open: false }">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex h-14 items-center justify-between">
 
@@ -41,99 +59,112 @@ function mobileActive(string $path, string $currentPath): string {
             <a href="/" class="text-xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400 shrink-0">ZYNC ERP</a>
 
             <!-- Desktop nav -->
-            <div class="hidden lg:flex lg:items-center lg:gap-1 text-sm">
+            <div class="hidden lg:flex lg:items-center lg:gap-0.5 text-sm">
                 <?php if ($_layoutUser): ?>
 
                 <a href="/dashboard" class="px-3 py-2 rounded-md transition-colors <?= navActive('/dashboard', $currentPath) ?>">Dashboard</a>
 
-                <!-- Dropdown: Kontakter -->
-                <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
-                    <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
-                        Kontakter <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </button>
-                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        <a href="/customers" class="block px-4 py-2 text-sm <?= mobileActive('/customers', $currentPath) ?>">Kunder</a>
-                        <a href="/suppliers" class="block px-4 py-2 text-sm <?= mobileActive('/suppliers', $currentPath) ?>">Leverantörer</a>
-                    </div>
-                </div>
+                <!-- ══ SÄLJ ══ -->
+                <?= dropdown('Sälj', '📈', [
+                    ['path' => '/sales',                    'label' => 'Översikt'],
+                    '---',
+                    ['path' => '/sales/customers',          'label' => 'Kunder'],
+                    ['path' => '/sales/quotes',             'label' => 'Offerter'],
+                    ['path' => '/sales/orders',             'label' => 'Ordrar'],
+                    ['path' => '/sales/pricelists',         'label' => 'Prislistor'],
+                ], $currentPath) ?>
 
-                <!-- Dropdown: Organisation -->
-                <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
-                    <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
-                        Organisation <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </button>
-                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        <a href="/departments" class="block px-4 py-2 text-sm <?= mobileActive('/departments', $currentPath) ?>">Avdelningar</a>
-                        <a href="/employees" class="block px-4 py-2 text-sm <?= mobileActive('/employees', $currentPath) ?>">Personal</a>
-                        <a href="/certificates" class="block px-4 py-2 text-sm <?= mobileActive('/certificates', $currentPath) ?>">Certifikat</a>
-                    </div>
-                </div>
+                <!-- ══ PROJEKT ══ -->
+                <?= dropdown('Projekt', '📋', [
+                    ['path' => '/projects',                 'label' => 'Översikt'],
+                    '---',
+                    ['path' => '/projects/create',          'label' => 'Skapa projekt'],
+                    ['path' => '/projects/timesheets',      'label' => 'Tidrapporter'],
+                    ['path' => '/projects/archive',         'label' => 'Arkiv'],
+                ], $currentPath) ?>
+                <!-- ══ INKÖP ══ -->
+                <?= dropdown('Inköp', '🛒', [
+                    ['path' => '/purchasing',               'label' => 'Översikt'],
+                    '---',
+                    ['path' => '/suppliers',                'label' => 'Leverantörer'],
+                    ['path' => '/purchasing/requisitions',  'label' => 'Inköpsanmodan'],
+                    ['path' => '/purchasing/orders',        'label' => 'Inköpsordrar'],
+                    ['path' => '/purchasing/agreements',    'label' => 'Avtal'],
+                ], $currentPath) ?>
 
-                <!-- Dropdown: Drift -->
-                <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
-                    <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
-                        Drift <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </button>
-                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        <a href="/equipment" class="block px-4 py-2 text-sm <?= mobileActive('/equipment', $currentPath) ?>">Utrustning</a>
-                        <a href="/machines" class="block px-4 py-2 text-sm <?= mobileActive('/machines', $currentPath) ?>">Maskiner</a>
-                        <a href="/maintenance/faults" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance', $currentPath) ?>">Underhåll</a>
-                    </div>
-                </div>
+                <!-- ══ LAGER ══ -->
+                <?= dropdown('Lager', '📦', [
+                    ['path' => '/inventory',                'label' => 'Översikt'],
+                    ['path' => '/articles',                 'label' => 'Artiklar'],
+                    '---',
+                    ['path' => '/inventory/stock',          'label' => 'Lagersaldo'],
+                    ['path' => '/inventory/movements',      'label' => 'Lagertransaktioner'],
+                    ['path' => '/inventory/locations',      'label' => 'Lagerplatser'],
+                ], $currentPath) ?>
 
-                <!-- Dropdown: Lager & Inköp -->
-                <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
-                    <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
-                        Lager & Inköp <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </button>
-                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        <a href="/articles" class="block px-4 py-2 text-sm <?= mobileActive('/articles', $currentPath) ?>">Artiklar</a>
-                        <a href="/inventory" class="block px-4 py-2 text-sm <?= mobileActive('/inventory', $currentPath) ?>">Lager</a>
-                        <a href="/purchasing" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing', $currentPath) ?>">Inköp</a>
-                    </div>
-                </div>
+                <!-- ══ PRODUKTION ══ -->
+                <?= dropdown('Produktion', '🏭', [
+                    ['path' => '/production',               'label' => 'Översikt'],
+                    '---',
+                    ['path' => '/production/orders',        'label' => 'Produktionsordrar'],
+                    ['path' => '/production/planning',      'label' => 'Planering'],
+                    ['path' => '/machines',                 'label' => 'Maskiner'],
+                ], $currentPath) ?>
 
-                <!-- Dropdown: Ekonomi -->
-                <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
-                    <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
-                        Ekonomi <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </button>
-                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-52 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        <a href="/finance" class="block px-4 py-2 text-sm <?= mobileActive('/finance', $currentPath) ?>">Översikt</a>
-                        <hr class="my-1 border-gray-200 dark:border-gray-700">
-                        <a href="/finance/invoices-out" class="block px-4 py-2 text-sm <?= mobileActive('/finance/invoices-out', $currentPath) ?>">Kundfakturor</a>
-                        <a href="/finance/invoices-in" class="block px-4 py-2 text-sm <?= mobileActive('/finance/invoices-in', $currentPath) ?>">Lev.fakturor</a>
-                        <hr class="my-1 border-gray-200 dark:border-gray-700">
-                        <a href="/finance/journal" class="block px-4 py-2 text-sm <?= mobileActive('/finance/journal', $currentPath) ?>">Bokföring</a>
-                        <a href="/finance/accounts" class="block px-4 py-2 text-sm <?= mobileActive('/finance/accounts', $currentPath) ?>">Kontoplan</a>
-                        <a href="/finance/cost-centers" class="block px-4 py-2 text-sm <?= mobileActive('/finance/cost-centers', $currentPath) ?>">Kostnadsställen</a>
-                        <hr class="my-1 border-gray-200 dark:border-gray-700">
-                        <a href="/finance/reports/ledger" class="block px-4 py-2 text-sm <?= mobileActive('/finance/reports/ledger', $currentPath) ?>">Huvudbok</a>
-                        <a href="/finance/reports/trial-balance" class="block px-4 py-2 text-sm <?= mobileActive('/finance/reports/trial-balance', $currentPath) ?>">Resultaträkning</a>
-                    </div>
-                </div>
+                <!-- ══ DRIFT & UNDERHÅLL ══ -->
+                <?= dropdown('Drift', '🔧', [
+                    ['path' => '/maintenance/faults',       'label' => 'Felanmälan'],
+                    ['path' => '/maintenance/work-orders',  'label' => 'Arbetsordrar'],
+                    '---',
+                    ['path' => '/equipment',                'label' => 'Utrustning'],
+                    ['path' => '/maintenance/schedule',     'label' => 'Underhållsplan'],
+                ], $currentPath) ?>
+
+                <!-- ══ HR ══ -->
+                <?= dropdown('HR', '👥', [
+                    ['path' => '/hr',                       'label' => 'Översikt'],
+                    '---',
+                    ['path' => '/employees',                'label' => 'Personal'],
+                    ['path' => '/departments',              'label' => 'Avdelningar'],
+                    ['path' => '/certificates',             'label' => 'Certifikat'],
+                    '---',
+                    ['path' => '/hr/payroll',               'label' => 'Lönehantering'],
+                    ['path' => '/hr/leave',                 'label' => 'Frånvaro'],
+                    ['path' => '/hr/attendance',            'label' => 'Närvaro'],
+                    '---',
+                    ['path' => '/hr/recruitment',           'label' => 'Rekrytering'],
+                    ['path' => '/hr/training',              'label' => 'Utbildning'],
+                ], $currentPath) ?>
+
+                <!-- ══ EKONOMI ══ -->
+                <?= dropdown('Ekonomi', '💰', [
+                    ['path' => '/finance',                          'label' => 'Översikt'],
+                    '---',
+                    ['path' => '/finance/invoices-out',             'label' => 'Kundfakturor'],
+                    ['path' => '/finance/invoices-in',              'label' => 'Lev.fakturor'],
+                    '---',
+                    ['path' => '/finance/journal',                  'label' => 'Bokföring'],
+                    ['path' => '/finance/accounts',                 'label' => 'Kontoplan'],
+                    ['path' => '/finance/cost-centers',             'label' => 'Kostnadsställen'],
+                    '---',
+                    ['path' => '/finance/reports/ledger',           'label' => 'Huvudbok'],
+                    ['path' => '/finance/reports/trial-balance',    'label' => 'Resultaträkning'],
+                ], $currentPath, 'w-52') ?>
 
                 <!-- Separator -->
                 <div class="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
 
                 <?php if (($_layoutUser['role_level'] ?? 0) >= 7): ?>
-                <a href="/admin" class="px-3 py-2 rounded-md transition-colors <?= navActive('/admin', $currentPath) ?>">Admin</a>
+                <a href="/admin" class="px-3 py-2 rounded-md transition-colors <?= navActive('/admin', $currentPath) ?>">⚙️ Admin</a>
                 <?php endif; ?>
 
                 <!-- User menu -->
-                <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
-                    <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                        <?= htmlspecialchars($_layoutUser['full_name'] ?? $_layoutUser['username'] ?? '') ?>
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </button>
-                    <div x-show="show" x-transition class="absolute right-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        <a href="/my-page" class="block px-4 py-2 text-sm <?= mobileActive('/my-page', $currentPath) ?>">Min Sida</a>
-                        <a href="/2fa/setup" class="block px-4 py-2 text-sm <?= mobileActive('/2fa', $currentPath) ?>">2FA-inställningar</a>
-                        <hr class="my-1 border-gray-200 dark:border-gray-700">
-                        <a href="/logout" class="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Logga ut</a>
-                    </div>
-                </div>
+                <?= dropdown(htmlspecialchars($_layoutUser['full_name'] ?? $_layoutUser['username'] ?? '', ENT_QUOTES, 'UTF-8'), '👤', [
+                    ['path' => '/my-page',    'label' => 'Min Sida'],
+                    ['path' => '/2fa/setup',  'label' => '2FA-inställningar'],
+                    '---',
+                    ['path' => '/logout',     'label' => '🚪 Logga ut'],
+                ], $currentPath, 'w-44') ?>
 
                 <?php else: ?>
                 <a href="/login" class="px-3 py-2 rounded-md transition-colors <?= navActive('/login', $currentPath) ?>">Logga in</a>
@@ -172,26 +203,52 @@ function mobileActive(string $path, string $currentPath): string {
         <?php if ($_layoutUser): ?>
         <a href="/dashboard" class="block rounded px-3 py-2 text-sm <?= mobileActive('/dashboard', $currentPath) ?>">Dashboard</a>
 
-        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Kontakter</p>
-        <a href="/customers" class="block rounded px-3 py-2 text-sm <?= mobileActive('/customers', $currentPath) ?>">Kunder</a>
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">📈 Sälj</p>
+        <a href="/sales" class="block rounded px-3 py-2 text-sm <?= mobileActive('/sales', $currentPath) ?>">Översikt</a>
+        <a href="/sales/customers" class="block rounded px-3 py-2 text-sm <?= mobileActive('/sales/customers', $currentPath) ?>">Kunder</a>
+        <a href="/sales/quotes" class="block rounded px-3 py-2 text-sm <?= mobileActive('/sales/quotes', $currentPath) ?>">Offerter</a>
+        <a href="/sales/orders" class="block rounded px-3 py-2 text-sm <?= mobileActive('/sales/orders', $currentPath) ?>">Ordrar</a>
+        <a href="/sales/pricelists" class="block rounded px-3 py-2 text-sm <?= mobileActive('/sales/pricelists', $currentPath) ?>">Prislistor</a>
+
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">📋 Projekt</p>
+        <a href="/projects" class="block rounded px-3 py-2 text-sm <?= mobileActive('/projects', $currentPath) ?>">Översikt</a>
+        <a href="/projects/create" class="block rounded px-3 py-2 text-sm <?= mobileActive('/projects/create', $currentPath) ?>">Skapa projekt</a>
+        <a href="/projects/timesheets" class="block rounded px-3 py-2 text-sm <?= mobileActive('/projects/timesheets', $currentPath) ?>">Tidrapporter</a>
+        <a href="/projects/archive" class="block rounded px-3 py-2 text-sm <?= mobileActive('/projects/archive', $currentPath) ?>">Arkiv</a>
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">🛒 Inköp</p>
+        <a href="/purchasing" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing', $currentPath) ?>">Översikt</a>
         <a href="/suppliers" class="block rounded px-3 py-2 text-sm <?= mobileActive('/suppliers', $currentPath) ?>">Leverantörer</a>
+        <a href="/purchasing/requisitions" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/requisitions', $currentPath) ?>">Inköpsanmodan</a>
+        <a href="/purchasing/orders" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/orders', $currentPath) ?>">Inköpsordrar</a>
 
-        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Organisation</p>
-        <a href="/departments" class="block rounded px-3 py-2 text-sm <?= mobileActive('/departments', $currentPath) ?>">Avdelningar</a>
-        <a href="/employees" class="block rounded px-3 py-2 text-sm <?= mobileActive('/employees', $currentPath) ?>">Personal</a>
-        <a href="/certificates" class="block rounded px-3 py-2 text-sm <?= mobileActive('/certificates', $currentPath) ?>">Certifikat</a>
-
-        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Drift</p>
-        <a href="/equipment" class="block rounded px-3 py-2 text-sm <?= mobileActive('/equipment', $currentPath) ?>">Utrustning</a>
-        <a href="/machines" class="block rounded px-3 py-2 text-sm <?= mobileActive('/machines', $currentPath) ?>">Maskiner</a>
-        <a href="/maintenance/faults" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance', $currentPath) ?>">Underhåll</a>
-
-        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Lager & Inköp</p>
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">📦 Lager</p>
+        <a href="/inventory" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory', $currentPath) ?>">Översikt</a>
         <a href="/articles" class="block rounded px-3 py-2 text-sm <?= mobileActive('/articles', $currentPath) ?>">Artiklar</a>
-        <a href="/inventory" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory', $currentPath) ?>">Lager</a>
-        <a href="/purchasing" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing', $currentPath) ?>">Inköp</a>
+        <a href="/inventory/stock" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory/stock', $currentPath) ?>">Lagersaldo</a>
+        <a href="/inventory/movements" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory/movements', $currentPath) ?>">Lagertransaktioner</a>
 
-        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Ekonomi</p>
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">🏭 Produktion</p>
+        <a href="/production" class="block rounded px-3 py-2 text-sm <?= mobileActive('/production', $currentPath) ?>">Översikt</a>
+        <a href="/production/orders" class="block rounded px-3 py-2 text-sm <?= mobileActive('/production/orders', $currentPath) ?>">Produktionsordrar</a>
+        <a href="/machines" class="block rounded px-3 py-2 text-sm <?= mobileActive('/machines', $currentPath) ?>">Maskiner</a>
+
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">🔧 Drift & Underhåll</p>
+        <a href="/maintenance/faults" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/faults', $currentPath) ?>">Felanmälan</a>
+        <a href="/maintenance/work-orders" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/work-orders', $currentPath) ?>">Arbetsordrar</a>
+        <a href="/equipment" class="block rounded px-3 py-2 text-sm <?= mobileActive('/equipment', $currentPath) ?>">Utrustning</a>
+
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">👥 HR</p>
+        <a href="/hr" class="block rounded px-3 py-2 text-sm <?= mobileActive('/hr', $currentPath) ?>">Översikt</a>
+        <a href="/employees" class="block rounded px-3 py-2 text-sm <?= mobileActive('/employees', $currentPath) ?>">Personal</a>
+        <a href="/departments" class="block rounded px-3 py-2 text-sm <?= mobileActive('/departments', $currentPath) ?>">Avdelningar</a>
+        <a href="/certificates" class="block rounded px-3 py-2 text-sm <?= mobileActive('/certificates', $currentPath) ?>">Certifikat</a>
+        <a href="/hr/payroll" class="block rounded px-3 py-2 text-sm <?= mobileActive('/hr/payroll', $currentPath) ?>">Lönehantering</a>
+        <a href="/hr/leave" class="block rounded px-3 py-2 text-sm <?= mobileActive('/hr/leave', $currentPath) ?>">Frånvaro</a>
+        <a href="/hr/attendance" class="block rounded px-3 py-2 text-sm <?= mobileActive('/hr/attendance', $currentPath) ?>">Närvaro</a>
+        <a href="/hr/recruitment" class="block rounded px-3 py-2 text-sm <?= mobileActive('/hr/recruitment', $currentPath) ?>">Rekrytering</a>
+        <a href="/hr/training" class="block rounded px-3 py-2 text-sm <?= mobileActive('/hr/training', $currentPath) ?>">Utbildning</a>
+
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">💰 Ekonomi</p>
         <a href="/finance" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance', $currentPath) ?>">Översikt</a>
         <a href="/finance/invoices-out" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/invoices-out', $currentPath) ?>">Kundfakturor</a>
         <a href="/finance/invoices-in" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/invoices-in', $currentPath) ?>">Lev.fakturor</a>
@@ -200,11 +257,11 @@ function mobileActive(string $path, string $currentPath): string {
 
         <hr class="my-2 border-gray-200 dark:border-gray-700">
         <?php if (($_layoutUser['role_level'] ?? 0) >= 7): ?>
-        <a href="/admin" class="block rounded px-3 py-2 text-sm <?= mobileActive('/admin', $currentPath) ?>">Admin</a>
+        <a href="/admin" class="block rounded px-3 py-2 text-sm <?= mobileActive('/admin', $currentPath) ?>">⚙️ Admin</a>
         <?php endif; ?>
-        <a href="/my-page" class="block rounded px-3 py-2 text-sm <?= mobileActive('/my-page', $currentPath) ?>">Min Sida</a>
-        <a href="/2fa/setup" class="block rounded px-3 py-2 text-sm <?= mobileActive('/2fa', $currentPath) ?>">2FA</a>
-        <a href="/logout" class="block rounded px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Logga ut</a>
+        <a href="/my-page" class="block rounded px-3 py-2 text-sm <?= mobileActive('/my-page', $currentPath) ?>">👤 Min Sida</a>
+        <a href="/2fa/setup" class="block rounded px-3 py-2 text-sm <?= mobileActive('/2fa', $currentPath) ?>">🔐 2FA</a>
+        <a href="/logout" class="block rounded px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">🚪 Logga ut</a>
         <?php else: ?>
         <a href="/login" class="block rounded px-3 py-2 text-sm <?= mobileActive('/login', $currentPath) ?>">Logga in</a>
         <?php endif; ?>

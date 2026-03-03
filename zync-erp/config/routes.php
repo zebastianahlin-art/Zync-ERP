@@ -33,12 +33,6 @@ return function (App $app) {
         $group->post("/my-page/avatar", [\App\Controllers\MyPageController::class, "uploadAvatar"]);
 
         // Customer routes (will be migrated to companies module later)
-        $group->get('/customers', [\App\Controllers\CustomerController::class, 'index']);
-        $group->get('/customers/create', [\App\Controllers\CustomerController::class, 'create']);
-        $group->post('/customers', [\App\Controllers\CustomerController::class, 'store']);
-        $group->get('/customers/{id}/edit', [\App\Controllers\CustomerController::class, 'edit']);
-        $group->post('/customers/{id}', [\App\Controllers\CustomerController::class, 'update']);
-        $group->post('/customers/{id}/delete', [\App\Controllers\CustomerController::class, 'destroy']);
 
         // Supplier routes
         $group->get('/suppliers', [\App\Controllers\SupplierController::class, 'index']);
@@ -210,6 +204,56 @@ return function (App $app) {
         $group->get('/2fa/setup', [\App\Controllers\TwoFactorController::class, 'setup']);
         $group->post('/2fa/enable', [\App\Controllers\TwoFactorController::class, 'enable']);
         $group->post('/2fa/disable', [\App\Controllers\TwoFactorController::class, 'disable']);
+
+        // ─── HR ──────────────────────────────────────
+        $group->get('/hr', [\App\Controllers\HrController::class, 'index']);
+
+        // Payroll (Löner)
+        $group->get('/hr/payroll', [\App\Controllers\HrController::class, 'payrollIndex']);
+        $group->get('/hr/payroll/create', [\App\Controllers\HrController::class, 'payrollCreate']);
+        $group->post('/hr/payroll', [\App\Controllers\HrController::class, 'payrollStore']);
+        $group->get('/hr/payroll/{id}', [\App\Controllers\HrController::class, 'payrollShow']);
+        $group->get('/hr/payroll/{id}/records/{recordId}/edit', [\App\Controllers\HrController::class, 'payrollRecordEdit']);
+        $group->post('/hr/payroll/{id}/records/{recordId}', [\App\Controllers\HrController::class, 'payrollRecordUpdate']);
+        $group->post('/hr/payroll/{id}/approve', [\App\Controllers\HrController::class, 'payrollApprove']);
+        $group->post('/hr/payroll/{id}/mark-paid', [\App\Controllers\HrController::class, 'payrollMarkPaid']);
+        $group->post('/hr/payroll/{id}/delete', [\App\Controllers\HrController::class, 'payrollDelete']);
+
+        // Leave (Frånvaro)
+        $group->get('/hr/leave', [\App\Controllers\HrController::class, 'leaveIndex']);
+        $group->get('/hr/leave/create', [\App\Controllers\HrController::class, 'leaveCreate']);
+        $group->post('/hr/leave', [\App\Controllers\HrController::class, 'leaveStore']);
+        $group->post('/hr/leave/{id}/approve', [\App\Controllers\HrController::class, 'leaveApprove']);
+        $group->post('/hr/leave/{id}/reject', [\App\Controllers\HrController::class, 'leaveReject']);
+        $group->post('/hr/leave/{id}/delete', [\App\Controllers\HrController::class, 'leaveDelete']);
+
+        // Attendance (Närvaro)
+        $group->get('/hr/attendance', [\App\Controllers\HrController::class, 'attendanceIndex']);
+        $group->post('/hr/attendance', [\App\Controllers\HrController::class, 'attendanceStore']);
+
+        // Recruitment (Rekrytering)
+        $group->get('/hr/recruitment', [\App\Controllers\HrController::class, 'recruitmentIndex']);
+        $group->get('/hr/recruitment/create', [\App\Controllers\HrController::class, 'recruitmentCreate']);
+        $group->post('/hr/recruitment', [\App\Controllers\HrController::class, 'recruitmentStore']);
+        $group->get('/hr/recruitment/{id}', [\App\Controllers\HrController::class, 'recruitmentShow']);
+        $group->get('/hr/recruitment/{id}/edit', [\App\Controllers\HrController::class, 'recruitmentEdit']);
+        $group->post('/hr/recruitment/{id}', [\App\Controllers\HrController::class, 'recruitmentUpdate']);
+        $group->post('/hr/recruitment/{id}/delete', [\App\Controllers\HrController::class, 'recruitmentDelete']);
+        $group->post('/hr/recruitment/{id}/candidates', [\App\Controllers\HrController::class, 'candidateStore']);
+        $group->post('/hr/recruitment/{id}/candidates/{candidateId}/status', [\App\Controllers\HrController::class, 'candidateUpdateStatus']);
+
+        // Training (Utbildning)
+        $group->get('/hr/training', [\App\Controllers\HrController::class, 'trainingIndex']);
+        $group->get('/hr/training/create', [\App\Controllers\HrController::class, 'trainingCreate']);
+        $group->post('/hr/training', [\App\Controllers\HrController::class, 'trainingStore']);
+        $group->get('/hr/training/{id}', [\App\Controllers\HrController::class, 'trainingShow']);
+        $group->get('/hr/training/{id}/edit', [\App\Controllers\HrController::class, 'trainingEdit']);
+        $group->post('/hr/training/{id}', [\App\Controllers\HrController::class, 'trainingUpdate']);
+        $group->post('/hr/training/{id}/delete', [\App\Controllers\HrController::class, 'trainingDelete']);
+        $group->post('/hr/training/{id}/sessions', [\App\Controllers\HrController::class, 'sessionStore']);
+        $group->get('/hr/training/{id}/sessions/{sessionId}', [\App\Controllers\HrController::class, 'sessionShow']);
+        $group->post('/hr/training/{id}/sessions/{sessionId}/participants', [\App\Controllers\HrController::class, 'participantAdd']);
+        $group->post('/hr/training/{id}/sessions/{sessionId}/participants/{participantId}', [\App\Controllers\HrController::class, 'participantUpdate']);
     })->add(new CsrfMiddleware())->add(new AuthMiddleware());
 
     // Admin routes — require Chef level (7) or higher
@@ -292,4 +336,115 @@ $app->get('/finance/reports/ledger', [\App\Controllers\FinanceController::class,
 $app->get('/finance/reports/trial-balance', [\App\Controllers\FinanceController::class, 'trialBalance'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
 $app->get('/finance/reports/cost-centers', [\App\Controllers\FinanceController::class, 'costCenterReport'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
 
+
+// ─── PRODUKTION ──────────────────────────────────────────
+$app->get("/production", [\App\Controllers\ProductionController::class, "index"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->get("/production/lines", [\App\Controllers\ProductionController::class, "lines"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->get("/production/lines/create", [\App\Controllers\ProductionController::class, "createLine"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->post("/production/lines", [\App\Controllers\ProductionController::class, "storeLine"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->get("/production/lines/{id}/edit", [\App\Controllers\ProductionController::class, "editLine"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->post("/production/lines/{id}", [\App\Controllers\ProductionController::class, "updateLine"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->post("/production/lines/{id}/delete", [\App\Controllers\ProductionController::class, "deleteLine"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->get("/production/orders", [\App\Controllers\ProductionController::class, "orders"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->get("/production/orders/create", [\App\Controllers\ProductionController::class, "createOrder"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->post("/production/orders", [\App\Controllers\ProductionController::class, "storeOrder"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->get("/production/orders/{id}", [\App\Controllers\ProductionController::class, "showOrder"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->get("/production/orders/{id}/edit", [\App\Controllers\ProductionController::class, "editOrder"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->post("/production/orders/{id}", [\App\Controllers\ProductionController::class, "updateOrder"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->post("/production/orders/{id}/status", [\App\Controllers\ProductionController::class, "updateOrderStatus"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->post("/production/orders/{id}/delete", [\App\Controllers\ProductionController::class, "deleteOrder"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->post("/production/orders/{id}/log", [\App\Controllers\ProductionController::class, "addLog"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->post("/production/orders/{id}/materials", [\App\Controllers\ProductionController::class, "addMaterial"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->post("/production/orders/{id}/time", [\App\Controllers\ProductionController::class, "addTime"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->post("/production/bom/{articleId}", [\App\Controllers\ProductionController::class, "addBomLine"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+$app->post("/production/bom/{bomId}/delete", [\App\Controllers\ProductionController::class, "removeBomLine"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+
+    // ═══════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════
+    //  PROJEKT
+    // ═══════════════════════════════════════════════════════
+    $app->get('/projects', [\App\Controllers\ProjectController::class, 'index'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->get('/projects/archive', [\App\Controllers\ProjectController::class, 'archive'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->get('/projects/timesheets', [\App\Controllers\ProjectController::class, 'timesheets'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->get('/projects/create', [\App\Controllers\ProjectController::class, 'create'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects', [\App\Controllers\ProjectController::class, 'store'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->get('/projects/{id}', [\App\Controllers\ProjectController::class, 'show'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->get('/projects/{id}/edit', [\App\Controllers\ProjectController::class, 'edit'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}', [\App\Controllers\ProjectController::class, 'update'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/delete', [\App\Controllers\ProjectController::class, 'delete'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/complete', [\App\Controllers\ProjectController::class, 'complete'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/phases', [\App\Controllers\ProjectController::class, 'storePhase'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/phases/{phaseId}/status', [\App\Controllers\ProjectController::class, 'updatePhaseStatus'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/phases/{phaseId}/delete', [\App\Controllers\ProjectController::class, 'deletePhase'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/milestones', [\App\Controllers\ProjectController::class, 'storeMilestone'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/milestones/{milestoneId}/complete', [\App\Controllers\ProjectController::class, 'completeMilestone'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/milestones/{milestoneId}/delete', [\App\Controllers\ProjectController::class, 'deleteMilestone'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/tasks', [\App\Controllers\ProjectController::class, 'storeTask'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/tasks/{taskId}/status', [\App\Controllers\ProjectController::class, 'updateTaskStatus'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/tasks/{taskId}/delete', [\App\Controllers\ProjectController::class, 'deleteTask'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/timesheets', [\App\Controllers\ProjectController::class, 'storeTimesheet'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/timesheets/{timesheetId}/approve', [\App\Controllers\ProjectController::class, 'approveTimesheet'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/budget', [\App\Controllers\ProjectController::class, 'storeBudgetLine'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/budget/{budgetId}/delete', [\App\Controllers\ProjectController::class, 'deleteBudgetLine'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/risks', [\App\Controllers\ProjectController::class, 'storeRisk'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/risks/{riskId}/status', [\App\Controllers\ProjectController::class, 'updateRiskStatus'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/comments', [\App\Controllers\ProjectController::class, 'storeComment'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/members', [\App\Controllers\ProjectController::class, 'addMember'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post('/projects/{id}/members/{userId}/delete', [\App\Controllers\ProjectController::class, 'removeMember'])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+
+    //  SALES
+    // ═══════════════════════════════════════════════════════
+    $app->get("/sales", [\App\Controllers\SalesController::class, "index"])->add(new AuthMiddleware());
+
+    // Kunder
+    $app->get("/sales/customers", [\App\Controllers\SalesController::class, "customers"])->add(new AuthMiddleware());
+    $app->get("/sales/customers/create", [\App\Controllers\SalesController::class, "createCustomer"])->add(new AuthMiddleware());
+    $app->post("/sales/customers", [\App\Controllers\SalesController::class, "storeCustomer"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->get("/sales/customers/{id}", [\App\Controllers\SalesController::class, "showCustomer"])->add(new AuthMiddleware());
+    $app->get("/sales/customers/{id}/edit", [\App\Controllers\SalesController::class, "editCustomer"])->add(new AuthMiddleware());
+    $app->post("/sales/customers/{id}", [\App\Controllers\SalesController::class, "updateCustomer"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post("/sales/customers/{id}/delete", [\App\Controllers\SalesController::class, "deleteCustomer"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post("/sales/customers/{id}/contacts", [\App\Controllers\SalesController::class, "storeContact"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post("/sales/customers/{id}/contacts/{contactId}/delete", [\App\Controllers\SalesController::class, "deleteContact"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post("/sales/customers/{id}/prices", [\App\Controllers\SalesController::class, "storeCustomerPrice"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post("/sales/customers/{id}/prices/{priceId}/delete", [\App\Controllers\SalesController::class, "deleteCustomerPrice"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+
+    // Prislistor
+    $app->get("/sales/pricelists", [\App\Controllers\SalesController::class, "priceLists"])->add(new AuthMiddleware());
+    $app->get("/sales/pricelists/create", [\App\Controllers\SalesController::class, "createPriceList"])->add(new AuthMiddleware());
+    $app->post("/sales/pricelists", [\App\Controllers\SalesController::class, "storePriceList"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->get("/sales/pricelists/{id}", [\App\Controllers\SalesController::class, "showPriceList"])->add(new AuthMiddleware());
+    $app->get("/sales/pricelists/{id}/edit", [\App\Controllers\SalesController::class, "editPriceList"])->add(new AuthMiddleware());
+    $app->post("/sales/pricelists/{id}", [\App\Controllers\SalesController::class, "updatePriceList"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post("/sales/pricelists/{id}/lines", [\App\Controllers\SalesController::class, "addPriceListLine"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post("/sales/pricelists/{id}/lines/{lineId}/delete", [\App\Controllers\SalesController::class, "removePriceListLine"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+
+    // Offerter
+    $app->get("/sales/quotes", [\App\Controllers\SalesController::class, "quotes"])->add(new AuthMiddleware());
+    $app->get("/sales/quotes/create", [\App\Controllers\SalesController::class, "createQuote"])->add(new AuthMiddleware());
+    $app->post("/sales/quotes", [\App\Controllers\SalesController::class, "storeQuote"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->get("/sales/quotes/{id}", [\App\Controllers\SalesController::class, "showQuote"])->add(new AuthMiddleware());
+    $app->get("/sales/quotes/{id}/edit", [\App\Controllers\SalesController::class, "editQuote"])->add(new AuthMiddleware());
+    $app->post("/sales/quotes/{id}", [\App\Controllers\SalesController::class, "updateQuote"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post("/sales/quotes/{id}/lines", [\App\Controllers\SalesController::class, "addQuoteLine"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post("/sales/quotes/{id}/lines/{lineId}/delete", [\App\Controllers\SalesController::class, "removeQuoteLine"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post("/sales/quotes/{id}/status", [\App\Controllers\SalesController::class, "updateQuoteStatus"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post("/sales/quotes/{id}/convert", [\App\Controllers\SalesController::class, "convertQuoteToOrder"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post("/sales/quotes/{id}/delete", [\App\Controllers\SalesController::class, "deleteQuote"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+
+    // Försäljningsordrar
+    $app->get("/sales/orders", [\App\Controllers\SalesController::class, "orders"])->add(new AuthMiddleware());
+    $app->get("/sales/orders/create", [\App\Controllers\SalesController::class, "createOrder"])->add(new AuthMiddleware());
+    $app->post("/sales/orders", [\App\Controllers\SalesController::class, "storeOrder"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->get("/sales/orders/{id}", [\App\Controllers\SalesController::class, "showOrder"])->add(new AuthMiddleware());
+    $app->get("/sales/orders/{id}/edit", [\App\Controllers\SalesController::class, "editOrder"])->add(new AuthMiddleware());
+    $app->post("/sales/orders/{id}", [\App\Controllers\SalesController::class, "updateOrder"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post("/sales/orders/{id}/lines", [\App\Controllers\SalesController::class, "addOrderLine"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post("/sales/orders/{id}/lines/{lineId}/delete", [\App\Controllers\SalesController::class, "removeOrderLine"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post("/sales/orders/{id}/status", [\App\Controllers\SalesController::class, "updateOrderStatus"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post("/sales/orders/{id}/production", [\App\Controllers\SalesController::class, "createProductionFromOrder"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+    $app->post("/sales/orders/{id}/delete", [\App\Controllers\SalesController::class, "deleteOrder"])->add(new CsrfMiddleware())->add(new AuthMiddleware());
+
+    // API - Prislookup
+    $app->get("/api/sales/price/{articleId}", [\App\Controllers\SalesController::class, "getArticlePrice"])->add(new AuthMiddleware());
 };

@@ -156,4 +156,25 @@ class ArticleRepository
             updatedAt:     $row['updated_at'],
         );
     }
+
+    /** Return all articles as plain arrays (for dropdowns/views) */
+    public function allAsArray(): array
+    {
+        $stmt = \App\Core\Database::pdo()->query(
+            'SELECT id, article_number, name, description, unit, purchase_price, selling_price, vat_rate, category
+             FROM articles WHERE is_deleted = 0 ORDER BY article_number ASC'
+        );
+        return $stmt->fetchAll();
+    }
+
+    /** Find article as array */
+    public function findAsArray(int $id): ?array
+    {
+        $stmt = \App\Core\Database::pdo()->prepare(
+            'SELECT id, article_number, name, description, unit, purchase_price, selling_price, vat_rate, category
+             FROM articles WHERE id = ? AND is_deleted = 0'
+        );
+        $stmt->execute([$id]);
+        return $stmt->fetch() ?: null;
+    }
 }
