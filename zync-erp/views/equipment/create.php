@@ -75,7 +75,7 @@
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Överordnad utrustning (valfritt)</label>
             <select name="parent_id" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500">
                 <option value="">— Ingen överordnad —</option>
-                <?php foreach ($equipmentList as $eq): ?>
+                <?php foreach ($equipmentList ?? [] as $eq): ?>
                 <option value="<?= (int)$eq['id'] ?>"><?= htmlspecialchars($eq['equipment_number'] . ' — ' . $eq['name'], ENT_QUOTES, 'UTF-8') ?></option>
                 <?php endforeach; ?>
             </select>

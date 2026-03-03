@@ -70,43 +70,10 @@
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Överordnad utrustning (valfritt)</label>
             <select name="parent_id" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500">
                 <option value="">— Ingen överordnad —</option>
-                <?php foreach ($equipmentList as $eq): ?>
+                <?php foreach ($parentList as $eq): ?>
                 <?php if ((int)$eq['id'] === (int)$equipment['id']) continue; ?>
                 <option value="<?= (int)$eq['id'] ?>" <?= ((int)($equipment['parent_id'] ?? 0)) === (int)$eq['id'] ? 'selected' : '' ?>><?= htmlspecialchars($eq['equipment_number'] . ' — ' . $eq['name'], ENT_QUOTES, 'UTF-8') ?></option>
                 <?php endforeach; ?>
-            </select>
-        </div>
-
-        <!-- Teknisk info -->
-        <div class="border-t border-gray-200 dark:border-gray-700 pt-5">
-            <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Teknisk information</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tillverkare</label>
-                    <input type="text" name="manufacturer" value="<?= htmlspecialchars($equipment['manufacturer'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Modell</label>
-                    <input type="text" name="model" value="<?= htmlspecialchars($equipment['model'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Serienummer</label>
-                    <input type="text" name="serial_number" value="<?= htmlspecialchars($equipment['serial_number'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tillverkningsår</label>
-                    <input type="number" name="year_of_manufacture" min="1900" max="2100" value="<?= htmlspecialchars($equipment['year_of_manufacture'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Installationsdatum</label>
-                    <input type="date" name="installed_date" value="<?= htmlspecialchars($equipment['installed_date'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Garanti till</label>
-                    <input type="date" name="warranty_until" value="<?= htmlspecialchars($equipment['warranty_until'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500">
-                </div>
-            </div>
-        </div>
 
         <!-- Status och kritikalitet -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
