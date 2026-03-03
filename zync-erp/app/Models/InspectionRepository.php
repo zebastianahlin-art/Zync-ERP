@@ -12,7 +12,7 @@ class InspectionRepository
     {
         $sql = "SELECT i.*, e.name AS equipment_name, m.name AS machine_name,
                        d.name AS department_name, u.full_name AS inspector_name
-                FROM inspections i
+                FROM equipment_inspections i
                 LEFT JOIN equipment e ON i.equipment_id = e.id
                 LEFT JOIN machines m ON i.machine_id = m.id
                 LEFT JOIN departments d ON i.department_id = d.id
@@ -27,7 +27,7 @@ class InspectionRepository
         $stmt = Database::pdo()->prepare(
             "SELECT i.*, e.name AS equipment_name, m.name AS machine_name,
                     d.name AS department_name, u.full_name AS inspector_name
-             FROM inspections i
+             FROM equipment_inspections i
              LEFT JOIN equipment e ON i.equipment_id = e.id
              LEFT JOIN machines m ON i.machine_id = m.id
              LEFT JOIN departments d ON i.department_id = d.id
@@ -42,21 +42,19 @@ class InspectionRepository
     {
         $number = $this->generateNumber();
         $stmt = Database::pdo()->prepare(
-            "INSERT INTO inspections
-             (inspection_number, title, description, equipment_id, machine_id, department_id,
+            "INSERT INTO equipment_inspections
+             (inspection_number, equipment_id, machine_id, department_id,
               inspector_id, inspection_type, scheduled_date, status, notes, created_by)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         $stmt->execute([
             $number,
-            $data['title'],
-            $data['description'] ?? null,
             $data['equipment_id'] ?: null,
             $data['machine_id'] ?: null,
             $data['department_id'] ?: null,
             $data['inspector_id'] ?: null,
-            $data['inspection_type'] ?? null,
-            $data['scheduled_date'] ?: null,
+            $data['inspection_type'] ?? 'routine',
+            $data['scheduled_date'],
             $data['status'] ?? 'scheduled',
             $data['notes'] ?? null,
             $data['created_by'],
@@ -67,21 +65,19 @@ class InspectionRepository
     public function update(int $id, array $data): void
     {
         $stmt = Database::pdo()->prepare(
-            "UPDATE inspections
-             SET title = ?, description = ?, equipment_id = ?, machine_id = ?,
-                 department_id = ?, inspector_id = ?, inspection_type = ?,
+            "UPDATE equipment_inspections
+             SET equipment_id = ?, machine_id = ?, department_id = ?,
+                 inspector_id = ?, inspection_type = ?,
                  scheduled_date = ?, status = ?, notes = ?
              WHERE id = ?"
         );
         $stmt->execute([
-            $data['title'],
-            $data['description'] ?? null,
             $data['equipment_id'] ?: null,
             $data['machine_id'] ?: null,
             $data['department_id'] ?: null,
             $data['inspector_id'] ?: null,
-            $data['inspection_type'] ?? null,
-            $data['scheduled_date'] ?: null,
+            $data['inspection_type'] ?? 'routine',
+            $data['scheduled_date'],
             $data['status'] ?? 'scheduled',
             $data['notes'] ?? null,
             $id,
@@ -90,7 +86,7 @@ class InspectionRepository
 
     public function delete(int $id): void
     {
-        $stmt = Database::pdo()->prepare("UPDATE inspections SET is_deleted = 1 WHERE id = ?");
+        $stmt = Database::pdo()->prepare("UPDATE equipment_inspections SET is_deleted = 1 WHERE id = ?");
         $stmt->execute([$id]);
     }
 
@@ -98,7 +94,7 @@ class InspectionRepository
     {
         $year = (int) date('Y');
         $stmt = Database::pdo()->prepare(
-            "SELECT COUNT(*) FROM inspections WHERE YEAR(created_at) = ?"
+            "SELECT COUNT(*) FROM equipment_inspections WHERE YEAR(created_at) = ?"
         );
         $stmt->execute([$year]);
         $count = (int) $stmt->fetchColumn() + 1;
@@ -109,7 +105,7 @@ class InspectionRepository
     {
         $sql = "SELECT i.*, e.name AS equipment_name, m.name AS machine_name,
                        d.name AS department_name, u.full_name AS inspector_name
-                FROM inspections i
+                FROM equipment_inspections i
                 LEFT JOIN equipment e ON i.equipment_id = e.id
                 LEFT JOIN machines m ON i.machine_id = m.id
                 LEFT JOIN departments d ON i.department_id = d.id
@@ -125,7 +121,7 @@ class InspectionRepository
     {
         $sql = "SELECT i.*, e.name AS equipment_name, m.name AS machine_name,
                        d.name AS department_name, u.full_name AS inspector_name
-                FROM inspections i
+                FROM equipment_inspections i
                 LEFT JOIN equipment e ON i.equipment_id = e.id
                 LEFT JOIN machines m ON i.machine_id = m.id
                 LEFT JOIN departments d ON i.department_id = d.id
@@ -138,7 +134,7 @@ class InspectionRepository
     public function complete(int $id, array $data): void
     {
         $stmt = Database::pdo()->prepare(
-            "UPDATE inspections
+            "UPDATE equipment_inspections
              SET completed_date = ?, status = 'completed', result = ?,
                  notes = ?, next_inspection_date = ?
              WHERE id = ?"

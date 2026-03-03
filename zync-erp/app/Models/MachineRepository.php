@@ -38,10 +38,10 @@ class MachineRepository
         $stmt = Database::pdo()->prepare(
             "INSERT INTO machines
              (machine_number, name, description, equipment_id, department_id, location,
-              manufacturer, model, serial_number, year_of_manufacture, installed_date,
-              warranty_until, status, criticality, last_maintenance_date,
+              manufacturer, model, serial_number, year_of_manufacture, power_kw,
+              status, criticality, last_maintenance_date,
               next_maintenance_date, maintenance_interval_days, notes, is_active, created_by)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         $stmt->execute([
             $number,
@@ -54,9 +54,8 @@ class MachineRepository
             $data['model'] ?? null,
             $data['serial_number'] ?? null,
             $data['year_of_manufacture'] ?: null,
-            $data['installed_date'] ?: null,
-            $data['warranty_until'] ?: null,
-            $data['status'] ?? 'active',
+            $data['power_kw'] ?: null,
+            $data['status'] ?? 'running',
             $data['criticality'] ?? 'medium',
             $data['last_maintenance_date'] ?: null,
             $data['next_maintenance_date'] ?: null,
@@ -74,7 +73,7 @@ class MachineRepository
             "UPDATE machines
              SET name = ?, description = ?, equipment_id = ?, department_id = ?, location = ?,
                  manufacturer = ?, model = ?, serial_number = ?, year_of_manufacture = ?,
-                 installed_date = ?, warranty_until = ?, status = ?, criticality = ?,
+                 power_kw = ?, status = ?, criticality = ?,
                  last_maintenance_date = ?, next_maintenance_date = ?,
                  maintenance_interval_days = ?, notes = ?, is_active = ?
              WHERE id = ?"
@@ -89,9 +88,8 @@ class MachineRepository
             $data['model'] ?? null,
             $data['serial_number'] ?? null,
             $data['year_of_manufacture'] ?: null,
-            $data['installed_date'] ?: null,
-            $data['warranty_until'] ?: null,
-            $data['status'] ?? 'active',
+            $data['power_kw'] ?: null,
+            $data['status'] ?? 'running',
             $data['criticality'] ?? 'medium',
             $data['last_maintenance_date'] ?: null,
             $data['next_maintenance_date'] ?: null,

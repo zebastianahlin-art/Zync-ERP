@@ -61,7 +61,7 @@ class FaultReportRepository
             $data['location'] ?? null,
             $data['department_id'] ?: null,
             $data['fault_type'] ?? null,
-            $data['priority'] ?? 'medium',
+            $data['priority'] ?? 'normal',
             $data['reported_by'],
             $data['created_by'],
         ]);
@@ -84,7 +84,7 @@ class FaultReportRepository
             $data['location'] ?? null,
             $data['department_id'] ?: null,
             $data['fault_type'] ?? null,
-            $data['priority'] ?? 'medium',
+            $data['priority'] ?? 'normal',
             $id,
         ]);
     }

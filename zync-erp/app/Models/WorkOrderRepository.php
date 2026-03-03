@@ -50,8 +50,8 @@ class WorkOrderRepository
         $number = $this->generateNumber();
         $stmt = Database::pdo()->prepare(
             "INSERT INTO work_orders
-             (work_order_number, title, description, machine_id, equipment_id, department_id,
-              fault_report_id, work_type, priority, scheduled_date, estimated_hours,
+             (order_number, title, description, machine_id, equipment_id, department_id,
+              fault_report_id, work_type, priority, planned_start, estimated_hours,
               notes, created_by)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
@@ -64,8 +64,8 @@ class WorkOrderRepository
             $data['department_id'] ?: null,
             $data['fault_report_id'] ?: null,
             $data['work_type'] ?? null,
-            $data['priority'] ?? 'medium',
-            $data['scheduled_date'] ?: null,
+            $data['priority'] ?? 'normal',
+            $data['planned_start'] ?: null,
             $data['estimated_hours'] ?: null,
             $data['notes'] ?? null,
             $data['created_by'],
@@ -78,7 +78,7 @@ class WorkOrderRepository
         $stmt = Database::pdo()->prepare(
             "UPDATE work_orders
              SET title = ?, description = ?, machine_id = ?, equipment_id = ?,
-                 department_id = ?, work_type = ?, priority = ?, scheduled_date = ?,
+                 department_id = ?, work_type = ?, priority = ?, planned_start = ?,
                  estimated_hours = ?, notes = ?
              WHERE id = ?"
         );
@@ -89,8 +89,8 @@ class WorkOrderRepository
             $data['equipment_id'] ?: null,
             $data['department_id'] ?: null,
             $data['work_type'] ?? null,
-            $data['priority'] ?? 'medium',
-            $data['scheduled_date'] ?: null,
+            $data['priority'] ?? 'normal',
+            $data['planned_start'] ?: null,
             $data['estimated_hours'] ?: null,
             $data['notes'] ?? null,
             $id,
@@ -235,8 +235,8 @@ class WorkOrderRepository
     {
         $stmt = Database::pdo()->prepare(
             "INSERT INTO work_order_time_entries
-             (work_order_id, user_id, work_date, hours, description, created_by)
-             VALUES (?, ?, ?, ?, ?, ?)"
+             (work_order_id, user_id, work_date, hours, description)
+             VALUES (?, ?, ?, ?, ?)"
         );
         $stmt->execute([
             $woId,
@@ -244,7 +244,6 @@ class WorkOrderRepository
             $data['work_date'],
             $data['hours'],
             $data['description'] ?? null,
-            $data['created_by'],
         ]);
         $insertId = (int) Database::pdo()->lastInsertId();
         $this->recalcTotals($woId);
