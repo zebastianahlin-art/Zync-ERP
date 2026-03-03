@@ -173,6 +173,7 @@ class EmergencyResourceRepository
                COUNT(*) AS total,
                SUM(status = "ok") AS ok,
                SUM(status = "needs_inspection") AS needs_inspection,
+               SUM(status = "needs_replacement") AS needs_replacement,
                SUM(status = "out_of_service") AS out_of_service,
                SUM(next_inspection < CURDATE() AND next_inspection IS NOT NULL AND status != "out_of_service") AS overdue
              FROM hs_emergency_resources WHERE is_deleted = 0'
