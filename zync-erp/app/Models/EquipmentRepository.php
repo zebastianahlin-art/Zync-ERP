@@ -106,7 +106,7 @@ class EquipmentRepository
 
     private function generateNumber(): string
     {
-        $stmt = Database::pdo()->query("SELECT COUNT(*) FROM equipment WHERE is_deleted = 0");
+        $stmt = Database::pdo()->query("SELECT COUNT(*) FROM equipment");
         $count = (int) $stmt->fetchColumn() + 1;
         return 'EQ-' . str_pad((string) $count, 3, '0', STR_PAD_LEFT);
     }

@@ -359,6 +359,12 @@ class WorkOrderRepository
         $stmt->execute([$id]);
         $hours = (float) $stmt->fetchColumn();
 
+        $stmtLabor = Database::pdo()->prepare(
+            "SELECT COALESCE(SUM(hours * COALESCE(hourly_rate, 0)), 0) FROM work_order_time_entries WHERE work_order_id = ?"
+        );
+        $stmtLabor->execute([$id]);
+        $laborCost = (float) $stmtLabor->fetchColumn();
+
         $stmt2 = Database::pdo()->prepare(
             "SELECT COALESCE(SUM(total_price), 0) FROM work_order_parts WHERE work_order_id = ?"
         );
@@ -368,7 +374,7 @@ class WorkOrderRepository
         $stmt3 = Database::pdo()->prepare(
             "UPDATE work_orders SET total_hours=?, total_material_cost=?, total_cost=? WHERE id=?"
         );
-        $stmt3->execute([$hours, $materialCost, $materialCost, $id]);
+        $stmt3->execute([$hours, $materialCost, $laborCost + $materialCost, $id]);
     }
 
     public function generateOrderNumber(): string
