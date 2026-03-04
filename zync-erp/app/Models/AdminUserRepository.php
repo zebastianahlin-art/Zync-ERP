@@ -158,6 +158,51 @@ class AdminUserRepository
         return (int) $stmt->fetchColumn() > 0;
     }
 
+    // ─── Role CRUD ────────────────────────────────────────────────────────────
+
+    /** Find a single role by ID. */
+    public function findRole(int $id): ?array
+    {
+        $stmt = Database::pdo()->prepare('SELECT * FROM roles WHERE id = ? AND is_deleted = 0');
+        $stmt->execute([$id]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+    }
+
+    /** Create a new role. */
+    public function createRole(array $data): int
+    {
+        $stmt = Database::pdo()->prepare(
+            'INSERT INTO roles (name, slug, level) VALUES (:name, :slug, :level)'
+        );
+        $stmt->execute([
+            'name'  => $data['name'],
+            'slug'  => $data['slug'],
+            'level' => (int) $data['level'],
+        ]);
+        return (int) Database::pdo()->lastInsertId();
+    }
+
+    /** Update an existing role. */
+    public function updateRole(int $id, array $data): void
+    {
+        $stmt = Database::pdo()->prepare(
+            'UPDATE roles SET name = :name, slug = :slug, level = :level WHERE id = :id AND is_deleted = 0'
+        );
+        $stmt->execute([
+            'name'  => $data['name'],
+            'slug'  => $data['slug'],
+            'level' => (int) $data['level'],
+            'id'    => $id,
+        ]);
+    }
+
+    /** Soft-delete a role. */
+    public function deleteRole(int $id): void
+    {
+        $stmt = Database::pdo()->prepare('UPDATE roles SET is_deleted = 1 WHERE id = ?');
+        $stmt->execute([$id]);
+    }
+
     /** Check if username is already taken (optionally excluding a user ID). */
     public function usernameExists(string $username, ?int $excludeId = null): bool
     {

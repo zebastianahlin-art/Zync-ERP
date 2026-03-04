@@ -121,6 +121,124 @@ class AdminController extends Controller
         return $this->redirect($response, '/admin/users');
     }
 
+    // ─── Role Management ─────────────────────────────────────────────────────────
+
+    /** GET /admin/roles */
+    public function roles(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        return $this->render($response, 'admin/roles/index', [
+            'title' => 'Roller – Admin – ZYNC ERP',
+            'roles' => $this->repo->allRoles(),
+        ]);
+    }
+
+    /** GET /admin/roles/create */
+    public function createRole(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        return $this->render($response, 'admin/roles/create', [
+            'title'  => 'Ny roll – Admin – ZYNC ERP',
+            'errors' => [],
+            'old'    => [],
+        ]);
+    }
+
+    /** POST /admin/roles */
+    public function storeRole(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $data   = $this->parseRoleBody($request);
+        $errors = $this->validateRole($data);
+
+        if (!empty($errors)) {
+            return $this->render($response, 'admin/roles/create', [
+                'title'  => 'Ny roll – Admin – ZYNC ERP',
+                'errors' => $errors,
+                'old'    => $data,
+            ]);
+        }
+
+        $this->repo->createRole($data);
+        Flash::set('success', 'Rollen skapades.');
+        return $this->redirect($response, '/admin/roles');
+    }
+
+    /** GET /admin/roles/{id}/edit */
+    public function editRole(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $role = $this->repo->findRole((int) $args['id']);
+        if ($role === null) {
+            return $this->notFound($response);
+        }
+
+        return $this->render($response, 'admin/roles/edit', [
+            'title'  => 'Redigera roll – Admin – ZYNC ERP',
+            'role'   => $role,
+            'errors' => [],
+        ]);
+    }
+
+    /** POST /admin/roles/{id} */
+    public function updateRole(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id   = (int) $args['id'];
+        $role = $this->repo->findRole($id);
+        if ($role === null) {
+            return $this->notFound($response);
+        }
+
+        $data   = $this->parseRoleBody($request);
+        $errors = $this->validateRole($data);
+
+        if (!empty($errors)) {
+            return $this->render($response, 'admin/roles/edit', [
+                'title'  => 'Redigera roll – Admin – ZYNC ERP',
+                'role'   => $role,
+                'errors' => $errors,
+            ]);
+        }
+
+        $this->repo->updateRole($id, $data);
+        Flash::set('success', 'Rollen uppdaterades.');
+        return $this->redirect($response, '/admin/roles');
+    }
+
+    /** POST /admin/roles/{id}/delete */
+    public function deleteRole(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id = (int) $args['id'];
+        if ($this->repo->findRole($id) !== null) {
+            $this->repo->deleteRole($id);
+            Flash::set('success', 'Rollen togs bort.');
+        }
+        return $this->redirect($response, '/admin/roles');
+    }
+
+    /** @return array<string, string> */
+    private function parseRoleBody(ServerRequestInterface $request): array
+    {
+        $body = (array) $request->getParsedBody();
+        return [
+            'name'  => trim((string) ($body['name'] ?? '')),
+            'slug'  => trim((string) ($body['slug'] ?? '')),
+            'level' => trim((string) ($body['level'] ?? '1')),
+        ];
+    }
+
+    /** @return array<string, string> */
+    private function validateRole(array $data): array
+    {
+        $errors = [];
+        if ($data['name'] === '') {
+            $errors['name'] = 'Namn är obligatoriskt.';
+        }
+        if ($data['slug'] === '') {
+            $errors['slug'] = 'Slug är obligatorisk.';
+        }
+        if (!is_numeric($data['level']) || (int) $data['level'] < 1 || (int) $data['level'] > 10) {
+            $errors['level'] = 'Nivå måste vara ett heltal 1–10.';
+        }
+        return $errors;
+    }
+
     /** POST /admin/users/{id}/toggle — Toggle is_active. */
     public function toggleUser(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
