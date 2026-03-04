@@ -13,6 +13,7 @@ use App\Models\MachineRepository;
 use App\Models\FaultReportRepository;
 use App\Models\WorkOrderRepository;
 use App\Models\InspectableEquipmentRepository;
+use App\Models\PreventiveMaintenanceRepository;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -23,6 +24,7 @@ class MaintenanceController extends Controller
     private FaultReportRepository $faultRepo;
     private WorkOrderRepository $woRepo;
     private InspectableEquipmentRepository $inspRepo;
+    private PreventiveMaintenanceRepository $pmRepo;
 
     public function __construct()
     {
@@ -32,6 +34,7 @@ class MaintenanceController extends Controller
         $this->faultRepo   = new FaultReportRepository();
         $this->woRepo      = new WorkOrderRepository();
         $this->inspRepo    = new InspectableEquipmentRepository();
+        $this->pmRepo      = new PreventiveMaintenanceRepository();
     }
 
     // ─── MAINTENANCE DASHBOARD ───────────────────────────────
@@ -831,4 +834,130 @@ class MaintenanceController extends Controller
             "SELECT id, code, name FROM cost_centers WHERE is_active = 1 AND is_deleted = 0 ORDER BY code"
         )->fetchAll(\PDO::FETCH_ASSOC);
     }
+
+    // ─── PREVENTIVE MAINTENANCE ───────────────────────────────
+
+    public function preventiveIndex(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        return $this->render($response, 'maintenance/preventive/index', [
+            'title'     => 'Förebyggande underhåll – ZYNC ERP',
+            'schedules' => $this->pmRepo->allSchedules(),
+        ]);
+    }
+
+    public function preventiveCreate(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        return $this->render($response, 'maintenance/preventive/create', [
+            'title'     => 'Nytt FU-schema – ZYNC ERP',
+            'equipment' => $this->equipRepo->all(),
+            'machines'  => $this->machineRepo->all(),
+            'users'     => $this->getUsers(),
+        ]);
+    }
+
+    public function preventiveStore(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $data = (array) $request->getParsedBody();
+        $data['created_by'] = Auth::user()['id'] ?? null;
+
+        if (empty($data['title'])) {
+            Flash::set('error', 'Titel krävs.');
+            return $this->redirect($response, '/maintenance/preventive/create');
+        }
+
+        // Parse checklist items from form
+        if (!empty($data['checklist_items'])) {
+            $items = array_filter(array_map('trim', explode("\n", $data['checklist_items'])));
+            $data['checklist'] = array_values($items);
+        }
+
+        $id = $this->pmRepo->createSchedule($data);
+        Flash::set('success', 'FU-schema skapat.');
+        return $this->redirect($response, "/maintenance/preventive/{$id}");
+    }
+
+    public function preventiveShow(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id       = (int) ($args['id'] ?? 0);
+        $schedule = $this->pmRepo->findSchedule($id);
+        if (!$schedule) {
+            Flash::set('error', 'FU-schema hittades inte.');
+            return $this->redirect($response, '/maintenance/preventive');
+        }
+
+        return $this->render($response, 'maintenance/preventive/show', [
+            'title'    => htmlspecialchars($schedule['title'], ENT_QUOTES, 'UTF-8') . ' – ZYNC ERP',
+            'schedule' => $schedule,
+            'logs'     => $this->pmRepo->getLogsForSchedule($id),
+        ]);
+    }
+
+    public function preventiveEdit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id       = (int) ($args['id'] ?? 0);
+        $schedule = $this->pmRepo->findSchedule($id);
+        if (!$schedule) {
+            Flash::set('error', 'FU-schema hittades inte.');
+            return $this->redirect($response, '/maintenance/preventive');
+        }
+
+        return $this->render($response, 'maintenance/preventive/edit', [
+            'title'     => 'Redigera FU-schema – ZYNC ERP',
+            'schedule'  => $schedule,
+            'equipment' => $this->equipRepo->all(),
+            'machines'  => $this->machineRepo->all(),
+            'users'     => $this->getUsers(),
+        ]);
+    }
+
+    public function preventiveUpdate(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id   = (int) ($args['id'] ?? 0);
+        $data = (array) $request->getParsedBody();
+
+        if (empty($data['title'])) {
+            Flash::set('error', 'Titel krävs.');
+            return $this->redirect($response, "/maintenance/preventive/{$id}/edit");
+        }
+
+        if (!empty($data['checklist_items'])) {
+            $items = array_filter(array_map('trim', explode("\n", $data['checklist_items'])));
+            $data['checklist'] = array_values($items);
+        }
+
+        $this->pmRepo->updateSchedule($id, $data);
+        Flash::set('success', 'FU-schema uppdaterat.');
+        return $this->redirect($response, "/maintenance/preventive/{$id}");
+    }
+
+    public function preventiveDelete(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $this->pmRepo->deleteSchedule((int) ($args['id'] ?? 0));
+        Flash::set('success', 'FU-schema borttaget.');
+        return $this->redirect($response, '/maintenance/preventive');
+    }
+
+    public function preventiveGenerate(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id      = (int) ($args['id'] ?? 0);
+        $userId  = Auth::user()['id'] ?? 0;
+
+        try {
+            $woId = $this->pmRepo->generateWorkOrder($id, $userId);
+            Flash::set('success', 'Arbetsorder skapad.');
+            return $this->redirect($response, "/maintenance/work-orders/{$woId}");
+        } catch (\RuntimeException $e) {
+            Flash::set('error', $e->getMessage());
+            return $this->redirect($response, "/maintenance/preventive/{$id}");
+        }
+    }
+
+    public function preventiveCalendar(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        return $this->render($response, 'maintenance/preventive/calendar', [
+            'title'    => 'FU-kalender – ZYNC ERP',
+            'upcoming' => $this->pmRepo->getUpcoming(90),
+        ]);
+    }
 }
+

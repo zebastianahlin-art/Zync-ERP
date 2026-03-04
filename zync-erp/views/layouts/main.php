@@ -62,11 +62,12 @@ function mobileActive(string $path, string $currentPath): string {
                         <a href="/maintenance/work-orders" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/work-orders', $currentPath) ?>">Avrapportering</a>
                         <a href="/maintenance/work-orders/archive" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/work-orders/archive', $currentPath) ?>">Historiska arbetsordrar</a>
                         <hr class="my-1 border-gray-200 dark:border-gray-700">
-                        <a href="/maintenance/preventive" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/preventive', $currentPath) ?>">FU Dashboard</a>
-                        <a href="/maintenance/preventive/planner" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/preventive/planner', $currentPath) ?>">FU Planerare</a>
-                        <a href="/maintenance/preventive/rounds" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/preventive/rounds', $currentPath) ?>">FU Rondering</a>
+                        <a href="/maintenance/preventive" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/preventive', $currentPath) ?>">Förebyggande underhåll</a>
+                        <a href="/maintenance/preventive/create" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/preventive/create', $currentPath) ?>">Nytt FU-schema</a>
+                        <a href="/maintenance/preventive/calendar" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/preventive/calendar', $currentPath) ?>">FU-kalender</a>
                         <hr class="my-1 border-gray-200 dark:border-gray-700">
-                        <a href="/maintenance/ai-engineer" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/ai-engineer', $currentPath) ?>">AI Ingenjören</a>
+                        <a href="/maintenance/ai" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/ai', $currentPath) ?>">AI-ingenjör</a>
+                        <a href="/maintenance/ai/recommendations" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/ai/recommendations', $currentPath) ?>">Rekommendationer</a>
                         <hr class="my-1 border-gray-200 dark:border-gray-700">
                         <a href="/maintenance/inspections" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/inspections', $currentPath) ?>">Besiktningar</a>
                     </div>
@@ -79,11 +80,11 @@ function mobileActive(string $path, string $currentPath): string {
                     </button>
                     <div x-show="show" x-transition class="absolute left-0 mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
                         <a href="/objects" class="block px-4 py-2 text-sm <?= mobileActive('/objects', $currentPath) ?>">Navigator</a>
-                        <a href="/objects/dashboard" class="block px-4 py-2 text-sm <?= mobileActive('/objects/dashboard', $currentPath) ?>">Dashboard</a>
-                        <a href="/objects/manage" class="block px-4 py-2 text-sm <?= mobileActive('/objects/manage', $currentPath) ?>">Administrera objekt</a>
+                        <a href="/objects/tree" class="block px-4 py-2 text-sm <?= mobileActive('/objects/tree', $currentPath) ?>">Objektträd</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
                         <a href="/equipment" class="block px-4 py-2 text-sm <?= mobileActive('/equipment', $currentPath) ?>">Utrustning</a>
                         <a href="/machines" class="block px-4 py-2 text-sm <?= mobileActive('/machines', $currentPath) ?>">Maskiner</a>
-                        <a href="/objects/inspection-required" class="block px-4 py-2 text-sm <?= mobileActive('/objects/inspection-required', $currentPath) ?>">Besiktningspliktig utrustning</a>
+                        <a href="/maintenance/inspections" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/inspections', $currentPath) ?>">Besiktningspliktig utrustning</a>
                     </div>
                 </div>
 
@@ -351,20 +352,19 @@ function mobileActive(string $path, string $currentPath): string {
         <?php endif; ?>
         <a href="/maintenance/work-orders" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/work-orders', $currentPath) ?>">Avrapportering</a>
         <a href="/maintenance/work-orders/archive" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/work-orders/archive', $currentPath) ?>">Historiska arbetsordrar</a>
-        <a href="/maintenance/preventive" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/preventive', $currentPath) ?>">FU Dashboard</a>
-        <a href="/maintenance/preventive/planner" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/preventive/planner', $currentPath) ?>">FU Planerare</a>
-        <a href="/maintenance/preventive/rounds" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/preventive/rounds', $currentPath) ?>">FU Rondering</a>
-        <a href="/maintenance/ai-engineer" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/ai-engineer', $currentPath) ?>">AI Ingenjören</a>
+        <a href="/maintenance/preventive" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/preventive', $currentPath) ?>">Förebyggande underhåll</a>
+        <a href="/maintenance/preventive/calendar" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/preventive/calendar', $currentPath) ?>">FU-kalender</a>
+        <a href="/maintenance/ai" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/ai', $currentPath) ?>">AI-ingenjör</a>
+        <a href="/maintenance/ai/recommendations" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/ai/recommendations', $currentPath) ?>">Rekommendationer</a>
         <a href="/maintenance/inspections" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/inspections', $currentPath) ?>">Besiktningar</a>
 
         <!-- 3. ObjektNavigator -->
         <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">ObjektNavigator</p>
         <a href="/objects" class="block rounded px-3 py-2 text-sm <?= mobileActive('/objects', $currentPath) ?>">Navigator</a>
-        <a href="/objects/dashboard" class="block rounded px-3 py-2 text-sm <?= mobileActive('/objects/dashboard', $currentPath) ?>">Dashboard</a>
-        <a href="/objects/manage" class="block rounded px-3 py-2 text-sm <?= mobileActive('/objects/manage', $currentPath) ?>">Administrera objekt</a>
+        <a href="/objects/tree" class="block rounded px-3 py-2 text-sm <?= mobileActive('/objects/tree', $currentPath) ?>">Objektträd</a>
         <a href="/equipment" class="block rounded px-3 py-2 text-sm <?= mobileActive('/equipment', $currentPath) ?>">Utrustning</a>
         <a href="/machines" class="block rounded px-3 py-2 text-sm <?= mobileActive('/machines', $currentPath) ?>">Maskiner</a>
-        <a href="/objects/inspection-required" class="block rounded px-3 py-2 text-sm <?= mobileActive('/objects/inspection-required', $currentPath) ?>">Besiktningspliktig utrustning</a>
+        <a href="/maintenance/inspections" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/inspections', $currentPath) ?>">Besiktningspliktig utrustning</a>
 
         <!-- 4. Lager -->
         <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Lager</p>

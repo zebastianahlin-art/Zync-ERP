@@ -180,11 +180,25 @@ return function (App $app) {
         // ─── Maintenance (Underhåll) ──────────────────────────
         $group->get('/maintenance', [\App\Controllers\MaintenanceController::class, 'dashboard']);
 
-        // Preventive maintenance placeholders
-        $group->get('/maintenance/preventive', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Förebyggande Underhåll');
-        $group->get('/maintenance/preventive/planner', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'FU Planerare');
-        $group->get('/maintenance/preventive/rounds', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'FU Rondering');
-        $group->get('/maintenance/ai-engineer', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'AI Ingenjören');
+        // ─── Preventive Maintenance (Förebyggande Underhåll) ──
+        // Static routes BEFORE parameterised routes
+        $group->get('/maintenance/preventive/calendar', [\App\Controllers\MaintenanceController::class, 'preventiveCalendar']);
+        $group->get('/maintenance/preventive/create', [\App\Controllers\MaintenanceController::class, 'preventiveCreate']);
+        $group->get('/maintenance/preventive', [\App\Controllers\MaintenanceController::class, 'preventiveIndex']);
+        $group->post('/maintenance/preventive', [\App\Controllers\MaintenanceController::class, 'preventiveStore']);
+        $group->get('/maintenance/preventive/{id}', [\App\Controllers\MaintenanceController::class, 'preventiveShow']);
+        $group->get('/maintenance/preventive/{id}/edit', [\App\Controllers\MaintenanceController::class, 'preventiveEdit']);
+        $group->post('/maintenance/preventive/{id}', [\App\Controllers\MaintenanceController::class, 'preventiveUpdate']);
+        $group->post('/maintenance/preventive/{id}/delete', [\App\Controllers\MaintenanceController::class, 'preventiveDelete']);
+        $group->post('/maintenance/preventive/{id}/generate', [\App\Controllers\MaintenanceController::class, 'preventiveGenerate']);
+
+        // ─── AI-ingenjör ──────────────────────────────────────
+        $group->get('/maintenance/ai', [\App\Controllers\AiEngineerController::class, 'index']);
+        $group->get('/maintenance/ai/recommendations', [\App\Controllers\AiEngineerController::class, 'recommendations']);
+        $group->get('/maintenance/ai/machine/{id}', [\App\Controllers\AiEngineerController::class, 'machineHealth']);
+
+        // Old placeholder kept for backwards compatibility with menu links
+        $group->get('/maintenance/ai-engineer', [\App\Controllers\AiEngineerController::class, 'index']);
 
         // Equipment (Utrustning)
         $group->get('/equipment', [\App\Controllers\MaintenanceController::class, 'equipmentIndex']);
@@ -437,10 +451,12 @@ return function (App $app) {
         $group->get('/hr/expenses', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Reseräkningar');
 
         // ─── ObjektNavigator ─────────────────────────────────────────────────
-        $group->get('/objects', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'ObjektNavigator');
-        $group->get('/objects/dashboard', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Objekt Dashboard');
-        $group->get('/objects/manage', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Administrera Objekt');
-        $group->get('/objects/inspection-required', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Besiktningspliktig Utrustning');
+        // Static routes BEFORE parameterised routes
+        $group->get('/objects/tree', [\App\Controllers\ObjectNavigatorController::class, 'tree']);
+        $group->get('/objects/search', [\App\Controllers\ObjectNavigatorController::class, 'search']);
+        $group->get('/objects', [\App\Controllers\ObjectNavigatorController::class, 'index']);
+        $group->post('/objects/sync', [\App\Controllers\ObjectNavigatorController::class, 'sync']);
+        $group->get('/objects/{type}/{id}', [\App\Controllers\ObjectNavigatorController::class, 'show']);
 
         // ─── CS & Transport ──────────────────────────────────────────────────
         $group->get('/cs', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Customer Service');
