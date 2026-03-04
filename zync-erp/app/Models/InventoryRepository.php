@@ -8,6 +8,8 @@ use App\Core\Database;
 
 class InventoryRepository
 {
+    private const STOCK_ADJUSTMENT_THRESHOLD = 0.001;
+
     // ─── Stock Methods ────────────────────────────────────────────────────
 
     public function getStockWithFilters(array $filters): array
@@ -437,7 +439,7 @@ class InventoryRepository
         ]);
     }
 
-    public function approveStocktaking(int $id): void
+    public function approveStocktaking(int $id, ?int $approvedBy = null): void
     {
         $pdo = Database::pdo();
 
@@ -461,7 +463,7 @@ class InventoryRepository
 
         foreach ($lines as $line) {
             $diff = (float) $line['counted_quantity'] - (float) $line['system_quantity'];
-            if (abs($diff) < 0.001) {
+            if (abs($diff) < self::STOCK_ADJUSTMENT_THRESHOLD) {
                 continue;
             }
 
@@ -480,8 +482,8 @@ class InventoryRepository
         }
 
         $pdo->prepare(
-            "UPDATE stocktakings SET status = 'approved', approved_at = NOW() WHERE id = ?"
-        )->execute([$id]);
+            "UPDATE stocktakings SET status = 'approved', approved_by = ?, approved_at = NOW() WHERE id = ?"
+        )->execute([$approvedBy, $id]);
     }
 
     // ─── Warehouse Methods ────────────────────────────────────────────────
