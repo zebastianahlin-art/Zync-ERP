@@ -44,134 +44,222 @@ function mobileActive(string $path, string $currentPath): string {
             <div class="hidden lg:flex lg:items-center lg:gap-1 text-sm">
                 <?php if ($_layoutUser): ?>
 
+                <!-- 1. Dashboard -->
                 <a href="/dashboard" class="px-3 py-2 rounded-md transition-colors <?= navActive('/dashboard', $currentPath) ?>">Dashboard</a>
 
-                <!-- Dropdown: Kontakter -->
+                <!-- 2. Underhåll -->
                 <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
                     <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
-                        Kontakter <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        Underhåll <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        <a href="/customers" class="block px-4 py-2 text-sm <?= mobileActive('/customers', $currentPath) ?>">Kunder</a>
-                        <a href="/suppliers" class="block px-4 py-2 text-sm <?= mobileActive('/suppliers', $currentPath) ?>">Leverantörer</a>
-                    </div>
-                </div>
-
-                <!-- Dropdown: Drift -->
-                <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
-                    <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
-                        Drift <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </button>
-                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-52 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        <a href="/equipment" class="block px-4 py-2 text-sm <?= mobileActive('/equipment', $currentPath) ?>">Utrustning</a>
-                        <a href="/machines" class="block px-4 py-2 text-sm <?= mobileActive('/machines', $currentPath) ?>">Maskiner</a>
-                        <hr class="my-1 border-gray-200 dark:border-gray-700">
-                        <a href="/maintenance" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance', $currentPath) ?>">Underhåll</a>
+                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                        <a href="/maintenance" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance', $currentPath) ?>">Dashboard</a>
                         <a href="/maintenance/faults" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/faults', $currentPath) ?>">Felanmälan</a>
-                        <a href="/maintenance/work-orders" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/work-orders', $currentPath) ?>">Arbetsordrar</a>
+                        <a href="/maintenance/work-orders" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/work-orders', $currentPath) ?>">Aktiva arbetsordrar</a>
+                        <?php if (($_layoutUser['role_level'] ?? 0) >= 5): ?>
+                        <a href="/maintenance/supervisor" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/supervisor', $currentPath) ?>">Arbetsorderhantering</a>
+                        <?php endif; ?>
+                        <a href="/maintenance/work-orders" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/work-orders', $currentPath) ?>">Avrapportering</a>
+                        <a href="/maintenance/work-orders/archive" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/work-orders/archive', $currentPath) ?>">Historiska arbetsordrar</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <a href="/maintenance/preventive" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/preventive', $currentPath) ?>">FU Dashboard</a>
+                        <a href="/maintenance/preventive/planner" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/preventive/planner', $currentPath) ?>">FU Planerare</a>
+                        <a href="/maintenance/preventive/rounds" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/preventive/rounds', $currentPath) ?>">FU Rondering</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <a href="/maintenance/ai-engineer" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/ai-engineer', $currentPath) ?>">AI Ingenjören</a>
                         <hr class="my-1 border-gray-200 dark:border-gray-700">
                         <a href="/maintenance/inspections" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/inspections', $currentPath) ?>">Besiktningar</a>
-                        <a href="/maintenance/work-orders/archive" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/work-orders/archive', $currentPath) ?>">Arkiv</a>
-                        <?php if (($_layoutUser['role_level'] ?? 0) >= 5): ?>
-                        <hr class="my-1 border-gray-200 dark:border-gray-700">
-                        <a href="/maintenance/supervisor" class="block px-4 py-2 text-sm <?= mobileActive('/maintenance/supervisor', $currentPath) ?>">Arbetsledare</a>
-                        <?php endif; ?>
                     </div>
                 </div>
 
-                <!-- Dropdown: Lager & Inköp -->
+                <!-- 3. ObjektNavigator -->
                 <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
                     <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
-                        Lager & Inköp <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        ObjektNavigator <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        <a href="/articles" class="block px-4 py-2 text-sm <?= mobileActive('/articles', $currentPath) ?>">Artiklar</a>
-                        <a href="/inventory" class="block px-4 py-2 text-sm <?= mobileActive('/inventory', $currentPath) ?>">Lager</a>
-                        <a href="/purchasing" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing', $currentPath) ?>">Inköp</a>
+                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                        <a href="/objects" class="block px-4 py-2 text-sm <?= mobileActive('/objects', $currentPath) ?>">Navigator</a>
+                        <a href="/objects/dashboard" class="block px-4 py-2 text-sm <?= mobileActive('/objects/dashboard', $currentPath) ?>">Dashboard</a>
+                        <a href="/objects/manage" class="block px-4 py-2 text-sm <?= mobileActive('/objects/manage', $currentPath) ?>">Administrera objekt</a>
+                        <a href="/equipment" class="block px-4 py-2 text-sm <?= mobileActive('/equipment', $currentPath) ?>">Utrustning</a>
+                        <a href="/machines" class="block px-4 py-2 text-sm <?= mobileActive('/machines', $currentPath) ?>">Maskiner</a>
+                        <a href="/objects/inspection-required" class="block px-4 py-2 text-sm <?= mobileActive('/objects/inspection-required', $currentPath) ?>">Besiktningspliktig utrustning</a>
                     </div>
                 </div>
 
-                <!-- Dropdown: Ekonomi -->
+                <!-- 4. Lager -->
+                <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
+                    <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
+                        Lager <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                        <a href="/inventory" class="block px-4 py-2 text-sm <?= mobileActive('/inventory', $currentPath) ?>">Dashboard</a>
+                        <a href="/articles" class="block px-4 py-2 text-sm <?= mobileActive('/articles', $currentPath) ?>">Lagerartiklar</a>
+                        <a href="/inventory/transactions" class="block px-4 py-2 text-sm <?= mobileActive('/inventory/transactions', $currentPath) ?>">Lagertransaktionshistorik</a>
+                        <a href="/inventory/order" class="block px-4 py-2 text-sm <?= mobileActive('/inventory/order', $currentPath) ?>">Beställ lagerartiklar</a>
+                        <a href="/inventory/receiving" class="block px-4 py-2 text-sm <?= mobileActive('/inventory/receiving', $currentPath) ?>">Inleverans</a>
+                        <a href="/inventory/withdrawal" class="block px-4 py-2 text-sm <?= mobileActive('/inventory/withdrawal', $currentPath) ?>">Uttag av lagerartiklar</a>
+                        <a href="/inventory/stocktaking" class="block px-4 py-2 text-sm <?= mobileActive('/inventory/stocktaking', $currentPath) ?>">Inventering</a>
+                    </div>
+                </div>
+
+                <!-- 5. Inköp -->
+                <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
+                    <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
+                        Inköp <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                        <a href="/purchasing" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing', $currentPath) ?>">Dashboard</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Leverantörer</p>
+                        <a href="/suppliers" class="block px-4 py-2 text-sm <?= mobileActive('/suppliers', $currentPath) ?>">Leverantörsregister</a>
+                        <a href="/purchasing/audits" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/audits', $currentPath) ?>">Leverantörsaudit</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Inköpsanmodan</p>
+                        <a href="/purchasing/requisitions/create" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/requisitions/create', $currentPath) ?>">Skapa inköpsanmodan</a>
+                        <a href="/purchasing/requisitions" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/requisitions', $currentPath) ?>">Ej hanterade anmodan</a>
+                        <a href="/purchasing/requisitions/history" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/requisitions/history', $currentPath) ?>">Historiska anmodan</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Inköpsorder</p>
+                        <a href="/purchasing/orders/create" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/orders/create', $currentPath) ?>">Skapa inköpsorder</a>
+                        <a href="/purchasing/orders" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/orders', $currentPath) ?>">Aktiva inköpsordrar</a>
+                        <a href="/purchasing/orders/history" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/orders/history', $currentPath) ?>">Historiska inköpsordrar</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Avtal</p>
+                        <a href="/purchasing/agreements/create" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/agreements/create', $currentPath) ?>">Skapa avtal</a>
+                        <a href="/purchasing/agreements" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/agreements', $currentPath) ?>">Aktiva avtal</a>
+                        <a href="/purchasing/agreements/history" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/agreements/history', $currentPath) ?>">Historiska avtal</a>
+                        <a href="/purchasing/agreements/templates" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/agreements/templates', $currentPath) ?>">Avtalsmallar</a>
+                    </div>
+                </div>
+
+                <!-- 6. Ekonomi -->
                 <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
                     <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
                         Ekonomi <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-52 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        <a href="/finance" class="block px-4 py-2 text-sm <?= mobileActive('/finance', $currentPath) ?>">Översikt</a>
+                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                        <a href="/finance" class="block px-4 py-2 text-sm <?= mobileActive('/finance', $currentPath) ?>">Dashboard</a>
                         <hr class="my-1 border-gray-200 dark:border-gray-700">
-                        <a href="/finance/invoices-out" class="block px-4 py-2 text-sm <?= mobileActive('/finance/invoices-out', $currentPath) ?>">Kundfakturor</a>
-                        <a href="/finance/invoices-in" class="block px-4 py-2 text-sm <?= mobileActive('/finance/invoices-in', $currentPath) ?>">Lev.fakturor</a>
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Kunder &amp; Leverantörer</p>
+                        <a href="/customers" class="block px-4 py-2 text-sm <?= mobileActive('/customers', $currentPath) ?>">Kunder</a>
+                        <a href="/suppliers" class="block px-4 py-2 text-sm <?= mobileActive('/suppliers', $currentPath) ?>">Leverantörer</a>
                         <hr class="my-1 border-gray-200 dark:border-gray-700">
-                        <a href="/finance/journal" class="block px-4 py-2 text-sm <?= mobileActive('/finance/journal', $currentPath) ?>">Bokföring</a>
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Fakturahantering</p>
+                        <a href="/finance/invoices-in" class="block px-4 py-2 text-sm <?= mobileActive('/finance/invoices-in', $currentPath) ?>">Leverantörsfakturor</a>
+                        <a href="/finance/invoices-out/create" class="block px-4 py-2 text-sm <?= mobileActive('/finance/invoices-out/create', $currentPath) ?>">Skapa kundfaktura</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Bokföring</p>
                         <a href="/finance/accounts" class="block px-4 py-2 text-sm <?= mobileActive('/finance/accounts', $currentPath) ?>">Kontoplan</a>
                         <a href="/finance/cost-centers" class="block px-4 py-2 text-sm <?= mobileActive('/finance/cost-centers', $currentPath) ?>">Kostnadsställen</a>
+                        <a href="/finance/journal" class="block px-4 py-2 text-sm <?= mobileActive('/finance/journal', $currentPath) ?>">Bokföring/Verifikationer</a>
                         <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Rapporter</p>
                         <a href="/finance/reports/ledger" class="block px-4 py-2 text-sm <?= mobileActive('/finance/reports/ledger', $currentPath) ?>">Huvudbok</a>
                         <a href="/finance/reports/trial-balance" class="block px-4 py-2 text-sm <?= mobileActive('/finance/reports/trial-balance', $currentPath) ?>">Resultaträkning</a>
+                        <a href="/finance/reports/kpi" class="block px-4 py-2 text-sm <?= mobileActive('/finance/reports/kpi', $currentPath) ?>">KPI från avdelningar</a>
+                        <a href="/finance/reports/stocktaking" class="block px-4 py-2 text-sm <?= mobileActive('/finance/reports/stocktaking', $currentPath) ?>">Inventering</a>
                     </div>
                 </div>
 
-                <!-- Dropdown: Hälsa & Säkerhet -->
+                <!-- 7. Health & Safety -->
                 <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
                     <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
-                        H&S <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        Health &amp; Safety <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        <a href="/safety" class="block px-4 py-2 text-sm <?= mobileActive('/safety', $currentPath) ?>">Översikt</a>
+                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-60 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                        <a href="/safety" class="block px-4 py-2 text-sm <?= mobileActive('/safety', $currentPath) ?>">Dashboard</a>
                         <hr class="my-1 border-gray-200 dark:border-gray-700">
-                        <a href="/safety/risks" class="block px-4 py-2 text-sm <?= mobileActive('/safety/risks', $currentPath) ?>">Risker &amp; Faror</a>
-                        <a href="/safety/reports" class="block px-4 py-2 text-sm <?= mobileActive('/safety/reports', $currentPath) ?>">Riskrapporter</a>
+                        <a href="/safety/risks" class="block px-4 py-2 text-sm <?= mobileActive('/safety/risks', $currentPath) ?>">Hantera risker &amp; faror</a>
                         <hr class="my-1 border-gray-200 dark:border-gray-700">
-                        <a href="/safety/audits" class="block px-4 py-2 text-sm <?= mobileActive('/safety/audits', $currentPath) ?>">Audits</a>
-                        <a href="/safety/audit-templates" class="block px-4 py-2 text-sm <?= mobileActive('/safety/audit-templates', $currentPath) ?>">Audit-mallar</a>
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Safety Audits</p>
+                        <a href="/safety/audits/create" class="block px-4 py-2 text-sm <?= mobileActive('/safety/audits/create', $currentPath) ?>">Skapa safety audit</a>
+                        <a href="/safety/audit-templates" class="block px-4 py-2 text-sm <?= mobileActive('/safety/audit-templates', $currentPath) ?>">Hantera audit-mallar</a>
+                        <a href="/safety/audits/pending" class="block px-4 py-2 text-sm <?= mobileActive('/safety/audits/pending', $currentPath) ?>">Ej slutförda åtgärder</a>
+                        <a href="/safety/audits/completed" class="block px-4 py-2 text-sm <?= mobileActive('/safety/audits/completed', $currentPath) ?>">Slutförda åtgärder</a>
                         <hr class="my-1 border-gray-200 dark:border-gray-700">
-                        <a href="/safety/emergency" class="block px-4 py-2 text-sm <?= mobileActive('/safety/emergency', $currentPath) ?>">Krishantering</a>
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Krishantering</p>
+                        <a href="/safety/emergency" class="block px-4 py-2 text-sm <?= mobileActive('/safety/emergency', $currentPath) ?>">Aktiv krisplan</a>
+                        <a href="/safety/emergency/procedures" class="block px-4 py-2 text-sm <?= mobileActive('/safety/emergency/procedures', $currentPath) ?>">Hantera krisplan</a>
                         <hr class="my-1 border-gray-200 dark:border-gray-700">
-                        <a href="/safety/resources" class="block px-4 py-2 text-sm <?= mobileActive('/safety/resources', $currentPath) ?>">Nödresurser</a>
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Nödlägesövningar</p>
+                        <a href="/safety/emergency/drills/create" class="block px-4 py-2 text-sm <?= mobileActive('/safety/emergency/drills/create', $currentPath) ?>">Skapa nödlägesövning</a>
+                        <a href="/safety/emergency/drills" class="block px-4 py-2 text-sm <?= mobileActive('/safety/emergency/drills', $currentPath) ?>">Lista nödlägesövningar</a>
+                        <a href="/safety/emergency/drills/templates" class="block px-4 py-2 text-sm <?= mobileActive('/safety/emergency/drills/templates', $currentPath) ?>">Hantera mallar</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Nödresurser</p>
+                        <a href="/safety/resources" class="block px-4 py-2 text-sm <?= mobileActive('/safety/resources', $currentPath) ?>">Lista nödresurser</a>
+                        <a href="/safety/resources/create" class="block px-4 py-2 text-sm <?= mobileActive('/safety/resources/create', $currentPath) ?>">Hantera nödresurser</a>
                         <a href="/safety/resources/overdue" class="block px-4 py-2 text-sm <?= mobileActive('/safety/resources/overdue', $currentPath) ?>">Förfallna kontroller</a>
                     </div>
                 </div>
 
-                <!-- Dropdown: Produktion -->
+                <!-- 8. Produktion -->
                 <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
                     <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
                         Produktion <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="show" x-transition class="absolute left-0 mt-1 w-52 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        <a href="/production" class="block px-4 py-2 text-sm <?= mobileActive('/production', $currentPath) ?>">Översikt</a>
-                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <a href="/production" class="block px-4 py-2 text-sm <?= mobileActive('/production', $currentPath) ?>">Dashboard</a>
                         <a href="/production/lines" class="block px-4 py-2 text-sm <?= mobileActive('/production/lines', $currentPath) ?>">Produktionslinjer</a>
-                        <a href="/production/orders" class="block px-4 py-2 text-sm <?= mobileActive('/production/orders', $currentPath) ?>">Produktionsordrar</a>
+                        <a href="/production/orders" class="block px-4 py-2 text-sm <?= mobileActive('/production/orders', $currentPath) ?>">Produktionsplanering</a>
+                        <a href="/production/products" class="block px-4 py-2 text-sm <?= mobileActive('/production/products', $currentPath) ?>">Skapa produkt</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
                         <a href="/production/stock" class="block px-4 py-2 text-sm <?= mobileActive('/production/stock', $currentPath) ?>">Produktionslager</a>
+                        <a href="/production/stock/manage" class="block px-4 py-2 text-sm <?= mobileActive('/production/stock/manage', $currentPath) ?>">Hantera produktionslager</a>
                     </div>
                 </div>
 
-                <!-- Dropdown: Sales -->
+                <!-- 9. Försäljning -->
                 <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
                     <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
-                        Sales <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        Försäljning <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        <a href="/sales" class="block px-4 py-2 text-sm <?= mobileActive('/sales', $currentPath) ?>">Översikt</a>
+                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                        <a href="/sales" class="block px-4 py-2 text-sm <?= mobileActive('/sales', $currentPath) ?>">Dashboard</a>
                         <hr class="my-1 border-gray-200 dark:border-gray-700">
-                        <a href="/sales/quotes" class="block px-4 py-2 text-sm <?= mobileActive('/sales/quotes', $currentPath) ?>">Offerter</a>
-                        <a href="/sales/orders" class="block px-4 py-2 text-sm <?= mobileActive('/sales/orders', $currentPath) ?>">Säljordrar</a>
-                        <a href="/sales/pricing" class="block px-4 py-2 text-sm <?= mobileActive('/sales/pricing', $currentPath) ?>">Prissättning</a>
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Kunder</p>
+                        <a href="/customers" class="block px-4 py-2 text-sm <?= mobileActive('/customers', $currentPath) ?>">Kundregister</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Offerter</p>
+                        <a href="/sales/quotes/create" class="block px-4 py-2 text-sm <?= mobileActive('/sales/quotes/create', $currentPath) ?>">Skapa offert</a>
+                        <a href="/sales/quotes/accepted" class="block px-4 py-2 text-sm <?= mobileActive('/sales/quotes/accepted', $currentPath) ?>">Accepterade offerter</a>
+                        <a href="/sales/quotes" class="block px-4 py-2 text-sm <?= mobileActive('/sales/quotes', $currentPath) ?>">Aktiva offerter</a>
+                        <a href="/sales/quotes/history" class="block px-4 py-2 text-sm <?= mobileActive('/sales/quotes/history', $currentPath) ?>">Historiska offerter</a>
+                        <a href="/sales/quotes/templates" class="block px-4 py-2 text-sm <?= mobileActive('/sales/quotes/templates', $currentPath) ?>">Offertmallar</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <a href="/finance/invoices-out" class="block px-4 py-2 text-sm <?= mobileActive('/finance/invoices-out', $currentPath) ?>">Fakturering</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Prislistor</p>
+                        <a href="/sales/pricing" class="block px-4 py-2 text-sm <?= mobileActive('/sales/pricing', $currentPath) ?>">Lista prislistor</a>
+                        <a href="/sales/pricing/manage" class="block px-4 py-2 text-sm <?= mobileActive('/sales/pricing/manage', $currentPath) ?>">Hantera prislistor</a>
                     </div>
                 </div>
 
-                <!-- Dropdown: Projekt -->
+                <!-- 10. CS & Transport -->
+                <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
+                    <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
+                        CS &amp; Transport <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                        <a href="/cs" class="block px-4 py-2 text-sm <?= mobileActive('/cs', $currentPath) ?>">Customer Service</a>
+                        <a href="/transport" class="block px-4 py-2 text-sm <?= mobileActive('/transport', $currentPath) ?>">Transport</a>
+                    </div>
+                </div>
+
+                <!-- 11. Projekt -->
                 <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
                     <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
                         Projekt <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="show" x-transition class="absolute left-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                        <a href="/projects" class="block px-4 py-2 text-sm <?= mobileActive('/projects', $currentPath) ?>">Dashboard</a>
                         <a href="/projects" class="block px-4 py-2 text-sm <?= mobileActive('/projects', $currentPath) ?>">Alla projekt</a>
-                        <a href="/projects/create" class="block px-4 py-2 text-sm <?= mobileActive('/projects/create', $currentPath) ?>">Nytt projekt</a>
+                        <a href="/projects/create" class="block px-4 py-2 text-sm <?= mobileActive('/projects/create', $currentPath) ?>">Skapa projekt</a>
                     </div>
                 </div>
 
-                <!-- Dropdown: HR -->
+                <!-- 12. HR -->
                 <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
                     <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
                         HR <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -185,20 +273,22 @@ function mobileActive(string $path, string $currentPath): string {
                         <a href="/hr/attendance" class="block px-4 py-2 text-sm <?= mobileActive('/hr/attendance', $currentPath) ?>">Närvaro &amp; Frånvaro</a>
                         <a href="/hr/training" class="block px-4 py-2 text-sm <?= mobileActive('/hr/training', $currentPath) ?>">Utbildningar</a>
                         <a href="/hr/recruitment" class="block px-4 py-2 text-sm <?= mobileActive('/hr/recruitment', $currentPath) ?>">Rekrytering</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <a href="/hr/expenses" class="block px-4 py-2 text-sm <?= mobileActive('/hr/expenses', $currentPath) ?>">Reseräkningar</a>
                     </div>
                 </div>
 
-                <!-- Rapporter -->
+                <!-- 13. Rapporter -->
                 <a href="/reports" class="px-3 py-2 rounded-md transition-colors <?= navActive('/reports', $currentPath) ?>">Rapporter</a>
 
-                <!-- Separator -->
+                <!-- 14. Separator + Admin -->
                 <div class="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
 
                 <?php if (($_layoutUser['role_level'] ?? 0) >= 7): ?>
                 <a href="/admin" class="px-3 py-2 rounded-md transition-colors <?= navActive('/admin', $currentPath) ?>">Admin</a>
                 <?php endif; ?>
 
-                <!-- User menu -->
+                <!-- 15. User menu -->
                 <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
                     <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 flex items-center gap-1">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
@@ -248,12 +338,126 @@ function mobileActive(string $path, string $currentPath): string {
     <!-- Mobile menu -->
     <div x-show="open" x-transition class="lg:hidden border-t border-gray-100 dark:border-gray-700 px-4 py-3 space-y-1 bg-white dark:bg-gray-800 shadow-lg">
         <?php if ($_layoutUser): ?>
+        <!-- 1. Dashboard -->
         <a href="/dashboard" class="block rounded px-3 py-2 text-sm <?= mobileActive('/dashboard', $currentPath) ?>">Dashboard</a>
 
-        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Kontakter</p>
+        <!-- 2. Underhåll -->
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Underhåll</p>
+        <a href="/maintenance" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance', $currentPath) ?>">Dashboard</a>
+        <a href="/maintenance/faults" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/faults', $currentPath) ?>">Felanmälan</a>
+        <a href="/maintenance/work-orders" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/work-orders', $currentPath) ?>">Aktiva arbetsordrar</a>
+        <?php if (($_layoutUser['role_level'] ?? 0) >= 5): ?>
+        <a href="/maintenance/supervisor" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/supervisor', $currentPath) ?>">Arbetsorderhantering</a>
+        <?php endif; ?>
+        <a href="/maintenance/work-orders" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/work-orders', $currentPath) ?>">Avrapportering</a>
+        <a href="/maintenance/work-orders/archive" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/work-orders/archive', $currentPath) ?>">Historiska arbetsordrar</a>
+        <a href="/maintenance/preventive" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/preventive', $currentPath) ?>">FU Dashboard</a>
+        <a href="/maintenance/preventive/planner" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/preventive/planner', $currentPath) ?>">FU Planerare</a>
+        <a href="/maintenance/preventive/rounds" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/preventive/rounds', $currentPath) ?>">FU Rondering</a>
+        <a href="/maintenance/ai-engineer" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/ai-engineer', $currentPath) ?>">AI Ingenjören</a>
+        <a href="/maintenance/inspections" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/inspections', $currentPath) ?>">Besiktningar</a>
+
+        <!-- 3. ObjektNavigator -->
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">ObjektNavigator</p>
+        <a href="/objects" class="block rounded px-3 py-2 text-sm <?= mobileActive('/objects', $currentPath) ?>">Navigator</a>
+        <a href="/objects/dashboard" class="block rounded px-3 py-2 text-sm <?= mobileActive('/objects/dashboard', $currentPath) ?>">Dashboard</a>
+        <a href="/objects/manage" class="block rounded px-3 py-2 text-sm <?= mobileActive('/objects/manage', $currentPath) ?>">Administrera objekt</a>
+        <a href="/equipment" class="block rounded px-3 py-2 text-sm <?= mobileActive('/equipment', $currentPath) ?>">Utrustning</a>
+        <a href="/machines" class="block rounded px-3 py-2 text-sm <?= mobileActive('/machines', $currentPath) ?>">Maskiner</a>
+        <a href="/objects/inspection-required" class="block rounded px-3 py-2 text-sm <?= mobileActive('/objects/inspection-required', $currentPath) ?>">Besiktningspliktig utrustning</a>
+
+        <!-- 4. Lager -->
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Lager</p>
+        <a href="/inventory" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory', $currentPath) ?>">Dashboard</a>
+        <a href="/articles" class="block rounded px-3 py-2 text-sm <?= mobileActive('/articles', $currentPath) ?>">Lagerartiklar</a>
+        <a href="/inventory/transactions" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory/transactions', $currentPath) ?>">Lagertransaktionshistorik</a>
+        <a href="/inventory/order" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory/order', $currentPath) ?>">Beställ lagerartiklar</a>
+        <a href="/inventory/receiving" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory/receiving', $currentPath) ?>">Inleverans</a>
+        <a href="/inventory/withdrawal" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory/withdrawal', $currentPath) ?>">Uttag av lagerartiklar</a>
+        <a href="/inventory/stocktaking" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory/stocktaking', $currentPath) ?>">Inventering</a>
+
+        <!-- 5. Inköp -->
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Inköp</p>
+        <a href="/purchasing" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing', $currentPath) ?>">Dashboard</a>
+        <a href="/suppliers" class="block rounded px-3 py-2 text-sm <?= mobileActive('/suppliers', $currentPath) ?>">Leverantörsregister</a>
+        <a href="/purchasing/audits" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/audits', $currentPath) ?>">Leverantörsaudit</a>
+        <a href="/purchasing/requisitions/create" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/requisitions/create', $currentPath) ?>">Skapa inköpsanmodan</a>
+        <a href="/purchasing/requisitions" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/requisitions', $currentPath) ?>">Ej hanterade anmodan</a>
+        <a href="/purchasing/requisitions/history" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/requisitions/history', $currentPath) ?>">Historiska anmodan</a>
+        <a href="/purchasing/orders/create" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/orders/create', $currentPath) ?>">Skapa inköpsorder</a>
+        <a href="/purchasing/orders" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/orders', $currentPath) ?>">Aktiva inköpsordrar</a>
+        <a href="/purchasing/orders/history" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/orders/history', $currentPath) ?>">Historiska inköpsordrar</a>
+        <a href="/purchasing/agreements/create" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/agreements/create', $currentPath) ?>">Skapa avtal</a>
+        <a href="/purchasing/agreements" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/agreements', $currentPath) ?>">Aktiva avtal</a>
+        <a href="/purchasing/agreements/history" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/agreements/history', $currentPath) ?>">Historiska avtal</a>
+        <a href="/purchasing/agreements/templates" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/agreements/templates', $currentPath) ?>">Avtalsmallar</a>
+
+        <!-- 6. Ekonomi -->
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Ekonomi</p>
+        <a href="/finance" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance', $currentPath) ?>">Dashboard</a>
         <a href="/customers" class="block rounded px-3 py-2 text-sm <?= mobileActive('/customers', $currentPath) ?>">Kunder</a>
         <a href="/suppliers" class="block rounded px-3 py-2 text-sm <?= mobileActive('/suppliers', $currentPath) ?>">Leverantörer</a>
+        <a href="/finance/invoices-in" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/invoices-in', $currentPath) ?>">Leverantörsfakturor</a>
+        <a href="/finance/invoices-out/create" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/invoices-out/create', $currentPath) ?>">Skapa kundfaktura</a>
+        <a href="/finance/accounts" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/accounts', $currentPath) ?>">Kontoplan</a>
+        <a href="/finance/cost-centers" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/cost-centers', $currentPath) ?>">Kostnadsställen</a>
+        <a href="/finance/journal" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/journal', $currentPath) ?>">Bokföring/Verifikationer</a>
+        <a href="/finance/reports/ledger" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/reports/ledger', $currentPath) ?>">Huvudbok</a>
+        <a href="/finance/reports/trial-balance" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/reports/trial-balance', $currentPath) ?>">Resultaträkning</a>
+        <a href="/finance/reports/kpi" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/reports/kpi', $currentPath) ?>">KPI från avdelningar</a>
+        <a href="/finance/reports/stocktaking" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/reports/stocktaking', $currentPath) ?>">Inventering</a>
 
+        <!-- 7. Health & Safety -->
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Health &amp; Safety</p>
+        <a href="/safety" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety', $currentPath) ?>">Dashboard</a>
+        <a href="/safety/risks" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/risks', $currentPath) ?>">Hantera risker &amp; faror</a>
+        <a href="/safety/audits/create" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/audits/create', $currentPath) ?>">Skapa safety audit</a>
+        <a href="/safety/audit-templates" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/audit-templates', $currentPath) ?>">Hantera audit-mallar</a>
+        <a href="/safety/audits/pending" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/audits/pending', $currentPath) ?>">Ej slutförda åtgärder</a>
+        <a href="/safety/audits/completed" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/audits/completed', $currentPath) ?>">Slutförda åtgärder</a>
+        <a href="/safety/emergency" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/emergency', $currentPath) ?>">Aktiv krisplan</a>
+        <a href="/safety/emergency/procedures" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/emergency/procedures', $currentPath) ?>">Hantera krisplan</a>
+        <a href="/safety/emergency/drills/create" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/emergency/drills/create', $currentPath) ?>">Skapa nödlägesövning</a>
+        <a href="/safety/emergency/drills" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/emergency/drills', $currentPath) ?>">Lista nödlägesövningar</a>
+        <a href="/safety/emergency/drills/templates" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/emergency/drills/templates', $currentPath) ?>">Hantera mallar</a>
+        <a href="/safety/resources" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/resources', $currentPath) ?>">Lista nödresurser</a>
+        <a href="/safety/resources/create" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/resources/create', $currentPath) ?>">Hantera nödresurser</a>
+        <a href="/safety/resources/overdue" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/resources/overdue', $currentPath) ?>">Förfallna kontroller</a>
+
+        <!-- 8. Produktion -->
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Produktion</p>
+        <a href="/production" class="block rounded px-3 py-2 text-sm <?= mobileActive('/production', $currentPath) ?>">Dashboard</a>
+        <a href="/production/lines" class="block rounded px-3 py-2 text-sm <?= mobileActive('/production/lines', $currentPath) ?>">Produktionslinjer</a>
+        <a href="/production/orders" class="block rounded px-3 py-2 text-sm <?= mobileActive('/production/orders', $currentPath) ?>">Produktionsplanering</a>
+        <a href="/production/products" class="block rounded px-3 py-2 text-sm <?= mobileActive('/production/products', $currentPath) ?>">Skapa produkt</a>
+        <a href="/production/stock" class="block rounded px-3 py-2 text-sm <?= mobileActive('/production/stock', $currentPath) ?>">Produktionslager</a>
+        <a href="/production/stock/manage" class="block rounded px-3 py-2 text-sm <?= mobileActive('/production/stock/manage', $currentPath) ?>">Hantera produktionslager</a>
+
+        <!-- 9. Försäljning -->
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Försäljning</p>
+        <a href="/sales" class="block rounded px-3 py-2 text-sm <?= mobileActive('/sales', $currentPath) ?>">Dashboard</a>
+        <a href="/customers" class="block rounded px-3 py-2 text-sm <?= mobileActive('/customers', $currentPath) ?>">Kundregister</a>
+        <a href="/sales/quotes/create" class="block rounded px-3 py-2 text-sm <?= mobileActive('/sales/quotes/create', $currentPath) ?>">Skapa offert</a>
+        <a href="/sales/quotes/accepted" class="block rounded px-3 py-2 text-sm <?= mobileActive('/sales/quotes/accepted', $currentPath) ?>">Accepterade offerter</a>
+        <a href="/sales/quotes" class="block rounded px-3 py-2 text-sm <?= mobileActive('/sales/quotes', $currentPath) ?>">Aktiva offerter</a>
+        <a href="/sales/quotes/history" class="block rounded px-3 py-2 text-sm <?= mobileActive('/sales/quotes/history', $currentPath) ?>">Historiska offerter</a>
+        <a href="/sales/quotes/templates" class="block rounded px-3 py-2 text-sm <?= mobileActive('/sales/quotes/templates', $currentPath) ?>">Offertmallar</a>
+        <a href="/finance/invoices-out" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/invoices-out', $currentPath) ?>">Fakturering</a>
+        <a href="/sales/pricing" class="block rounded px-3 py-2 text-sm <?= mobileActive('/sales/pricing', $currentPath) ?>">Lista prislistor</a>
+        <a href="/sales/pricing/manage" class="block rounded px-3 py-2 text-sm <?= mobileActive('/sales/pricing/manage', $currentPath) ?>">Hantera prislistor</a>
+
+        <!-- 10. CS & Transport -->
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">CS &amp; Transport</p>
+        <a href="/cs" class="block rounded px-3 py-2 text-sm <?= mobileActive('/cs', $currentPath) ?>">Customer Service</a>
+        <a href="/transport" class="block rounded px-3 py-2 text-sm <?= mobileActive('/transport', $currentPath) ?>">Transport</a>
+
+        <!-- 11. Projekt -->
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Projekt</p>
+        <a href="/projects" class="block rounded px-3 py-2 text-sm <?= mobileActive('/projects', $currentPath) ?>">Dashboard</a>
+        <a href="/projects" class="block rounded px-3 py-2 text-sm <?= mobileActive('/projects', $currentPath) ?>">Alla projekt</a>
+        <a href="/projects/create" class="block rounded px-3 py-2 text-sm <?= mobileActive('/projects/create', $currentPath) ?>">Skapa projekt</a>
+
+        <!-- 12. HR -->
         <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">HR</p>
         <a href="/departments" class="block rounded px-3 py-2 text-sm <?= mobileActive('/departments', $currentPath) ?>">Avdelningar</a>
         <a href="/employees" class="block rounded px-3 py-2 text-sm <?= mobileActive('/employees', $currentPath) ?>">Personal</a>
@@ -262,65 +466,20 @@ function mobileActive(string $path, string $currentPath): string {
         <a href="/hr/attendance" class="block rounded px-3 py-2 text-sm <?= mobileActive('/hr/attendance', $currentPath) ?>">Närvaro &amp; Frånvaro</a>
         <a href="/hr/training" class="block rounded px-3 py-2 text-sm <?= mobileActive('/hr/training', $currentPath) ?>">Utbildningar</a>
         <a href="/hr/recruitment" class="block rounded px-3 py-2 text-sm <?= mobileActive('/hr/recruitment', $currentPath) ?>">Rekrytering</a>
+        <a href="/hr/expenses" class="block rounded px-3 py-2 text-sm <?= mobileActive('/hr/expenses', $currentPath) ?>">Reseräkningar</a>
 
-        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Drift</p>
-        <a href="/equipment" class="block rounded px-3 py-2 text-sm <?= mobileActive('/equipment', $currentPath) ?>">Utrustning</a>
-        <a href="/machines" class="block rounded px-3 py-2 text-sm <?= mobileActive('/machines', $currentPath) ?>">Maskiner</a>
-        <a href="/maintenance" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance', $currentPath) ?>">Underhåll</a>
-        <a href="/maintenance/faults" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/faults', $currentPath) ?>">Felanmälan</a>
-        <a href="/maintenance/work-orders" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/work-orders', $currentPath) ?>">Arbetsordrar</a>
-        <a href="/maintenance/inspections" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/inspections', $currentPath) ?>">Besiktningar</a>
-        <a href="/maintenance/work-orders/archive" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/work-orders/archive', $currentPath) ?>">Arkiv</a>
-        <?php if (($_layoutUser['role_level'] ?? 0) >= 5): ?>
-        <a href="/maintenance/supervisor" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/supervisor', $currentPath) ?>">Arbetsledare</a>
-        <?php endif; ?>
-
-        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Lager & Inköp</p>
-        <a href="/articles" class="block rounded px-3 py-2 text-sm <?= mobileActive('/articles', $currentPath) ?>">Artiklar</a>
-        <a href="/inventory" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory', $currentPath) ?>">Lager</a>
-        <a href="/purchasing" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing', $currentPath) ?>">Inköp</a>
-
-        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Ekonomi</p>
-        <a href="/finance" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance', $currentPath) ?>">Översikt</a>
-        <a href="/finance/invoices-out" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/invoices-out', $currentPath) ?>">Kundfakturor</a>
-        <a href="/finance/invoices-in" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/invoices-in', $currentPath) ?>">Lev.fakturor</a>
-        <a href="/finance/journal" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/journal', $currentPath) ?>">Bokföring</a>
-        <a href="/finance/accounts" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/accounts', $currentPath) ?>">Kontoplan</a>
-
-        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Hälsa &amp; Säkerhet</p>
-        <a href="/safety" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety', $currentPath) ?>">Översikt</a>
-        <a href="/safety/risks" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/risks', $currentPath) ?>">Risker &amp; Faror</a>
-        <a href="/safety/reports" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/reports', $currentPath) ?>">Riskrapporter</a>
-        <a href="/safety/audits" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/audits', $currentPath) ?>">Audits</a>
-        <a href="/safety/audit-templates" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/audit-templates', $currentPath) ?>">Audit-mallar</a>
-        <a href="/safety/emergency" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/emergency', $currentPath) ?>">Krishantering</a>
-        <a href="/safety/resources" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/resources', $currentPath) ?>">Nödresurser</a>
-        <a href="/safety/resources/overdue" class="block rounded px-3 py-2 text-sm <?= mobileActive('/safety/resources/overdue', $currentPath) ?>">Förfallna kontroller</a>
-
-        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Produktion</p>
-        <a href="/production" class="block rounded px-3 py-2 text-sm <?= mobileActive('/production', $currentPath) ?>">Översikt</a>
-        <a href="/production/lines" class="block rounded px-3 py-2 text-sm <?= mobileActive('/production/lines', $currentPath) ?>">Produktionslinjer</a>
-        <a href="/production/orders" class="block rounded px-3 py-2 text-sm <?= mobileActive('/production/orders', $currentPath) ?>">Produktionsordrar</a>
-        <a href="/production/stock" class="block rounded px-3 py-2 text-sm <?= mobileActive('/production/stock', $currentPath) ?>">Produktionslager</a>
-
-        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Sales</p>
-        <a href="/sales" class="block rounded px-3 py-2 text-sm <?= mobileActive('/sales', $currentPath) ?>">Översikt</a>
-        <a href="/sales/quotes" class="block rounded px-3 py-2 text-sm <?= mobileActive('/sales/quotes', $currentPath) ?>">Offerter</a>
-        <a href="/sales/orders" class="block rounded px-3 py-2 text-sm <?= mobileActive('/sales/orders', $currentPath) ?>">Säljordrar</a>
-        <a href="/sales/pricing" class="block rounded px-3 py-2 text-sm <?= mobileActive('/sales/pricing', $currentPath) ?>">Prissättning</a>
-
-        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Projekt</p>
-        <a href="/projects" class="block rounded px-3 py-2 text-sm <?= mobileActive('/projects', $currentPath) ?>">Alla projekt</a>
-
+        <!-- 13. Rapporter -->
         <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Rapporter</p>
         <a href="/reports" class="block rounded px-3 py-2 text-sm <?= mobileActive('/reports', $currentPath) ?>">Rapportöversikt</a>
 
         <hr class="my-2 border-gray-200 dark:border-gray-700">
+        <!-- 14. Admin -->
         <?php if (($_layoutUser['role_level'] ?? 0) >= 7): ?>
         <a href="/admin" class="block rounded px-3 py-2 text-sm <?= mobileActive('/admin', $currentPath) ?>">Admin</a>
         <?php endif; ?>
+        <!-- 15. User menu -->
         <a href="/my-page" class="block rounded px-3 py-2 text-sm <?= mobileActive('/my-page', $currentPath) ?>">Min Sida</a>
-        <a href="/2fa/setup" class="block rounded px-3 py-2 text-sm <?= mobileActive('/2fa', $currentPath) ?>">2FA</a>
+        <a href="/2fa/setup" class="block rounded px-3 py-2 text-sm <?= mobileActive('/2fa', $currentPath) ?>">2FA-inställningar</a>
         <a href="/logout" class="block rounded px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Logga ut</a>
         <?php else: ?>
         <a href="/login" class="block rounded px-3 py-2 text-sm <?= mobileActive('/login', $currentPath) ?>">Logga in</a>

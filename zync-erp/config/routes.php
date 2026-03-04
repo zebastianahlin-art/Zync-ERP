@@ -80,6 +80,7 @@ return function (App $app) {
         $group->get('/purchasing/requisitions', [\App\Controllers\PurchaseController::class, 'requisitions']);
         $group->get('/purchasing/requisitions/create', [\App\Controllers\PurchaseController::class, 'createRequisition']);
         $group->post('/purchasing/requisitions', [\App\Controllers\PurchaseController::class, 'storeRequisition']);
+        $group->get('/purchasing/requisitions/history', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Historiska Anmodan');
         $group->get('/purchasing/requisitions/{id}', [\App\Controllers\PurchaseController::class, 'showRequisition']);
         $group->get('/purchasing/requisitions/{id}/edit', [\App\Controllers\PurchaseController::class, 'editRequisition']);
         $group->post('/purchasing/requisitions/{id}', [\App\Controllers\PurchaseController::class, 'updateRequisition']);
@@ -95,6 +96,7 @@ return function (App $app) {
         $group->get('/purchasing/orders', [\App\Controllers\PurchaseController::class, 'orders']);
         $group->get('/purchasing/orders/create', [\App\Controllers\PurchaseController::class, 'createOrder']);
         $group->post('/purchasing/orders', [\App\Controllers\PurchaseController::class, 'storeOrder']);
+        $group->get('/purchasing/orders/history', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Historiska Inköpsordrar');
         $group->get('/purchasing/orders/{id}', [\App\Controllers\PurchaseController::class, 'showOrder']);
         $group->get('/purchasing/orders/{id}/edit', [\App\Controllers\PurchaseController::class, 'editOrder']);
         $group->post('/purchasing/orders/{id}', [\App\Controllers\PurchaseController::class, 'updateOrder']);
@@ -107,6 +109,9 @@ return function (App $app) {
         $group->get('/purchasing/agreements', [\App\Controllers\PurchaseController::class, 'agreements']);
         $group->get('/purchasing/agreements/create', [\App\Controllers\PurchaseController::class, 'createAgreement']);
         $group->post('/purchasing/agreements', [\App\Controllers\PurchaseController::class, 'storeAgreement']);
+        $group->get('/purchasing/agreements/history', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Historiska Avtal');
+        $group->get('/purchasing/agreements/templates', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Avtalsmallar');
+        $group->get('/purchasing/audits', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Leverantörsaudit');
         $group->get('/purchasing/agreements/{id}', [\App\Controllers\PurchaseController::class, 'showAgreement']);
         $group->get('/purchasing/agreements/{id}/edit', [\App\Controllers\PurchaseController::class, 'editAgreement']);
         $group->post('/purchasing/agreements/{id}', [\App\Controllers\PurchaseController::class, 'updateAgreement']);
@@ -169,9 +174,17 @@ return function (App $app) {
         $group->get('/finance/reports/ledger', [\App\Controllers\FinanceController::class, 'ledger']);
         $group->get('/finance/reports/trial-balance', [\App\Controllers\FinanceController::class, 'trialBalance']);
         $group->get('/finance/reports/cost-centers', [\App\Controllers\FinanceController::class, 'costCenterReport']);
+        $group->get('/finance/reports/kpi', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'KPI från Avdelningar');
+        $group->get('/finance/reports/stocktaking', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Inventering Ekonomi');
 
         // ─── Maintenance (Underhåll) ──────────────────────────
         $group->get('/maintenance', [\App\Controllers\MaintenanceController::class, 'dashboard']);
+
+        // Preventive maintenance placeholders
+        $group->get('/maintenance/preventive', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Förebyggande Underhåll');
+        $group->get('/maintenance/preventive/planner', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'FU Planerare');
+        $group->get('/maintenance/preventive/rounds', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'FU Rondering');
+        $group->get('/maintenance/ai-engineer', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'AI Ingenjören');
 
         // Equipment (Utrustning)
         $group->get('/equipment', [\App\Controllers\MaintenanceController::class, 'equipmentIndex']);
@@ -267,6 +280,8 @@ return function (App $app) {
         $group->get('/safety/audits', [\App\Controllers\SafetyController::class, 'audits']);
         $group->get('/safety/audits/create', [\App\Controllers\SafetyController::class, 'createAudit']);
         $group->post('/safety/audits', [\App\Controllers\SafetyController::class, 'storeAudit']);
+        $group->get('/safety/audits/pending', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Ej Slutförda Åtgärder');
+        $group->get('/safety/audits/completed', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Slutförda Åtgärder');
         $group->get('/safety/audits/{id}', [\App\Controllers\SafetyController::class, 'showAudit']);
         $group->get('/safety/audits/{id}/edit', [\App\Controllers\SafetyController::class, 'editAudit']);
         $group->post('/safety/audits/{id}', [\App\Controllers\SafetyController::class, 'updateAudit']);
@@ -295,6 +310,9 @@ return function (App $app) {
         $group->get('/safety/emergency/procedures', [\App\Controllers\SafetyController::class, 'emergencyProcedures']);
         $group->get('/safety/emergency/procedures/create', [\App\Controllers\SafetyController::class, 'createEmergencyProcedure']);
         $group->post('/safety/emergency/procedures', [\App\Controllers\SafetyController::class, 'storeEmergencyProcedure']);
+        $group->get('/safety/emergency/drills', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Nödlägesövningar Lista');
+        $group->get('/safety/emergency/drills/create', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Skapa Nödlägesövning');
+        $group->get('/safety/emergency/drills/templates', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Nödlägesövning Mallar');
         $group->get('/safety/emergency/procedures/{id}', [\App\Controllers\SafetyController::class, 'showEmergencyProcedure']);
         $group->get('/safety/emergency/procedures/{id}/edit', [\App\Controllers\SafetyController::class, 'editEmergencyProcedure']);
         $group->post('/safety/emergency/procedures/{id}', [\App\Controllers\SafetyController::class, 'updateEmergencyProcedure']);
@@ -337,6 +355,11 @@ return function (App $app) {
 
         // ─── Inventory (Lager) ───────────────────────────────────
         $group->get('/inventory', [\App\Controllers\InventoryController::class, 'index']);
+        $group->get('/inventory/transactions', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Lagertransaktionshistorik');
+        $group->get('/inventory/order', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Beställ Lagerartiklar');
+        $group->get('/inventory/receiving', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Inleverans');
+        $group->get('/inventory/withdrawal', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Uttag av Lagerartiklar');
+        $group->get('/inventory/stocktaking', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Inventering');
         $group->get('/inventory/{id}', [\App\Controllers\InventoryController::class, 'show']);
 
         // ─── My Page (Min Sida) ──────────────────────────────────
@@ -349,6 +372,9 @@ return function (App $app) {
         $group->get('/production/lines', [\App\Controllers\ProductionController::class, 'lines']);
         $group->get('/production/lines/create', [\App\Controllers\ProductionController::class, 'createLine']);
         $group->post('/production/lines', [\App\Controllers\ProductionController::class, 'storeLine']);
+        $group->get('/production/products', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Skapa Produkt');
+        $group->get('/production/stock', [\App\Controllers\ProductionController::class, 'stock']);
+        $group->get('/production/stock/manage', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Hantera Produktionslager');
         $group->get('/production/lines/{id}', [\App\Controllers\ProductionController::class, 'showLine']);
         $group->get('/production/lines/{id}/edit', [\App\Controllers\ProductionController::class, 'editLine']);
         $group->post('/production/lines/{id}', [\App\Controllers\ProductionController::class, 'updateLine']);
@@ -361,12 +387,16 @@ return function (App $app) {
         $group->get('/sales/quotes', [\App\Controllers\SalesController::class, 'quotes']);
         $group->get('/sales/quotes/create', [\App\Controllers\SalesController::class, 'createQuote']);
         $group->post('/sales/quotes', [\App\Controllers\SalesController::class, 'storeQuote']);
+        $group->get('/sales/quotes/accepted', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Accepterade Offerter');
+        $group->get('/sales/quotes/history', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Historiska Offerter');
+        $group->get('/sales/quotes/templates', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Offertmallar');
         $group->get('/sales/quotes/{id}', [\App\Controllers\SalesController::class, 'showQuote']);
         $group->get('/sales/quotes/{id}/edit', [\App\Controllers\SalesController::class, 'editQuote']);
         $group->post('/sales/quotes/{id}', [\App\Controllers\SalesController::class, 'updateQuote']);
         $group->post('/sales/quotes/{id}/delete', [\App\Controllers\SalesController::class, 'deleteQuote']);
         $group->get('/sales/orders', [\App\Controllers\SalesController::class, 'orders']);
         $group->get('/sales/pricing', [\App\Controllers\SalesController::class, 'pricing']);
+        $group->get('/sales/pricing/manage', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Hantera Prislistor');
 
         // ─── Projects (Projekt) ──────────────────────────────────────────────
         $group->get('/projects', [\App\Controllers\ProjectController::class, 'index']);
@@ -402,6 +432,19 @@ return function (App $app) {
         $group->post('/hr/recruitment/positions', [\App\Controllers\RecruitmentController::class, 'storePosition']);
         $group->get('/hr/recruitment/positions/{id}', [\App\Controllers\RecruitmentController::class, 'showPosition']);
         $group->get('/hr/recruitment/applicants', [\App\Controllers\RecruitmentController::class, 'applicants']);
+
+        // ─── HR: Expenses (Reseräkningar) ────────────────────────────────────
+        $group->get('/hr/expenses', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Reseräkningar');
+
+        // ─── ObjektNavigator ─────────────────────────────────────────────────
+        $group->get('/objects', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'ObjektNavigator');
+        $group->get('/objects/dashboard', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Objekt Dashboard');
+        $group->get('/objects/manage', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Administrera Objekt');
+        $group->get('/objects/inspection-required', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Besiktningspliktig Utrustning');
+
+        // ─── CS & Transport ──────────────────────────────────────────────────
+        $group->get('/cs', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Customer Service');
+        $group->get('/transport', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Transport');
 
         // ─── Reports (Rapporter) ─────────────────────────────────────────────
         $group->get('/reports', [\App\Controllers\ReportController::class, 'index']);
