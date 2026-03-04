@@ -11,6 +11,8 @@ use App\Core\Database;
 use App\Models\PurchaseRequisitionRepository;
 use App\Models\PurchaseOrderRepository;
 use App\Models\PurchaseAgreementRepository;
+use App\Models\SupplierAuditRepository;
+use App\Models\AgreementTemplateRepository;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -19,6 +21,8 @@ class PurchaseController extends Controller
     private PurchaseRequisitionRepository $reqRepo;
     private PurchaseOrderRepository $orderRepo;
     private PurchaseAgreementRepository $agreementRepo;
+    private SupplierAuditRepository $auditRepo;
+    private AgreementTemplateRepository $templateRepo;
 
     public function __construct()
     {
@@ -26,6 +30,8 @@ class PurchaseController extends Controller
         $this->reqRepo = new PurchaseRequisitionRepository();
         $this->orderRepo = new PurchaseOrderRepository();
         $this->agreementRepo = new PurchaseAgreementRepository();
+        $this->auditRepo = new SupplierAuditRepository();
+        $this->templateRepo = new AgreementTemplateRepository();
     }
 
     // ─── DASHBOARD ───────────────────────────────────────────
@@ -467,5 +473,183 @@ class PurchaseController extends Controller
     private function getCostCenters(): array
     {
         return Database::pdo()->query("SELECT id, code, name FROM cost_centers WHERE is_active = 1 AND is_deleted = 0 ORDER BY code")->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    // ─── LEVERANTÖRSAUDIT ────────────────────────────────────
+
+    public function supplierAuditIndex(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        return $this->render($response, 'purchasing/supplier-audits/index', [
+            'title'   => 'Leverantörsaudit – ZYNC ERP',
+            'audits'  => $this->auditRepo->all(),
+            'success' => Flash::get('success'),
+            'error'   => Flash::get('error'),
+        ]);
+    }
+
+    public function createSupplierAudit(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        return $this->render($response, 'purchasing/supplier-audits/create', [
+            'title'     => 'Ny leverantörsaudit – ZYNC ERP',
+            'suppliers' => $this->getSuppliers(),
+            'users'     => $this->getUsers(),
+        ]);
+    }
+
+    public function storeSupplierAudit(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $data = (array) $request->getParsedBody();
+        $data['created_by'] = Auth::user()['id'];
+
+        if (empty($data['supplier_id']) || empty($data['audit_date'])) {
+            Flash::set('error', 'Leverantör och revisionsdatum krävs.');
+            return $this->redirect($response, '/purchasing/supplier-audits/create');
+        }
+
+        $id = $this->auditRepo->create($data);
+        Flash::set('success', 'Leverantörsaudit skapad.');
+        return $this->redirect($response, "/purchasing/supplier-audits/{$id}");
+    }
+
+    public function showSupplierAudit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $audit = $this->auditRepo->find((int) $args['id']);
+        if (!$audit) {
+            Flash::set('error', 'Leverantörsaudit hittades inte.');
+            return $this->redirect($response, '/purchasing/supplier-audits');
+        }
+
+        return $this->render($response, 'purchasing/supplier-audits/show', [
+            'title'   => 'Leverantörsaudit – ZYNC ERP',
+            'audit'   => $audit,
+            'success' => Flash::get('success'),
+            'error'   => Flash::get('error'),
+        ]);
+    }
+
+    public function editSupplierAudit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $audit = $this->auditRepo->find((int) $args['id']);
+        if (!$audit) {
+            Flash::set('error', 'Leverantörsaudit hittades inte.');
+            return $this->redirect($response, '/purchasing/supplier-audits');
+        }
+
+        return $this->render($response, 'purchasing/supplier-audits/edit', [
+            'title'     => 'Redigera leverantörsaudit – ZYNC ERP',
+            'audit'     => $audit,
+            'suppliers' => $this->getSuppliers(),
+            'users'     => $this->getUsers(),
+        ]);
+    }
+
+    public function updateSupplierAudit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id = (int) $args['id'];
+        $data = (array) $request->getParsedBody();
+
+        if (empty($data['supplier_id']) || empty($data['audit_date'])) {
+            Flash::set('error', 'Leverantör och revisionsdatum krävs.');
+            return $this->redirect($response, "/purchasing/supplier-audits/{$id}/edit");
+        }
+
+        $this->auditRepo->update($id, $data);
+        Flash::set('success', 'Leverantörsaudit uppdaterad.');
+        return $this->redirect($response, "/purchasing/supplier-audits/{$id}");
+    }
+
+    public function deleteSupplierAudit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $this->auditRepo->delete((int) $args['id']);
+        Flash::set('success', 'Leverantörsaudit borttagen.');
+        return $this->redirect($response, '/purchasing/supplier-audits');
+    }
+
+    // ─── AVTALSMALLAR ─────────────────────────────────────────
+
+    public function agreementTemplateIndex(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        return $this->render($response, 'purchasing/agreement-templates/index', [
+            'title'     => 'Avtalsmallar – ZYNC ERP',
+            'templates' => $this->templateRepo->all(),
+            'success'   => Flash::get('success'),
+            'error'     => Flash::get('error'),
+        ]);
+    }
+
+    public function createAgreementTemplate(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        return $this->render($response, 'purchasing/agreement-templates/create', [
+            'title'     => 'Ny avtalsmall – ZYNC ERP',
+            'suppliers' => $this->getSuppliers(),
+        ]);
+    }
+
+    public function storeAgreementTemplate(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $data = (array) $request->getParsedBody();
+        $data['created_by'] = Auth::user()['id'];
+
+        if (empty($data['name'])) {
+            Flash::set('error', 'Namn krävs.');
+            return $this->redirect($response, '/purchasing/agreement-templates/create');
+        }
+
+        $id = $this->templateRepo->create($data);
+        Flash::set('success', 'Avtalsmall skapad.');
+        return $this->redirect($response, "/purchasing/agreement-templates/{$id}");
+    }
+
+    public function showAgreementTemplate(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $template = $this->templateRepo->find((int) $args['id']);
+        if (!$template) {
+            Flash::set('error', 'Avtalsmall hittades inte.');
+            return $this->redirect($response, '/purchasing/agreement-templates');
+        }
+
+        return $this->render($response, 'purchasing/agreement-templates/show', [
+            'title'    => 'Avtalsmall – ZYNC ERP',
+            'template' => $template,
+            'success'  => Flash::get('success'),
+            'error'    => Flash::get('error'),
+        ]);
+    }
+
+    public function editAgreementTemplate(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $template = $this->templateRepo->find((int) $args['id']);
+        if (!$template) {
+            Flash::set('error', 'Avtalsmall hittades inte.');
+            return $this->redirect($response, '/purchasing/agreement-templates');
+        }
+
+        return $this->render($response, 'purchasing/agreement-templates/edit', [
+            'title'     => 'Redigera avtalsmall – ZYNC ERP',
+            'template'  => $template,
+            'suppliers' => $this->getSuppliers(),
+        ]);
+    }
+
+    public function updateAgreementTemplate(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id = (int) $args['id'];
+        $data = (array) $request->getParsedBody();
+
+        if (empty($data['name'])) {
+            Flash::set('error', 'Namn krävs.');
+            return $this->redirect($response, "/purchasing/agreement-templates/{$id}/edit");
+        }
+
+        $this->templateRepo->update($id, $data);
+        Flash::set('success', 'Avtalsmall uppdaterad.');
+        return $this->redirect($response, "/purchasing/agreement-templates/{$id}");
+    }
+
+    public function deleteAgreementTemplate(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $this->templateRepo->delete((int) $args['id']);
+        Flash::set('success', 'Avtalsmall borttagen.');
+        return $this->redirect($response, '/purchasing/agreement-templates');
     }
 }
