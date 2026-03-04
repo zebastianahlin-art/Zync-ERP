@@ -537,7 +537,7 @@ class ProductionController extends Controller
             'quantity'      => trim((string) ($body['quantity'] ?? '0')),
             'planned_start' => trim((string) ($body['planned_start'] ?? '')),
             'planned_end'   => trim((string) ($body['planned_end'] ?? '')),
-            'status'        => in_array($body['status'] ?? '', ['draft', 'planned', 'in_progress', 'completed', 'cancelled'], true) ? $body['status'] : 'planned',
+            'status'        => in_array($body['status'] ?? '', ['draft', 'planned', 'in_progress', 'completed', 'cancelled'], true) ? $body['status'] : 'draft',
             'notes'         => trim((string) ($body['notes'] ?? '')),
         ];
     }

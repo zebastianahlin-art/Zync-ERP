@@ -45,7 +45,8 @@
         <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
             <select name="status" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <option value="planned" <?= ($old['status'] ?? 'planned') === 'planned' ? 'selected' : '' ?>>Planerad</option>
+                <option value="draft" <?= ($old['status'] ?? 'draft') === 'draft' ? 'selected' : '' ?>>Utkast</option>
+                <option value="planned" <?= ($old['status'] ?? '') === 'planned' ? 'selected' : '' ?>>Planerad</option>
                 <option value="in_progress" <?= ($old['status'] ?? '') === 'in_progress' ? 'selected' : '' ?>>Pågår</option>
                 <option value="completed" <?= ($old['status'] ?? '') === 'completed' ? 'selected' : '' ?>>Avslutad</option>
                 <option value="cancelled" <?= ($old['status'] ?? '') === 'cancelled' ? 'selected' : '' ?>>Avbruten</option>
