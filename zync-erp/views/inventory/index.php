@@ -133,7 +133,7 @@
                             <?= htmlspecialchars($item['min_quantity'] !== null ? (string) $item['min_quantity'] : '—', ENT_QUOTES, 'UTF-8') ?>
                         </td>
                         <td class="px-4 py-3 text-gray-500 dark:text-gray-400">
-                            <?= htmlspecialchars($item['location'] ?? '—', ENT_QUOTES, 'UTF-8') ?>
+                            <?= htmlspecialchars($item['location_code'] ?? '—', ENT_QUOTES, 'UTF-8') ?>
                         </td>
                         <td class="px-4 py-3 text-right">
                             <a href="/inventory/<?= htmlspecialchars((string) $item['id'], ENT_QUOTES, 'UTF-8') ?>"

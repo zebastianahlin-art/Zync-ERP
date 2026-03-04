@@ -32,7 +32,7 @@ $type = $transaction['type'] ?? '';
             <div class="px-6 py-4 grid grid-cols-3 gap-4">
                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Datum</dt>
                 <dd class="text-sm text-gray-900 dark:text-white col-span-2">
-                    <?= htmlspecialchars($transaction['transaction_date'] ?? '—', ENT_QUOTES, 'UTF-8') ?>
+                    <?= htmlspecialchars($transaction['created_at'] ?? '—', ENT_QUOTES, 'UTF-8') ?>
                 </dd>
             </div>
             <div class="px-6 py-4 grid grid-cols-3 gap-4">
