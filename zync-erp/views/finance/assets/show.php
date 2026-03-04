@@ -3,9 +3,9 @@ $asset = $asset ?? [];
 $depreciations = $depreciations ?? [];
 $suggestedDepreciation = $suggestedDepreciation ?? 0;
 $statusLabels = ['active'=>'Aktiv','disposed'=>'Avyttrad','written_off'=>'Utskriven'];
-$statusColors = ['active'=>'green','disposed'=>'gray','written_off'=>'red'];
+$statusClasses = ['active'=>'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400','disposed'=>'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400','written_off'=>'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'];
 $methodLabels = ['linear'=>'Linjär','declining'=>'Degressiv'];
-$sc = $statusColors[$asset['status'] ?? ''] ?? 'gray';
+$sc = $statusClasses[$asset['status'] ?? ''] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400';
 ?>
 <div class="space-y-6">
     <?php if (!empty($success)): ?>
@@ -16,7 +16,7 @@ $sc = $statusColors[$asset['status'] ?? ''] ?? 'gray';
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white"><?= htmlspecialchars($asset['name'] ?? '') ?></h1>
             <p class="text-sm text-gray-500 font-mono"><?= htmlspecialchars($asset['asset_number'] ?? '') ?></p>
-            <span class="px-3 py-1 rounded-full text-xs font-medium bg-<?= $sc ?>-100 text-<?= $sc ?>-800 dark:bg-<?= $sc ?>-900/30 dark:text-<?= $sc ?>-400"><?= $statusLabels[$asset['status'] ?? ''] ?? ($asset['status'] ?? '') ?></span>
+            <span class="px-3 py-1 rounded-full text-xs font-medium <?= $sc ?>"><?= $statusLabels[$asset['status'] ?? ''] ?? htmlspecialchars($asset['status'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
         </div>
         <div class="flex gap-2">
             <a href="/finance/assets" class="text-sm text-gray-500 hover:text-indigo-600">← Tillbaka</a>

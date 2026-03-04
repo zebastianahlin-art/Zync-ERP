@@ -133,16 +133,17 @@ class FixedAssetRepository
     public function calculateDepreciation(int $assetId): float
     {
         $asset = $this->find($assetId);
-        if (!$asset || $asset['depreciation_years'] <= 0) {
+        $years = (int) ($asset['depreciation_years'] ?? 0);
+        if (!$asset || $years <= 0) {
             return 0.0;
         }
 
         if ($asset['depreciation_method'] === 'declining') {
             // Double-declining balance: current_value * (2 / years)
-            return round((float) $asset['current_value'] * (2 / $asset['depreciation_years']), 2);
+            return round((float) $asset['current_value'] * (2 / $years), 2);
         }
 
         // Linear: purchase_price / years (annual)
-        return round((float) $asset['purchase_price'] / $asset['depreciation_years'], 2);
+        return round((float) $asset['purchase_price'] / $years, 2);
     }
 }

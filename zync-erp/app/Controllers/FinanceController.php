@@ -626,9 +626,15 @@ class FinanceController extends Controller
 
         $data = (array) $request->getParsedBody();
 
-        // Create credit note as new invoice with negative amount reference
+        // Generate unique credit note number
+        $baseNumber = 'KN-' . $original['invoice_number'];
+        $existing = Database::pdo()->prepare(
+            "SELECT COUNT(*) FROM invoices_outgoing WHERE invoice_number LIKE ? AND is_deleted = 0"
+        );
+        $existing->execute([$baseNumber . '%']);
+        $count = (int) $existing->fetchColumn();
+        $number = $count > 0 ? $baseNumber . '-' . ($count + 1) : $baseNumber;
         $pdo = Database::pdo();
-        $number = 'KN-' . $original['invoice_number'];
         $stmt = $pdo->prepare(
             "INSERT INTO invoices_outgoing
              (invoice_number, customer_id, status, invoice_date, due_date, payment_terms, currency,
