@@ -66,7 +66,7 @@ return function (\PDO $pdo): void
     // Add urgency, estimated_downtime, photos if columns don't exist
     $cols = $pdo->query("SHOW COLUMNS FROM fault_reports")->fetchAll(\PDO::FETCH_COLUMN);
     if (!in_array('urgency', $cols)) {
-        $pdo->exec("ALTER TABLE fault_reports ADD COLUMN urgency ENUM('normal','hög','kritisk') NOT NULL DEFAULT 'normal' AFTER priority");
+        $pdo->exec("ALTER TABLE fault_reports ADD COLUMN urgency ENUM('normal','high','critical') NOT NULL DEFAULT 'normal' AFTER priority");
     }
     if (!in_array('estimated_downtime', $cols)) {
         $pdo->exec("ALTER TABLE fault_reports ADD COLUMN estimated_downtime SMALLINT UNSIGNED NULL COMMENT 'Estimated downtime in minutes' AFTER urgency");

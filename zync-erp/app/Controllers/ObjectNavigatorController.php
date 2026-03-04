@@ -75,6 +75,17 @@ class ObjectNavigatorController extends Controller
         return $this->json($response, $results);
     }
 
+    // ─── GET /objects/{type}/{id}/children (AJAX JSON) ────────────────────
+
+    public function children(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $type = $args['type'] ?? '';
+        $id   = (int) ($args['id'] ?? 0);
+
+        $children = $this->repo->children($type, $id);
+        return $this->json($response, $children);
+    }
+
     // ─── GET /objects/{type}/{id} ─────────────────────────────────────────
 
     public function show(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface

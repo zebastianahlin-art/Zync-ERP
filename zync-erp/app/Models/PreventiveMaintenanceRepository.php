@@ -116,7 +116,7 @@ class PreventiveMaintenanceRepository
     /**
      * Get upcoming schedules for the calendar view (next N days).
      */
-    public function getUpcoming(int $days = 60): array
+    public function getUpcoming(int $days = 90): array
     {
         $stmt = Database::pdo()->prepare(
             "SELECT s.*,

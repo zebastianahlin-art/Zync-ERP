@@ -75,7 +75,7 @@ $typeIcons = [
                             @click="
                                 if (!children) {
                                     loading = true;
-                                    fetch('/objects/search?type=<?= urlencode($obj['object_type']) ?>&parent_id=<?= (int) $obj['object_id'] ?>')
+                                    fetch('/objects/<?= htmlspecialchars($obj['object_type'], ENT_QUOTES, 'UTF-8') ?>/<?= (int) $obj['object_id'] ?>/children')
                                         .then(r => r.json())
                                         .then(d => { children = d; loading = false; childrenOpen = true; })
                                         .catch(() => loading = false);

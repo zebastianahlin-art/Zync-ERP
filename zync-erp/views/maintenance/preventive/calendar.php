@@ -36,7 +36,14 @@ $intervalLabels = ['daily'=>'Daglig','weekly'=>'Veckovis','monthly'=>'Månadsvis
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
         <div class="px-5 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
             <h2 class="font-semibold text-gray-900 dark:text-white">
-                <?= htmlspecialchars(strftime('%B %Y', strtotime($month . '-01')) ?: date('F Y', strtotime($month . '-01')), ENT_QUOTES, 'UTF-8') ?>
+                <?php
+                $monthNames = [
+                    1=>'Januari',2=>'Februari',3=>'Mars',4=>'April',5=>'Maj',6=>'Juni',
+                    7=>'Juli',8=>'Augusti',9=>'September',10=>'Oktober',11=>'November',12=>'December'
+                ];
+                $dt = new \DateTime($month . '-01');
+                echo htmlspecialchars($monthNames[(int)$dt->format('n')] . ' ' . $dt->format('Y'), ENT_QUOTES, 'UTF-8');
+                ?>
             </h2>
         </div>
         <div class="divide-y divide-gray-100 dark:divide-gray-700">

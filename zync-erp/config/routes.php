@@ -456,6 +456,8 @@ return function (App $app) {
         $group->get('/objects/search', [\App\Controllers\ObjectNavigatorController::class, 'search']);
         $group->get('/objects', [\App\Controllers\ObjectNavigatorController::class, 'index']);
         $group->post('/objects/sync', [\App\Controllers\ObjectNavigatorController::class, 'sync']);
+        // Static sub-routes before parameterised routes
+        $group->get('/objects/{type}/{id}/children', [\App\Controllers\ObjectNavigatorController::class, 'children']);
         $group->get('/objects/{type}/{id}', [\App\Controllers\ObjectNavigatorController::class, 'show']);
 
         // ─── CS & Transport ──────────────────────────────────────────────────

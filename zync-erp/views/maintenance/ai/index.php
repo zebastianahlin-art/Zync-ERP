@@ -108,6 +108,7 @@
                             <td class="px-4 py-3 font-medium text-gray-900 dark:text-white"><?= htmlspecialchars($m['name'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td class="px-4 py-3 text-right text-gray-600 dark:text-gray-400"><?= (int) $m['fault_count'] ?></td>
                             <td class="px-4 py-3 text-right <?= $m['mtbf_hours'] < 168 ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-gray-900 dark:text-white' ?>"><?= $m['mtbf_hours'] !== null ? round((float)$m['mtbf_hours'], 1) : '—' ?></td>
+                            <?php /* 168 = hours in one week — values below 1 week are highlighted as critical */ ?>
                             <td class="px-4 py-3 text-right text-gray-600 dark:text-gray-400"><?= $m['mtbf_hours'] !== null ? round((float)$m['mtbf_hours'] / 24, 1) : '—' ?></td>
                             <td class="px-4 py-3 text-right">
                                 <a href="/maintenance/ai/machine/<?= $m['id'] ?>" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Rapport →</a>
