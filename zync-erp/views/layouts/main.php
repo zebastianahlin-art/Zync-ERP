@@ -157,8 +157,14 @@ function mobileActive(string $path, string $currentPath): string {
                         <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Rapporter</p>
                         <a href="/finance/reports/ledger" class="block px-4 py-2 text-sm <?= mobileActive('/finance/reports/ledger', $currentPath) ?>">Huvudbok</a>
                         <a href="/finance/reports/trial-balance" class="block px-4 py-2 text-sm <?= mobileActive('/finance/reports/trial-balance', $currentPath) ?>">Resultaträkning</a>
+                        <a href="/finance/reports/balance-sheet" class="block px-4 py-2 text-sm <?= mobileActive('/finance/reports/balance-sheet', $currentPath) ?>">Balansräkning</a>
                         <a href="/finance/reports/kpi" class="block px-4 py-2 text-sm <?= mobileActive('/finance/reports/kpi', $currentPath) ?>">KPI från avdelningar</a>
                         <a href="/finance/reports/stocktaking" class="block px-4 py-2 text-sm <?= mobileActive('/finance/reports/stocktaking', $currentPath) ?>">Inventering</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Tillgångar &amp; Budget</p>
+                        <a href="/finance/account-groups" class="block px-4 py-2 text-sm <?= mobileActive('/finance/account-groups', $currentPath) ?>">Kontoplansgrupper</a>
+                        <a href="/finance/assets" class="block px-4 py-2 text-sm <?= mobileActive('/finance/assets', $currentPath) ?>">Anläggningstillgångar</a>
+                        <a href="/finance/budgets" class="block px-4 py-2 text-sm <?= mobileActive('/finance/budgets', $currentPath) ?>">Budgetar</a>
                     </div>
                 </div>
 
@@ -402,8 +408,12 @@ function mobileActive(string $path, string $currentPath): string {
         <a href="/finance/journal" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/journal', $currentPath) ?>">Bokföring/Verifikationer</a>
         <a href="/finance/reports/ledger" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/reports/ledger', $currentPath) ?>">Huvudbok</a>
         <a href="/finance/reports/trial-balance" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/reports/trial-balance', $currentPath) ?>">Resultaträkning</a>
+        <a href="/finance/reports/balance-sheet" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/reports/balance-sheet', $currentPath) ?>">Balansräkning</a>
         <a href="/finance/reports/kpi" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/reports/kpi', $currentPath) ?>">KPI från avdelningar</a>
         <a href="/finance/reports/stocktaking" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/reports/stocktaking', $currentPath) ?>">Inventering</a>
+        <a href="/finance/account-groups" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/account-groups', $currentPath) ?>">Kontoplansgrupper</a>
+        <a href="/finance/assets" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/assets', $currentPath) ?>">Anläggningstillgångar</a>
+        <a href="/finance/budgets" class="block rounded px-3 py-2 text-sm <?= mobileActive('/finance/budgets', $currentPath) ?>">Budgetar</a>
 
         <!-- 7. Health & Safety -->
         <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Health &amp; Safety</p>

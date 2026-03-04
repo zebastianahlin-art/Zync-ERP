@@ -13,6 +13,10 @@ use App\Models\InvoiceOutgoingRepository;
 use App\Models\InvoiceIncomingRepository;
 use App\Models\JournalEntryRepository;
 use App\Models\CostCenterRepository;
+use App\Models\AccountGroupRepository;
+use App\Models\FixedAssetRepository;
+use App\Models\BudgetRepository;
+use App\Models\FinanceReportRepository;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use PDO;
@@ -23,14 +27,22 @@ class FinanceController extends Controller
     private InvoiceIncomingRepository $invoicesIn;
     private JournalEntryRepository $journal;
     private CostCenterRepository $costCenters;
+    private AccountGroupRepository $accountGroups;
+    private FixedAssetRepository $assets;
+    private BudgetRepository $budgets;
+    private FinanceReportRepository $reports;
 
     public function __construct()
     {
         parent::__construct();
-        $this->invoicesOut = new InvoiceOutgoingRepository();
-        $this->invoicesIn = new InvoiceIncomingRepository();
-        $this->journal = new JournalEntryRepository();
-        $this->costCenters = new CostCenterRepository();
+        $this->invoicesOut  = new InvoiceOutgoingRepository();
+        $this->invoicesIn   = new InvoiceIncomingRepository();
+        $this->journal      = new JournalEntryRepository();
+        $this->costCenters  = new CostCenterRepository();
+        $this->accountGroups = new AccountGroupRepository();
+        $this->assets       = new FixedAssetRepository();
+        $this->budgets      = new BudgetRepository();
+        $this->reports      = new FinanceReportRepository();
     }
 
     // ─── DASHBOARD ───────────────────────────────────────
@@ -479,6 +491,7 @@ class FinanceController extends Controller
         $to = $params['to'] ?? date('Y-12-31');
         $accountFrom = $params['account_from'] ?? null;
         $accountTo = $params['account_to'] ?? null;
+        $account = $params['account'] ?? null;
 
         return $this->render($response, 'finance/reports/ledger', [
             'title' => 'Huvudbok',
@@ -487,6 +500,7 @@ class FinanceController extends Controller
             'to' => $to,
             'accountFrom' => $accountFrom,
             'accountTo' => $accountTo,
+            'account' => $account,
         ]);
     }
 
@@ -495,12 +509,19 @@ class FinanceController extends Controller
         $params = $request->getQueryParams();
         $from = $params['from'] ?? date('Y-01-01');
         $to = $params['to'] ?? date('Y-12-31');
+        $compare = $params['compare'] ?? null;
+
+        $data = $this->journal->trialBalance($from, $to);
+        if ($compare === 'previous_year') {
+            $data = $this->reports->getPreviousYearComparison($from, $to);
+        }
 
         return $this->render($response, 'finance/reports/trial-balance', [
             'title' => 'Resultat- & balansräkning',
-            'data' => $this->journal->trialBalance($from, $to),
+            'data' => $data,
             'from' => $from,
             'to' => $to,
+            'compare' => $compare,
         ]);
     }
 
@@ -558,6 +579,405 @@ class FinanceController extends Controller
              WHERE po.is_deleted = 0 
              ORDER BY po.order_number DESC"
         )->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // ─── INVOICE IN — APPROVE / REJECT ──────────────────
+    public function approveInvoiceIn(Request $request, Response $response, array $args): Response
+    {
+        $id = (int) $args['id'];
+        Database::pdo()->prepare(
+            "UPDATE invoices_incoming SET status = 'approved', approved_by = ?, approved_at = NOW()
+             WHERE id = ? AND is_deleted = 0"
+        )->execute([Auth::id(), $id]);
+        Flash::set('success', 'Faktura godkänd');
+        return $this->redirect($response, "/finance/invoices-in/{$id}");
+    }
+
+    public function rejectInvoiceIn(Request $request, Response $response, array $args): Response
+    {
+        $id = (int) $args['id'];
+        $data = (array) $request->getParsedBody();
+        Database::pdo()->prepare(
+            "UPDATE invoices_incoming SET status = 'disputed', rejected_by = ?, rejected_at = NOW(),
+             rejection_reason = ? WHERE id = ? AND is_deleted = 0"
+        )->execute([Auth::id(), $data['rejection_reason'] ?? null, $id]);
+        Flash::set('success', 'Faktura nekad');
+        return $this->redirect($response, "/finance/invoices-in/{$id}");
+    }
+
+    // ─── INVOICE OUT — CREDIT NOTE / PDF / REMINDER ─────
+    public function creditNoteForm(Request $request, Response $response, array $args): Response
+    {
+        $invoice = $this->invoicesOut->find((int) $args['id']);
+        if (!$invoice) return $this->redirect($response, '/finance/invoices-out');
+
+        return $this->render($response, 'finance/invoices-out/credit-note', [
+            'title' => 'Kreditnota för ' . $invoice['invoice_number'],
+            'invoice' => $invoice,
+            'lines' => $this->invoicesOut->getLines((int) $args['id']),
+        ]);
+    }
+
+    public function createCreditNote(Request $request, Response $response, array $args): Response
+    {
+        $originalId = (int) $args['id'];
+        $original = $this->invoicesOut->find($originalId);
+        if (!$original) return $this->redirect($response, '/finance/invoices-out');
+
+        $data = (array) $request->getParsedBody();
+
+        // Generate unique credit note number
+        $baseNumber = 'KN-' . $original['invoice_number'];
+        $existing = Database::pdo()->prepare(
+            "SELECT COUNT(*) FROM invoices_outgoing WHERE invoice_number LIKE ? AND is_deleted = 0"
+        );
+        $existing->execute([$baseNumber . '%']);
+        $count = (int) $existing->fetchColumn();
+        $number = $count > 0 ? $baseNumber . '-' . ($count + 1) : $baseNumber;
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare(
+            "INSERT INTO invoices_outgoing
+             (invoice_number, customer_id, status, invoice_date, due_date, payment_terms, currency,
+              reference, our_reference, notes, credit_note_for, created_by)
+             VALUES (?, ?, 'sent', ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+        $stmt->execute([
+            $number,
+            $original['customer_id'],
+            date('Y-m-d'),
+            date('Y-m-d'),
+            $original['payment_terms'],
+            $original['currency'],
+            'Kreditnota för ' . $original['invoice_number'],
+            $original['our_reference'],
+            $data['notes'] ?? ('Kreditnota för faktura ' . $original['invoice_number']),
+            $originalId,
+            Auth::id(),
+        ]);
+        $creditId = (int) $pdo->lastInsertId();
+
+        // Copy lines with negative amounts
+        $lines = $this->invoicesOut->getLines($originalId);
+        foreach ($lines as $line) {
+            $pdo->prepare(
+                "INSERT INTO invoice_outgoing_lines (invoice_id, account_id, description, quantity, unit_price, vat_rate, discount)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)"
+            )->execute([
+                $creditId,
+                $line['account_id'],
+                $line['description'],
+                -(float) $line['quantity'],
+                (float) $line['unit_price'],
+                (float) $line['vat_rate'],
+                (float) ($line['discount'] ?? 0),
+            ]);
+        }
+
+        // Mark original as credited
+        $pdo->prepare(
+            "UPDATE invoices_outgoing SET status = 'credited' WHERE id = ?"
+        )->execute([$originalId]);
+
+        Flash::set('success', 'Kreditnota skapad');
+        return $this->redirect($response, "/finance/invoices-out/{$creditId}");
+    }
+
+    public function pdfInvoiceOut(Request $request, Response $response, array $args): Response
+    {
+        $invoice = $this->invoicesOut->find((int) $args['id']);
+        if (!$invoice) return $this->redirect($response, '/finance/invoices-out');
+
+        return $this->render($response, 'finance/invoices-out/pdf', [
+            'title' => 'Faktura ' . $invoice['invoice_number'],
+            'invoice' => $invoice,
+            'lines' => $this->invoicesOut->getLines((int) $args['id']),
+        ]);
+    }
+
+    public function sendReminder(Request $request, Response $response, array $args): Response
+    {
+        $id = (int) $args['id'];
+        Database::pdo()->prepare(
+            "UPDATE invoices_outgoing SET reminder_count = reminder_count + 1, last_reminder_at = NOW()
+             WHERE id = ? AND is_deleted = 0"
+        )->execute([$id]);
+        Flash::set('success', 'Påminnelse registrerad');
+        return $this->redirect($response, "/finance/invoices-out/{$id}");
+    }
+
+    // ─── KONTOPLANSGRUPPER ───────────────────────────────
+    public function accountGroups(Request $request, Response $response): Response
+    {
+        return $this->render($response, 'finance/account-groups/index', [
+            'title' => 'Kontoplansgrupper',
+            'groups' => $this->accountGroups->all(),
+            'success' => Flash::get('success'),
+        ]);
+    }
+
+    public function createAccountGroup(Request $request, Response $response): Response
+    {
+        return $this->render($response, 'finance/account-groups/create', [
+            'title' => 'Ny kontoplansgrupp',
+            'groups' => $this->accountGroups->all(),
+        ]);
+    }
+
+    public function storeAccountGroup(Request $request, Response $response): Response
+    {
+        $data = (array) $request->getParsedBody();
+        $this->accountGroups->create($data);
+        Flash::set('success', 'Grupp skapad');
+        return $this->redirect($response, '/finance/account-groups');
+    }
+
+    public function editAccountGroup(Request $request, Response $response, array $args): Response
+    {
+        $group = $this->accountGroups->find((int) $args['id']);
+        if (!$group) return $this->redirect($response, '/finance/account-groups');
+
+        return $this->render($response, 'finance/account-groups/edit', [
+            'title' => 'Redigera grupp',
+            'group' => $group,
+            'groups' => $this->accountGroups->all(),
+        ]);
+    }
+
+    public function updateAccountGroup(Request $request, Response $response, array $args): Response
+    {
+        $this->accountGroups->update((int) $args['id'], (array) $request->getParsedBody());
+        Flash::set('success', 'Grupp uppdaterad');
+        return $this->redirect($response, '/finance/account-groups');
+    }
+
+    public function deleteAccountGroup(Request $request, Response $response, array $args): Response
+    {
+        $this->accountGroups->delete((int) $args['id']);
+        Flash::set('success', 'Grupp borttagen');
+        return $this->redirect($response, '/finance/account-groups');
+    }
+
+    // ─── KONTOPLAN EXPORT / IMPORT ───────────────────────
+    public function exportAccounts(Request $request, Response $response): Response
+    {
+        $accounts = Database::pdo()->query(
+            "SELECT account_number, name, account_class, is_active FROM chart_of_accounts ORDER BY account_number"
+        )->fetchAll(PDO::FETCH_ASSOC);
+
+        $csv = "Kontonummer,Namn,Klass,Aktiv\n";
+        foreach ($accounts as $row) {
+            $csv .= implode(',', [
+                $row['account_number'],
+                '"' . str_replace('"', '""', $row['name']) . '"',
+                $row['account_class'],
+                $row['is_active'] ? 'Ja' : 'Nej',
+            ]) . "\n";
+        }
+
+        $response = $response
+            ->withHeader('Content-Type', 'text/csv; charset=UTF-8')
+            ->withHeader('Content-Disposition', 'attachment; filename=kontoplan.csv');
+        $response->getBody()->write($csv);
+        return $response;
+    }
+
+    public function importAccountsForm(Request $request, Response $response): Response
+    {
+        return $this->render($response, 'finance/accounts/import', [
+            'title' => 'Importera kontoplan',
+        ]);
+    }
+
+    // ─── LEDGER — ENSKILT KONTO ──────────────────────────
+    public function accountLedger(Request $request, Response $response, array $args): Response
+    {
+        $accountId = (int) $args['accountId'];
+        $params = $request->getQueryParams();
+        $from = $params['from'] ?? date('Y-01-01');
+        $to = $params['to'] ?? date('Y-12-31');
+
+        $accountRow = Database::pdo()->prepare(
+            "SELECT * FROM chart_of_accounts WHERE id = ?"
+        );
+        $accountRow->execute([$accountId]);
+        $account = $accountRow->fetch(PDO::FETCH_ASSOC);
+        if (!$account) return $this->redirect($response, '/finance/reports/ledger');
+
+        $ledger = $this->reports->getAccountLedger($accountId, $from, $to);
+
+        return $this->render($response, 'finance/reports/account-ledger', [
+            'title' => 'Kontoutdrag ' . $account['account_number'] . ' — ' . $account['name'],
+            'account' => $account,
+            'from' => $from,
+            'to' => $to,
+            'opening_balance' => $ledger['opening_balance'],
+            'closing_balance' => $ledger['closing_balance'],
+            'lines' => $ledger['lines'],
+        ]);
+    }
+
+    // ─── BALANSRÄKNING ───────────────────────────────────
+    public function balanceSheet(Request $request, Response $response): Response
+    {
+        $params = $request->getQueryParams();
+        $from = $params['from'] ?? date('Y-01-01');
+        $to = $params['to'] ?? date('Y-12-31');
+        $data = $this->reports->getBalanceSheet($from, $to);
+
+        return $this->render($response, 'finance/reports/balance-sheet', [
+            'title' => 'Balansräkning',
+            'from' => $from,
+            'to' => $to,
+            'assets' => $data['assets'],
+            'liabilities' => $data['liabilities'],
+        ]);
+    }
+
+    // ─── BUDGETAR ────────────────────────────────────────
+    public function budgetsIndex(Request $request, Response $response): Response
+    {
+        $params = $request->getQueryParams();
+        $year = (int) ($params['year'] ?? date('Y'));
+
+        return $this->render($response, 'finance/budgets/index', [
+            'title' => 'Budgetar',
+            'budgets' => $this->budgets->allForYear($year),
+            'year' => $year,
+            'success' => Flash::get('success'),
+        ]);
+    }
+
+    public function createBudget(Request $request, Response $response): Response
+    {
+        return $this->render($response, 'finance/budgets/create', [
+            'title' => 'Ny budget',
+            'accounts' => $this->getAccounts(),
+        ]);
+    }
+
+    public function storeBudget(Request $request, Response $response): Response
+    {
+        $data = (array) $request->getParsedBody();
+        $this->budgets->create($data);
+        Flash::set('success', 'Budget sparad');
+        return $this->redirect($response, '/finance/budgets?year=' . ($data['fiscal_year'] ?? date('Y')));
+    }
+
+    public function editBudget(Request $request, Response $response, array $args): Response
+    {
+        $budget = $this->budgets->find((int) $args['id']);
+        if (!$budget) return $this->redirect($response, '/finance/budgets');
+
+        return $this->render($response, 'finance/budgets/edit', [
+            'title' => 'Redigera budget',
+            'budget' => $budget,
+            'accounts' => $this->getAccounts(),
+        ]);
+    }
+
+    public function updateBudget(Request $request, Response $response, array $args): Response
+    {
+        $data = (array) $request->getParsedBody();
+        $this->budgets->update((int) $args['id'], $data);
+        Flash::set('success', 'Budget uppdaterad');
+        return $this->redirect($response, '/finance/budgets?year=' . ($data['fiscal_year'] ?? date('Y')));
+    }
+
+    public function deleteBudget(Request $request, Response $response, array $args): Response
+    {
+        $budget = $this->budgets->find((int) $args['id']);
+        $year = $budget['fiscal_year'] ?? date('Y');
+        $this->budgets->delete((int) $args['id']);
+        Flash::set('success', 'Budget borttagen');
+        return $this->redirect($response, '/finance/budgets?year=' . $year);
+    }
+
+    // ─── ANLÄGGNINGSTILLGÅNGAR ───────────────────────────
+    public function assetsIndex(Request $request, Response $response): Response
+    {
+        return $this->render($response, 'finance/assets/index', [
+            'title' => 'Anläggningstillgångar',
+            'assets' => $this->assets->all(),
+            'success' => Flash::get('success'),
+        ]);
+    }
+
+    public function createAsset(Request $request, Response $response): Response
+    {
+        return $this->render($response, 'finance/assets/create', [
+            'title' => 'Ny anläggningstillgång',
+            'departments' => $this->getDepartments(),
+            'accounts' => $this->getAccounts(),
+        ]);
+    }
+
+    public function storeAsset(Request $request, Response $response): Response
+    {
+        $data = (array) $request->getParsedBody();
+        $data['created_by'] = Auth::id();
+        $id = $this->assets->create($data);
+        Flash::set('success', 'Tillgång skapad');
+        return $this->redirect($response, "/finance/assets/{$id}");
+    }
+
+    public function showAsset(Request $request, Response $response, array $args): Response
+    {
+        $asset = $this->assets->find((int) $args['id']);
+        if (!$asset) return $this->redirect($response, '/finance/assets');
+
+        return $this->render($response, 'finance/assets/show', [
+            'title' => $asset['name'],
+            'asset' => $asset,
+            'depreciations' => $this->assets->getDepreciations((int) $args['id']),
+            'suggestedDepreciation' => $this->assets->calculateDepreciation((int) $args['id']),
+            'success' => Flash::get('success'),
+        ]);
+    }
+
+    public function editAsset(Request $request, Response $response, array $args): Response
+    {
+        $asset = $this->assets->find((int) $args['id']);
+        if (!$asset) return $this->redirect($response, '/finance/assets');
+
+        return $this->render($response, 'finance/assets/edit', [
+            'title' => 'Redigera tillgång',
+            'asset' => $asset,
+            'departments' => $this->getDepartments(),
+            'accounts' => $this->getAccounts(),
+        ]);
+    }
+
+    public function updateAsset(Request $request, Response $response, array $args): Response
+    {
+        $this->assets->update((int) $args['id'], (array) $request->getParsedBody());
+        Flash::set('success', 'Tillgång uppdaterad');
+        return $this->redirect($response, "/finance/assets/{$args['id']}");
+    }
+
+    public function deleteAsset(Request $request, Response $response, array $args): Response
+    {
+        $this->assets->delete((int) $args['id']);
+        Flash::set('success', 'Tillgång borttagen');
+        return $this->redirect($response, '/finance/assets');
+    }
+
+    public function depreciateAsset(Request $request, Response $response, array $args): Response
+    {
+        $id = (int) $args['id'];
+        $data = (array) $request->getParsedBody();
+        $amount = isset($data['amount']) && $data['amount'] !== ''
+            ? (float) $data['amount']
+            : $this->assets->calculateDepreciation($id);
+        $date = $data['depreciation_date'] ?? date('Y-m-d');
+
+        if ($amount > 0) {
+            $this->assets->addDepreciation($id, $amount, $date);
+            Flash::set('success', 'Avskrivning bokförd');
+        } else {
+            Flash::set('success', 'Inget att skriva av');
+        }
+
+        return $this->redirect($response, "/finance/assets/{$id}");
     }
 
 }

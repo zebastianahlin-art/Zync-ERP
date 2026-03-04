@@ -141,6 +141,10 @@ return function (App $app) {
         $group->get('/finance/invoices-out', [\App\Controllers\FinanceController::class, 'invoicesOut']);
         $group->get('/finance/invoices-out/create', [\App\Controllers\FinanceController::class, 'createInvoiceOut']);
         $group->post('/finance/invoices-out', [\App\Controllers\FinanceController::class, 'storeInvoiceOut']);
+        $group->get('/finance/invoices-out/{id}/credit-note', [\App\Controllers\FinanceController::class, 'creditNoteForm']);
+        $group->post('/finance/invoices-out/{id}/credit-note', [\App\Controllers\FinanceController::class, 'createCreditNote']);
+        $group->get('/finance/invoices-out/{id}/pdf', [\App\Controllers\FinanceController::class, 'pdfInvoiceOut']);
+        $group->post('/finance/invoices-out/{id}/reminder', [\App\Controllers\FinanceController::class, 'sendReminder']);
         $group->get('/finance/invoices-out/{id}', [\App\Controllers\FinanceController::class, 'showInvoiceOut']);
         $group->get('/finance/invoices-out/{id}/edit', [\App\Controllers\FinanceController::class, 'editInvoiceOut']);
         $group->post('/finance/invoices-out/{id}', [\App\Controllers\FinanceController::class, 'updateInvoiceOut']);
@@ -154,6 +158,8 @@ return function (App $app) {
         $group->get('/finance/invoices-in', [\App\Controllers\FinanceController::class, 'invoicesIn']);
         $group->get('/finance/invoices-in/create', [\App\Controllers\FinanceController::class, 'createInvoiceIn']);
         $group->post('/finance/invoices-in', [\App\Controllers\FinanceController::class, 'storeInvoiceIn']);
+        $group->post('/finance/invoices-in/{id}/approve', [\App\Controllers\FinanceController::class, 'approveInvoiceIn']);
+        $group->post('/finance/invoices-in/{id}/reject', [\App\Controllers\FinanceController::class, 'rejectInvoiceIn']);
         $group->get('/finance/invoices-in/{id}', [\App\Controllers\FinanceController::class, 'showInvoiceIn']);
         $group->get('/finance/invoices-in/{id}/edit', [\App\Controllers\FinanceController::class, 'editInvoiceIn']);
         $group->post('/finance/invoices-in/{id}', [\App\Controllers\FinanceController::class, 'updateInvoiceIn']);
@@ -175,6 +181,8 @@ return function (App $app) {
         // Kontoplan
         $group->get('/finance/accounts', [\App\Controllers\FinanceController::class, 'chartOfAccounts']);
         $group->get('/finance/accounts/create', [\App\Controllers\FinanceController::class, 'createAccount']);
+        $group->get('/finance/accounts/export', [\App\Controllers\FinanceController::class, 'exportAccounts']);
+        $group->get('/finance/accounts/import', [\App\Controllers\FinanceController::class, 'importAccountsForm']);
         $group->post('/finance/accounts', [\App\Controllers\FinanceController::class, 'storeAccount']);
         $group->get('/finance/accounts/{id}/edit', [\App\Controllers\FinanceController::class, 'editAccount']);
         $group->post('/finance/accounts/{id}', [\App\Controllers\FinanceController::class, 'updateAccount']);
@@ -189,10 +197,38 @@ return function (App $app) {
 
         // Rapporter
         $group->get('/finance/reports/ledger', [\App\Controllers\FinanceController::class, 'ledger']);
+        $group->get('/finance/reports/ledger/{accountId}', [\App\Controllers\FinanceController::class, 'accountLedger']);
         $group->get('/finance/reports/trial-balance', [\App\Controllers\FinanceController::class, 'trialBalance']);
+        $group->get('/finance/reports/balance-sheet', [\App\Controllers\FinanceController::class, 'balanceSheet']);
         $group->get('/finance/reports/cost-centers', [\App\Controllers\FinanceController::class, 'costCenterReport']);
         $group->get('/finance/reports/kpi', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'KPI från Avdelningar');
         $group->get('/finance/reports/stocktaking', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Inventering Ekonomi');
+
+        // Kontoplansgrupper
+        $group->get('/finance/account-groups', [\App\Controllers\FinanceController::class, 'accountGroups']);
+        $group->get('/finance/account-groups/create', [\App\Controllers\FinanceController::class, 'createAccountGroup']);
+        $group->post('/finance/account-groups', [\App\Controllers\FinanceController::class, 'storeAccountGroup']);
+        $group->get('/finance/account-groups/{id}/edit', [\App\Controllers\FinanceController::class, 'editAccountGroup']);
+        $group->post('/finance/account-groups/{id}', [\App\Controllers\FinanceController::class, 'updateAccountGroup']);
+        $group->post('/finance/account-groups/{id}/delete', [\App\Controllers\FinanceController::class, 'deleteAccountGroup']);
+
+        // Budgetar
+        $group->get('/finance/budgets', [\App\Controllers\FinanceController::class, 'budgetsIndex']);
+        $group->get('/finance/budgets/create', [\App\Controllers\FinanceController::class, 'createBudget']);
+        $group->post('/finance/budgets', [\App\Controllers\FinanceController::class, 'storeBudget']);
+        $group->get('/finance/budgets/{id}/edit', [\App\Controllers\FinanceController::class, 'editBudget']);
+        $group->post('/finance/budgets/{id}', [\App\Controllers\FinanceController::class, 'updateBudget']);
+        $group->post('/finance/budgets/{id}/delete', [\App\Controllers\FinanceController::class, 'deleteBudget']);
+
+        // Anläggningstillgångar
+        $group->get('/finance/assets', [\App\Controllers\FinanceController::class, 'assetsIndex']);
+        $group->get('/finance/assets/create', [\App\Controllers\FinanceController::class, 'createAsset']);
+        $group->post('/finance/assets', [\App\Controllers\FinanceController::class, 'storeAsset']);
+        $group->get('/finance/assets/{id}', [\App\Controllers\FinanceController::class, 'showAsset']);
+        $group->get('/finance/assets/{id}/edit', [\App\Controllers\FinanceController::class, 'editAsset']);
+        $group->post('/finance/assets/{id}', [\App\Controllers\FinanceController::class, 'updateAsset']);
+        $group->post('/finance/assets/{id}/delete', [\App\Controllers\FinanceController::class, 'deleteAsset']);
+        $group->post('/finance/assets/{id}/depreciate', [\App\Controllers\FinanceController::class, 'depreciateAsset']);
 
         // ─── Maintenance (Underhåll) ──────────────────────────
         $group->get('/maintenance', [\App\Controllers\MaintenanceController::class, 'dashboard']);
