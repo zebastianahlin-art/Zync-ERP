@@ -521,7 +521,7 @@ class SafetyController extends Controller
     {
         if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/emergency/drills/templates/create', [
-            'title'  => 'Ny övringsmall – ZYNC ERP',
+            'title'  => 'Ny övningsmall – ZYNC ERP',
             'errors' => [],
             'old'    => [],
         ]);
@@ -534,14 +534,14 @@ class SafetyController extends Controller
         $errors = $this->validateDrillTemplate($data);
         if (!empty($errors)) {
             return $this->render($response, 'safety/emergency/drills/templates/create', [
-                'title'  => 'Ny övringsmall – ZYNC ERP',
+                'title'  => 'Ny övningsmall – ZYNC ERP',
                 'errors' => $errors,
                 'old'    => $data,
             ]);
         }
         $data['created_by'] = Auth::id();
         $this->drills->createTemplate($data);
-        Flash::set('success', 'Övringsmallen har skapats.');
+        Flash::set('success', 'Övningsmallen har skapats.');
         return $this->redirect($response, '/safety/emergency/drills/templates');
     }
 
@@ -551,7 +551,7 @@ class SafetyController extends Controller
         $template = $this->drills->findTemplate((int) $args['id']);
         if ($template === null) { return $this->notFound($response); }
         return $this->render($response, 'safety/emergency/drills/templates/edit', [
-            'title'    => 'Redigera övringsmall – ZYNC ERP',
+            'title'    => 'Redigera övningsmall – ZYNC ERP',
             'template' => $template,
             'errors'   => [],
         ]);
@@ -567,13 +567,13 @@ class SafetyController extends Controller
         $errors = $this->validateDrillTemplate($data);
         if (!empty($errors)) {
             return $this->render($response, 'safety/emergency/drills/templates/edit', [
-                'title'    => 'Redigera övringsmall – ZYNC ERP',
+                'title'    => 'Redigera övningsmall – ZYNC ERP',
                 'template' => array_merge($template, $data),
                 'errors'   => $errors,
             ]);
         }
         $this->drills->updateTemplate($id, $data);
-        Flash::set('success', 'Övringsmallen har uppdaterats.');
+        Flash::set('success', 'Övningsmallen har uppdaterats.');
         return $this->redirect($response, '/safety/emergency/drills/templates');
     }
 
@@ -581,7 +581,7 @@ class SafetyController extends Controller
     {
         if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $this->drills->deleteTemplate((int) $args['id']);
-        Flash::set('success', 'Övringsmallen har tagits bort.');
+        Flash::set('success', 'Övningsmallen har tagits bort.');
         return $this->redirect($response, '/safety/emergency/drills/templates');
     }
 

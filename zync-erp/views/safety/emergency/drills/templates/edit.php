@@ -1,6 +1,6 @@
 <div class="space-y-6 max-w-2xl">
     <div>
-        <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Redigera övringsmall</h1>
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Redigera övningsmall</h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5"><?= htmlspecialchars($template['name'], ENT_QUOTES, 'UTF-8') ?></p>
     </div>
 
