@@ -458,34 +458,76 @@ return function (App $app) {
 
         // ─── Production (Produktion) ─────────────────────────────────────────
         $group->get('/production', [\App\Controllers\ProductionController::class, 'index']);
+        // Lines
         $group->get('/production/lines', [\App\Controllers\ProductionController::class, 'lines']);
         $group->get('/production/lines/create', [\App\Controllers\ProductionController::class, 'createLine']);
         $group->post('/production/lines', [\App\Controllers\ProductionController::class, 'storeLine']);
-        $group->get('/production/products', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Skapa Produkt');
-        $group->get('/production/stock', [\App\Controllers\ProductionController::class, 'stock']);
-        $group->get('/production/stock/manage', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Hantera Produktionslager');
         $group->get('/production/lines/{id}', [\App\Controllers\ProductionController::class, 'showLine']);
         $group->get('/production/lines/{id}/edit', [\App\Controllers\ProductionController::class, 'editLine']);
         $group->post('/production/lines/{id}', [\App\Controllers\ProductionController::class, 'updateLine']);
         $group->post('/production/lines/{id}/delete', [\App\Controllers\ProductionController::class, 'deleteLine']);
+        // Products
+        $group->get('/production/products', [\App\Controllers\ProductionController::class, 'products']);
+        $group->get('/production/products/create', [\App\Controllers\ProductionController::class, 'createProduct']);
+        $group->post('/production/products', [\App\Controllers\ProductionController::class, 'storeProduct']);
+        $group->get('/production/products/{id}', [\App\Controllers\ProductionController::class, 'showProduct']);
+        $group->get('/production/products/{id}/edit', [\App\Controllers\ProductionController::class, 'editProduct']);
+        $group->post('/production/products/{id}', [\App\Controllers\ProductionController::class, 'updateProduct']);
+        $group->post('/production/products/{id}/delete', [\App\Controllers\ProductionController::class, 'deleteProduct']);
+        // Orders
         $group->get('/production/orders', [\App\Controllers\ProductionController::class, 'orders']);
+        $group->get('/production/orders/create', [\App\Controllers\ProductionController::class, 'createOrder']);
+        $group->post('/production/orders', [\App\Controllers\ProductionController::class, 'storeOrder']);
+        $group->get('/production/orders/{id}', [\App\Controllers\ProductionController::class, 'showOrder']);
+        $group->get('/production/orders/{id}/edit', [\App\Controllers\ProductionController::class, 'editOrder']);
+        $group->post('/production/orders/{id}', [\App\Controllers\ProductionController::class, 'updateOrder']);
+        $group->post('/production/orders/{id}/status', [\App\Controllers\ProductionController::class, 'updateOrderStatus']);
+        $group->post('/production/orders/{id}/delete', [\App\Controllers\ProductionController::class, 'deleteOrder']);
+        // Stock
         $group->get('/production/stock', [\App\Controllers\ProductionController::class, 'stock']);
+        $group->get('/production/stock/manage', [\App\Controllers\ProductionController::class, 'manageStock']);
+        $group->get('/production/stock/create', [\App\Controllers\ProductionController::class, 'createStockEntry']);
+        $group->post('/production/stock', [\App\Controllers\ProductionController::class, 'storeStockEntry']);
+        $group->get('/production/stock/move', [\App\Controllers\ProductionController::class, 'moveStock']);
+        $group->post('/production/stock/move', [\App\Controllers\ProductionController::class, 'storeMoveStock']);
+        $group->post('/production/stock/{id}/delete', [\App\Controllers\ProductionController::class, 'deleteStockEntry']);
 
         // ─── Sales ───────────────────────────────────────────────────────────
         $group->get('/sales', [\App\Controllers\SalesController::class, 'index']);
         $group->get('/sales/quotes', [\App\Controllers\SalesController::class, 'quotes']);
         $group->get('/sales/quotes/create', [\App\Controllers\SalesController::class, 'createQuote']);
         $group->post('/sales/quotes', [\App\Controllers\SalesController::class, 'storeQuote']);
-        $group->get('/sales/quotes/accepted', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Accepterade Offerter');
-        $group->get('/sales/quotes/history', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Historiska Offerter');
-        $group->get('/sales/quotes/templates', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Offertmallar');
+        $group->get('/sales/quotes/accepted', [\App\Controllers\SalesController::class, 'acceptedQuotes']);
+        $group->get('/sales/quotes/history', [\App\Controllers\SalesController::class, 'historyQuotes']);
+        $group->get('/sales/quotes/templates', [\App\Controllers\SalesController::class, 'quoteTemplates']);
+        $group->get('/sales/quotes/templates/create', [\App\Controllers\SalesController::class, 'createQuoteTemplate']);
+        $group->post('/sales/quotes/templates', [\App\Controllers\SalesController::class, 'storeQuoteTemplate']);
+        $group->get('/sales/quotes/templates/{id}/edit', [\App\Controllers\SalesController::class, 'editQuoteTemplate']);
+        $group->post('/sales/quotes/templates/{id}', [\App\Controllers\SalesController::class, 'updateQuoteTemplate']);
+        $group->post('/sales/quotes/templates/{id}/delete', [\App\Controllers\SalesController::class, 'deleteQuoteTemplate']);
+        $group->get('/sales/quotes/templates/{id}/use', [\App\Controllers\SalesController::class, 'useTemplate']);
         $group->get('/sales/quotes/{id}', [\App\Controllers\SalesController::class, 'showQuote']);
         $group->get('/sales/quotes/{id}/edit', [\App\Controllers\SalesController::class, 'editQuote']);
         $group->post('/sales/quotes/{id}', [\App\Controllers\SalesController::class, 'updateQuote']);
         $group->post('/sales/quotes/{id}/delete', [\App\Controllers\SalesController::class, 'deleteQuote']);
         $group->get('/sales/orders', [\App\Controllers\SalesController::class, 'orders']);
+        $group->get('/sales/orders/create', [\App\Controllers\SalesController::class, 'createOrder']);
+        $group->post('/sales/orders', [\App\Controllers\SalesController::class, 'storeOrder']);
+        $group->get('/sales/orders/{id}', [\App\Controllers\SalesController::class, 'showOrder']);
+        $group->get('/sales/orders/{id}/edit', [\App\Controllers\SalesController::class, 'editOrder']);
+        $group->post('/sales/orders/{id}', [\App\Controllers\SalesController::class, 'updateOrder']);
+        $group->post('/sales/orders/{id}/status', [\App\Controllers\SalesController::class, 'updateOrderStatus']);
+        $group->post('/sales/orders/{id}/delete', [\App\Controllers\SalesController::class, 'deleteOrder']);
         $group->get('/sales/pricing', [\App\Controllers\SalesController::class, 'pricing']);
-        $group->get('/sales/pricing/manage', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Hantera Prislistor');
+        $group->get('/sales/pricing/manage', [\App\Controllers\SalesController::class, 'managePricing']);
+        $group->get('/sales/pricing/create', [\App\Controllers\SalesController::class, 'createPriceList']);
+        $group->post('/sales/pricing', [\App\Controllers\SalesController::class, 'storePriceList']);
+        $group->get('/sales/pricing/{id}', [\App\Controllers\SalesController::class, 'showPriceList']);
+        $group->get('/sales/pricing/{id}/edit', [\App\Controllers\SalesController::class, 'editPriceList']);
+        $group->post('/sales/pricing/{id}', [\App\Controllers\SalesController::class, 'updatePriceList']);
+        $group->post('/sales/pricing/{id}/delete', [\App\Controllers\SalesController::class, 'deletePriceList']);
+        $group->post('/sales/pricing/{id}/items', [\App\Controllers\SalesController::class, 'addPriceListItem']);
+        $group->post('/sales/pricing/{id}/items/{itemId}/delete', [\App\Controllers\SalesController::class, 'removePriceListItem']);
 
         // ─── Projects (Projekt) ──────────────────────────────────────────────
         $group->get('/projects', [\App\Controllers\ProjectController::class, 'index']);
@@ -535,9 +577,35 @@ return function (App $app) {
         $group->get('/objects/{type}/{id}/children', [\App\Controllers\ObjectNavigatorController::class, 'children']);
         $group->get('/objects/{type}/{id}', [\App\Controllers\ObjectNavigatorController::class, 'show']);
 
-        // ─── CS & Transport ──────────────────────────────────────────────────
-        $group->get('/cs', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Customer Service');
-        $group->get('/transport', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Transport');
+        // ─── CS (Customer Service) ───────────────────────────────────────────
+        $group->get('/cs', [\App\Controllers\CustomerServiceController::class, 'index']);
+        $group->get('/cs/tickets', [\App\Controllers\CustomerServiceController::class, 'tickets']);
+        $group->get('/cs/tickets/create', [\App\Controllers\CustomerServiceController::class, 'createTicket']);
+        $group->post('/cs/tickets', [\App\Controllers\CustomerServiceController::class, 'storeTicket']);
+        $group->get('/cs/tickets/my', [\App\Controllers\CustomerServiceController::class, 'myTickets']);
+        $group->get('/cs/tickets/{id}', [\App\Controllers\CustomerServiceController::class, 'showTicket']);
+        $group->get('/cs/tickets/{id}/edit', [\App\Controllers\CustomerServiceController::class, 'editTicket']);
+        $group->post('/cs/tickets/{id}', [\App\Controllers\CustomerServiceController::class, 'updateTicket']);
+        $group->post('/cs/tickets/{id}/status', [\App\Controllers\CustomerServiceController::class, 'updateTicketStatus']);
+        $group->post('/cs/tickets/{id}/comments', [\App\Controllers\CustomerServiceController::class, 'addComment']);
+        $group->post('/cs/tickets/{id}/delete', [\App\Controllers\CustomerServiceController::class, 'deleteTicket']);
+
+        // ─── Transport ───────────────────────────────────────────────────────
+        $group->get('/transport', [\App\Controllers\TransportController::class, 'index']);
+        $group->get('/transport/orders', [\App\Controllers\TransportController::class, 'orders']);
+        $group->get('/transport/orders/create', [\App\Controllers\TransportController::class, 'createOrder']);
+        $group->post('/transport/orders', [\App\Controllers\TransportController::class, 'storeOrder']);
+        $group->get('/transport/orders/{id}', [\App\Controllers\TransportController::class, 'showOrder']);
+        $group->get('/transport/orders/{id}/edit', [\App\Controllers\TransportController::class, 'editOrder']);
+        $group->post('/transport/orders/{id}', [\App\Controllers\TransportController::class, 'updateOrder']);
+        $group->post('/transport/orders/{id}/status', [\App\Controllers\TransportController::class, 'updateOrderStatus']);
+        $group->post('/transport/orders/{id}/delete', [\App\Controllers\TransportController::class, 'deleteOrder']);
+        $group->get('/transport/carriers', [\App\Controllers\TransportController::class, 'carriers']);
+        $group->get('/transport/carriers/create', [\App\Controllers\TransportController::class, 'createCarrier']);
+        $group->post('/transport/carriers', [\App\Controllers\TransportController::class, 'storeCarrier']);
+        $group->get('/transport/carriers/{id}/edit', [\App\Controllers\TransportController::class, 'editCarrier']);
+        $group->post('/transport/carriers/{id}', [\App\Controllers\TransportController::class, 'updateCarrier']);
+        $group->post('/transport/carriers/{id}/delete', [\App\Controllers\TransportController::class, 'deleteCarrier']);
 
         // ─── Reports (Rapporter) ─────────────────────────────────────────────
         $group->get('/reports', [\App\Controllers\ReportController::class, 'index']);

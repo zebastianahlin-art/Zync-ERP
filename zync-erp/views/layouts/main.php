@@ -247,9 +247,18 @@ function mobileActive(string $path, string $currentPath): string {
                     <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
                         CS &amp; Transport <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        <a href="/cs" class="block px-4 py-2 text-sm <?= mobileActive('/cs', $currentPath) ?>">Customer Service</a>
-                        <a href="/transport" class="block px-4 py-2 text-sm <?= mobileActive('/transport', $currentPath) ?>">Transport</a>
+                    <div x-show="show" x-transition class="absolute left-0 mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Customer Service</p>
+                        <a href="/cs" class="block px-4 py-2 text-sm <?= mobileActive('/cs', $currentPath) ?>">CS Dashboard</a>
+                        <a href="/cs/tickets" class="block px-4 py-2 text-sm <?= mobileActive('/cs/tickets', $currentPath) ?>">Alla ärenden</a>
+                        <a href="/cs/tickets/create" class="block px-4 py-2 text-sm <?= mobileActive('/cs/tickets/create', $currentPath) ?>">Nytt ärende</a>
+                        <a href="/cs/tickets/my" class="block px-4 py-2 text-sm <?= mobileActive('/cs/tickets/my', $currentPath) ?>">Mina ärenden</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Transport</p>
+                        <a href="/transport" class="block px-4 py-2 text-sm <?= mobileActive('/transport', $currentPath) ?>">Transport Dashboard</a>
+                        <a href="/transport/orders" class="block px-4 py-2 text-sm <?= mobileActive('/transport/orders', $currentPath) ?>">Transportordrar</a>
+                        <a href="/transport/orders/create" class="block px-4 py-2 text-sm <?= mobileActive('/transport/orders/create', $currentPath) ?>">Ny transportorder</a>
+                        <a href="/transport/carriers" class="block px-4 py-2 text-sm <?= mobileActive('/transport/carriers', $currentPath) ?>">Transportörer</a>
                     </div>
                 </div>
 
@@ -456,8 +465,14 @@ function mobileActive(string $path, string $currentPath): string {
 
         <!-- 10. CS & Transport -->
         <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">CS &amp; Transport</p>
-        <a href="/cs" class="block rounded px-3 py-2 text-sm <?= mobileActive('/cs', $currentPath) ?>">Customer Service</a>
-        <a href="/transport" class="block rounded px-3 py-2 text-sm <?= mobileActive('/transport', $currentPath) ?>">Transport</a>
+        <a href="/cs" class="block rounded px-3 py-2 text-sm <?= mobileActive('/cs', $currentPath) ?>">CS Dashboard</a>
+        <a href="/cs/tickets" class="block rounded px-3 py-2 text-sm <?= mobileActive('/cs/tickets', $currentPath) ?>">Alla ärenden</a>
+        <a href="/cs/tickets/create" class="block rounded px-3 py-2 text-sm <?= mobileActive('/cs/tickets/create', $currentPath) ?>">Nytt ärende</a>
+        <a href="/cs/tickets/my" class="block rounded px-3 py-2 text-sm <?= mobileActive('/cs/tickets/my', $currentPath) ?>">Mina ärenden</a>
+        <a href="/transport" class="block rounded px-3 py-2 text-sm <?= mobileActive('/transport', $currentPath) ?>">Transport Dashboard</a>
+        <a href="/transport/orders" class="block rounded px-3 py-2 text-sm <?= mobileActive('/transport/orders', $currentPath) ?>">Transportordrar</a>
+        <a href="/transport/orders/create" class="block rounded px-3 py-2 text-sm <?= mobileActive('/transport/orders/create', $currentPath) ?>">Ny transportorder</a>
+        <a href="/transport/carriers" class="block rounded px-3 py-2 text-sm <?= mobileActive('/transport/carriers', $currentPath) ?>">Transportörer</a>
 
         <!-- 11. Projekt -->
         <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Projekt</p>
