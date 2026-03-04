@@ -14,14 +14,21 @@ En detaljerad åtgärdslista har tagits fram för att uppgradera alla moduler ti
 - **PR #34** — Fixade döda menylänkar (departments, employees, certificates)
 - **PR #35** — Fixade 5 döda menylänkar (inventory, my-page m.fl.)
 - **PR #37** — 12 nya moduler (Production, Sales, Projects, HR-svit, Reports, i18n, Admin Roles, Equipment Docs, Spare Parts) + 9 migrationer (0020–0028)
+- **PR #38** — Fas 1: Menystruktur + Routing-cleanup (PlaceholderController, ny menystruktur)
+- **PR #39** — Fas 2: ObjektNavigator + Förebyggande Underhåll + AI-ingenjör (objektträd, FU-planerare, AI-analyser)
+- **PR #40** — Fas 3: Lager + Inköp (lagerställen, transaktioner, inventering, leverantörsaudit, avtalsmallar)
+- **PR #41** — Fas 4: Ekonomi (budgetar, anläggningstillgångar, kontoplansgrupper, balansräkning, kreditnotor)
+- **PR #42** — Fas 5: Produktion + Försäljning + CS & Transport (produkter CRUD, ordrar, offertmallar, prislistor, ticketsystem, transportordrar)
 
 ### Kända problem:
-- De flesta nya moduler har grundläggande CRUD men saknar avancerad funktionalitet
-- Menyn behöver omstruktureras helt
-- Dashboard är enkel — saknar widget-system
-- Admin-sidan oförändrad, SaaS-admin saknas helt
-- Vissa moduler fungerar inte korrekt
-- Döda routing-länkar finns fortfarande kvar
+- Dashboard är enkel — saknar widget-system (planerat i Fas 7)
+- Admin-sidan oförändrad, SaaS-admin saknas helt (planerat i Fas 8)
+- Kvarvarande PlaceholderController-routes tillhör Fas 6+:
+  - /purchasing/requisitions/history, /purchasing/orders/history, /purchasing/agreements/history
+  - /finance/reports/kpi, /finance/reports/stocktaking
+  - /safety/audits/pending, /safety/audits/completed
+  - /safety/emergency/drills, /safety/emergency/drills/create, /safety/emergency/drills/templates
+  - /hr/expenses (Reseräkningar)
 
 ### Teknisk stack:
 - PHP 8.4, Slim Framework, Tailwind CSS (CDN), AlpineJS, MariaDB
@@ -36,7 +43,7 @@ En detaljerad åtgärdslista har tagits fram för att uppgradera alla moduler ti
 ## Genomförandeplan — 8 Faser
 
 ### Fas 1: Menystruktur + Routing-cleanup
-**Status:** 🔄 Pågår
+**Status:** ✅ Klar (PR #38)
 
 Bygga om hela main.php-menyn enligt ny struktur. Ta bort allt som inte ska finnas.
 Verifiera att varje menyval har fungerande route → controller → view.
@@ -60,7 +67,7 @@ Skapa placeholder-sidor för moduler som ännu inte är uppgraderade.
 15. SaaS Admin (separat)
 
 ### Fas 2: ObjektNavigator + Underhåll (uppgradering)
-**Status:** ⏳ Väntar
+**Status:** ✅ Klar (PR #39)
 
 - Objektträd med hierarki (Site → Avdelning → Maskin → Delar)
 - Felanmälan → Arbetsorder-flöde
@@ -71,7 +78,7 @@ Skapa placeholder-sidor för moduler som ännu inte är uppgraderade.
 - Dashboard med KPI
 
 ### Fas 3: Lager + Inköp (uppgradering)
-**Status:** ⏳ Väntar
+**Status:** ✅ Klar (PR #40)
 
 **Lager:**
 - Lagerartiklar CRUD (förbrukningsartikel, reservdel)
@@ -88,7 +95,7 @@ Skapa placeholder-sidor för moduler som ännu inte är uppgraderade.
 - Avtal + avtalsmallar (varning vid utgångsdatum)
 
 ### Fas 4: Ekonomi (uppgradering)
-**Status:** ⏳ Väntar
+**Status:** ✅ Klar (PR #41)
 
 - Leverantörsfakturor (e-post/e-faktura mottagning, automatisk matchning)
 - Skapa kundfaktura (produkter från lager, fritext)
@@ -100,7 +107,7 @@ Skapa placeholder-sidor för moduler som ännu inte är uppgraderade.
 - Inventering (kopplat till lager)
 
 ### Fas 5: Produktion + Försäljning + CS & Transport
-**Status:** ⏳ Väntar
+**Status:** ✅ Klar (PR #42)
 
 **Produktion:**
 - Produktionslinjer (kopplat till ObjektNavigator)
@@ -119,7 +126,7 @@ Skapa placeholder-sidor för moduler som ännu inte är uppgraderade.
 - Transporthantering (internt + kontrakterade åkerier)
 
 ### Fas 6: H&S + Projekt + HR (uppgradering)
-**Status:** ⏳ Väntar
+**Status:** ⏳ Nästa
 
 **Health & Safety:**
 - Riskhantering (rapportera + hantera, obligatorisk dashboard-knapp)
@@ -189,5 +196,35 @@ Skapa placeholder-sidor för moduler som ännu inte är uppgraderade.
 | #34 | Fix dead menu links | ✅ Mergad |
 | #35 | Fix 5 dead menu links | ✅ Mergad |
 | #37 | Add 12 missing ERP modules | ✅ Mergad |
-| #36 | (Ersatt av #37) | ❌ Stäng |
-| #33 | Maintenance Module draft | ❌ Stäng |
+| #38 | Fas 1: Menystruktur + Routing-cleanup | ✅ Mergad |
+| #39 | Fas 2: ObjektNavigator + Förebyggande Underhåll + AI-ingenjör | ✅ Mergad |
+| #40 | Fas 3: Lager + Inköp — Full upgrade | ✅ Mergad |
+| #41 | Fas 4: Ekonomi — Finance Module Upgrade | ✅ Mergad |
+| #42 | Fas 5: Produktion + Försäljning + CS & Transport | ✅ Mergad |
+| #36 | (Ersatt av #37) | ❌ Stängd |
+| #33 | Maintenance Module draft | ❌ Stängd |
+
+---
+
+## Kvarvarande PlaceholderController-routes
+
+Följande routes pekar fortfarande på `PlaceholderController::comingSoon` och ska ersättas i respektive fas:
+
+### Fas 6 (H&S + Projekt + HR)
+| Route | Modul | Beskrivning |
+|-------|-------|-------------|
+| `/safety/audits/pending` | H&S | Ej slutförda åtgärder |
+| `/safety/audits/completed` | H&S | Slutförda åtgärder |
+| `/safety/emergency/drills` | H&S | Nödlägesövningar lista |
+| `/safety/emergency/drills/create` | H&S | Skapa nödlägesövning |
+| `/safety/emergency/drills/templates` | H&S | Nödlägesövning mallar |
+| `/hr/expenses` | HR | Reseräkningar |
+
+### Framtida faser
+| Route | Modul | Beskrivning |
+|-------|-------|-------------|
+| `/purchasing/requisitions/history` | Inköp | Historiska anmodan |
+| `/purchasing/orders/history` | Inköp | Historiska inköpsordrar |
+| `/purchasing/agreements/history` | Inköp | Historiska avtal |
+| `/finance/reports/kpi` | Ekonomi | KPI från avdelningar |
+| `/finance/reports/stocktaking` | Ekonomi | Inventering ekonomi |
