@@ -63,7 +63,7 @@
                     <?php foreach ($issues as $issue): ?>
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td class="px-4 py-3 text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                            <?= htmlspecialchars($issue['transaction_date'] ?? '—', ENT_QUOTES, 'UTF-8') ?>
+                            <?= htmlspecialchars(substr($issue['created_at'] ?? '—', 0, 10), ENT_QUOTES, 'UTF-8') ?>
                         </td>
                         <td class="px-4 py-3 text-gray-900 dark:text-white">
                             <div><?= htmlspecialchars($issue['article_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></div>

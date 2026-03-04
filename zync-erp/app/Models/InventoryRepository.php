@@ -238,9 +238,14 @@ class InventoryRepository
         return ['order' => $order, 'lines' => $lines];
     }
 
-    public function storeReceiving(int $poId, array $lines, int $userId): void
+    public function storeReceiving(int $poId, array $lines, int $warehouseId, int $userId): void
     {
         $pdo = Database::pdo();
+
+        // Prepare statement to fetch article_id from DB (not trusted from client)
+        $stmtLine = $pdo->prepare(
+            "SELECT article_id FROM purchase_order_lines WHERE id = ? AND order_id = ? LIMIT 1"
+        );
 
         foreach ($lines as $lineId => $lineData) {
             $qty = (float) ($lineData['quantity'] ?? 0);
@@ -248,10 +253,18 @@ class InventoryRepository
                 continue;
             }
 
-            $warehouseId = (int) ($lineData['warehouse_id'] ?? 0);
-            $articleId   = (int) ($lineData['article_id'] ?? 0);
+            if ($warehouseId === 0) {
+                continue;
+            }
 
-            if ($articleId === 0 || $warehouseId === 0) {
+            // Look up article_id from DB to avoid trusting client data
+            $stmtLine->execute([(int) $lineId, $poId]);
+            $poLine = $stmtLine->fetch(\PDO::FETCH_ASSOC);
+            if (!$poLine) {
+                continue;
+            }
+            $articleId = (int) $poLine['article_id'];
+            if ($articleId === 0) {
                 continue;
             }
 

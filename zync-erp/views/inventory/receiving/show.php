@@ -79,8 +79,8 @@
                 }
                 $lineId = (int) $lineId;
                 ?>
-                <input type="hidden" name="lines[<?= htmlspecialchars((string) $lineId, ENT_QUOTES, 'UTF-8') ?>][article_id]"
-                       value="<?= htmlspecialchars((string) ($line['article_id'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+                <input type="hidden" name="lines[<?= htmlspecialchars((string) $lineId, ENT_QUOTES, 'UTF-8') ?>][line_id]"
+                       value="<?= htmlspecialchars((string) $lineId, ENT_QUOTES, 'UTF-8') ?>">
                 <div class="px-6 py-4">
                     <div class="flex items-start gap-4">
                         <div class="flex-1">

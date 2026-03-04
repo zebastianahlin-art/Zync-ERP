@@ -92,7 +92,7 @@ $typeBadgeClasses = [
                     <?php $type = $tx['type'] ?? ''; ?>
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td class="px-4 py-3 text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                            <?= htmlspecialchars($tx['transaction_date'] ?? '—', ENT_QUOTES, 'UTF-8') ?>
+                            <?= htmlspecialchars(substr($tx['created_at'] ?? '—', 0, 10), ENT_QUOTES, 'UTF-8') ?>
                         </td>
                         <td class="px-4 py-3">
                             <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <?= htmlspecialchars($typeBadgeClasses[$type] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300', ENT_QUOTES, 'UTF-8') ?>">

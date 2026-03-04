@@ -163,10 +163,16 @@ class InventoryController extends Controller
         $poId = (int) $args['poId'];
         $data = (array) $request->getParsedBody();
         $lines = $data['lines'] ?? [];
+        $warehouseId = (int) ($data['warehouse_id'] ?? 0);
         $userId = Auth::user()['id'];
 
+        if ($warehouseId === 0) {
+            Flash::set('error', 'Välj ett lagerställe.');
+            return $this->redirect($response, "/inventory/receiving/{$poId}");
+        }
+
         try {
-            $this->repo->storeReceiving($poId, $lines, $userId);
+            $this->repo->storeReceiving($poId, $lines, $warehouseId, $userId);
             Flash::set('success', 'Inleverans registrerad.');
         } catch (\Exception $e) {
             Flash::set('error', 'Fel vid inleverans: ' . $e->getMessage());
