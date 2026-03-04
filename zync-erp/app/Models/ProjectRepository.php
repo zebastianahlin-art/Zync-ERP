@@ -119,4 +119,75 @@ class ProjectRepository
         $stmt = Database::pdo()->prepare('UPDATE projects SET is_deleted = 1 WHERE id = ?');
         $stmt->execute([$id]);
     }
+
+    public function addTask(int $projectId, array $data): int
+    {
+        $stmt = Database::pdo()->prepare(
+            'INSERT INTO project_tasks (project_id, title, assigned_to, due_date, priority, status)
+             VALUES (?, ?, ?, ?, ?, ?)'
+        );
+        $stmt->execute([
+            $projectId,
+            $data['title'],
+            $data['assigned_to'] ?: null,
+            $data['due_date'] ?: null,
+            $data['priority'] ?? 'normal',
+            $data['status'] ?? 'todo',
+        ]);
+        return (int) Database::pdo()->lastInsertId();
+    }
+
+    public function findTask(int $id): ?array
+    {
+        $stmt = Database::pdo()->prepare(
+            'SELECT t.*, u.full_name AS assigned_name
+             FROM project_tasks t
+             LEFT JOIN users u ON t.assigned_to = u.id
+             WHERE t.id = ? AND t.is_deleted = 0 LIMIT 1'
+        );
+        $stmt->execute([$id]);
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $row !== false ? $row : null;
+    }
+
+    public function updateTask(int $id, array $data): void
+    {
+        $stmt = Database::pdo()->prepare(
+            'UPDATE project_tasks SET title=?, assigned_to=?, due_date=?, priority=?, status=?
+             WHERE id=? AND is_deleted=0'
+        );
+        $stmt->execute([
+            $data['title'],
+            $data['assigned_to'] ?: null,
+            $data['due_date'] ?: null,
+            $data['priority'] ?? 'normal',
+            $data['status'] ?? 'todo',
+            $id,
+        ]);
+    }
+
+    public function deleteTask(int $id): void
+    {
+        Database::pdo()->prepare('UPDATE project_tasks SET is_deleted = 1 WHERE id = ?')->execute([$id]);
+    }
+
+    public function addBudgetLine(int $projectId, array $data): int
+    {
+        $stmt = Database::pdo()->prepare(
+            'INSERT INTO project_budget_lines (project_id, description, budgeted_amount, actual_amount)
+             VALUES (?, ?, ?, ?)'
+        );
+        $stmt->execute([
+            $projectId,
+            $data['description'],
+            (float) ($data['budgeted_amount'] ?? 0),
+            (float) ($data['actual_amount'] ?? 0),
+        ]);
+        return (int) Database::pdo()->lastInsertId();
+    }
+
+    public function deleteBudgetLine(int $id): void
+    {
+        Database::pdo()->prepare('UPDATE project_budget_lines SET is_deleted = 1 WHERE id = ?')->execute([$id]);
+    }
 }

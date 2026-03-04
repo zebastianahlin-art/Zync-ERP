@@ -17,6 +17,10 @@ class AuditRepository
             $where[] = 'a.status = ?';
             $params[] = $filters['status'];
         }
+        if (!empty($filters['status_not'])) {
+            $where[] = 'a.status != ?';
+            $params[] = $filters['status_not'];
+        }
         if (!empty($filters['department_id'])) {
             $where[] = 'a.department_id = ?';
             $params[] = (int) $filters['department_id'];

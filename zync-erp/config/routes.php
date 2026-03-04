@@ -347,8 +347,8 @@ return function (App $app) {
         $group->get('/safety/audits', [\App\Controllers\SafetyController::class, 'audits']);
         $group->get('/safety/audits/create', [\App\Controllers\SafetyController::class, 'createAudit']);
         $group->post('/safety/audits', [\App\Controllers\SafetyController::class, 'storeAudit']);
-        $group->get('/safety/audits/pending', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Ej Slutförda Åtgärder');
-        $group->get('/safety/audits/completed', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Slutförda Åtgärder');
+        $group->get('/safety/audits/pending', [\App\Controllers\SafetyController::class, 'pendingAudits']);
+        $group->get('/safety/audits/completed', [\App\Controllers\SafetyController::class, 'completedAudits']);
         $group->get('/safety/audits/{id}', [\App\Controllers\SafetyController::class, 'showAudit']);
         $group->get('/safety/audits/{id}/edit', [\App\Controllers\SafetyController::class, 'editAudit']);
         $group->post('/safety/audits/{id}', [\App\Controllers\SafetyController::class, 'updateAudit']);
@@ -377,9 +377,20 @@ return function (App $app) {
         $group->get('/safety/emergency/procedures', [\App\Controllers\SafetyController::class, 'emergencyProcedures']);
         $group->get('/safety/emergency/procedures/create', [\App\Controllers\SafetyController::class, 'createEmergencyProcedure']);
         $group->post('/safety/emergency/procedures', [\App\Controllers\SafetyController::class, 'storeEmergencyProcedure']);
-        $group->get('/safety/emergency/drills', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Nödlägesövningar Lista');
-        $group->get('/safety/emergency/drills/create', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Skapa Nödlägesövning');
-        $group->get('/safety/emergency/drills/templates', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Nödlägesövning Mallar');
+        // ─── Emergency Drills (static routes BEFORE {id} routes) ─────────────
+        $group->get('/safety/emergency/drills', [\App\Controllers\SafetyController::class, 'drills']);
+        $group->get('/safety/emergency/drills/create', [\App\Controllers\SafetyController::class, 'createDrill']);
+        $group->post('/safety/emergency/drills', [\App\Controllers\SafetyController::class, 'storeDrill']);
+        $group->get('/safety/emergency/drills/templates', [\App\Controllers\SafetyController::class, 'drillTemplates']);
+        $group->get('/safety/emergency/drills/templates/create', [\App\Controllers\SafetyController::class, 'createDrillTemplate']);
+        $group->post('/safety/emergency/drills/templates', [\App\Controllers\SafetyController::class, 'storeDrillTemplate']);
+        $group->get('/safety/emergency/drills/templates/{id}/edit', [\App\Controllers\SafetyController::class, 'editDrillTemplate']);
+        $group->post('/safety/emergency/drills/templates/{id}', [\App\Controllers\SafetyController::class, 'updateDrillTemplate']);
+        $group->post('/safety/emergency/drills/templates/{id}/delete', [\App\Controllers\SafetyController::class, 'deleteDrillTemplate']);
+        $group->get('/safety/emergency/drills/{id}', [\App\Controllers\SafetyController::class, 'showDrill']);
+        $group->get('/safety/emergency/drills/{id}/edit', [\App\Controllers\SafetyController::class, 'editDrill']);
+        $group->post('/safety/emergency/drills/{id}', [\App\Controllers\SafetyController::class, 'updateDrill']);
+        $group->post('/safety/emergency/drills/{id}/delete', [\App\Controllers\SafetyController::class, 'deleteDrill']);
         $group->get('/safety/emergency/procedures/{id}', [\App\Controllers\SafetyController::class, 'showEmergencyProcedure']);
         $group->get('/safety/emergency/procedures/{id}/edit', [\App\Controllers\SafetyController::class, 'editEmergencyProcedure']);
         $group->post('/safety/emergency/procedures/{id}', [\App\Controllers\SafetyController::class, 'updateEmergencyProcedure']);
@@ -537,6 +548,11 @@ return function (App $app) {
         $group->get('/projects/{id}/edit', [\App\Controllers\ProjectController::class, 'edit']);
         $group->post('/projects/{id}', [\App\Controllers\ProjectController::class, 'update']);
         $group->post('/projects/{id}/delete', [\App\Controllers\ProjectController::class, 'destroy']);
+        $group->post('/projects/{id}/tasks', [\App\Controllers\ProjectController::class, 'addTask']);
+        $group->post('/projects/{id}/tasks/{taskId}', [\App\Controllers\ProjectController::class, 'updateTask']);
+        $group->post('/projects/{id}/tasks/{taskId}/delete', [\App\Controllers\ProjectController::class, 'deleteTask']);
+        $group->post('/projects/{id}/budget', [\App\Controllers\ProjectController::class, 'addBudgetLine']);
+        $group->post('/projects/{id}/budget/{lineId}/delete', [\App\Controllers\ProjectController::class, 'deleteBudgetLine']);
 
         // ─── HR: Payroll (Lönehantering) ─────────────────────────────────────
         $group->get('/hr/payroll', [\App\Controllers\PayrollController::class, 'index']);
@@ -565,7 +581,18 @@ return function (App $app) {
         $group->get('/hr/recruitment/applicants', [\App\Controllers\RecruitmentController::class, 'applicants']);
 
         // ─── HR: Expenses (Reseräkningar) ────────────────────────────────────
-        $group->get('/hr/expenses', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Reseräkningar');
+        $group->get('/hr/expenses', [\App\Controllers\ExpenseController::class, 'index']);
+        $group->get('/hr/expenses/create', [\App\Controllers\ExpenseController::class, 'create']);
+        $group->post('/hr/expenses', [\App\Controllers\ExpenseController::class, 'store']);
+        $group->get('/hr/expenses/{id}', [\App\Controllers\ExpenseController::class, 'show']);
+        $group->get('/hr/expenses/{id}/edit', [\App\Controllers\ExpenseController::class, 'edit']);
+        $group->post('/hr/expenses/{id}', [\App\Controllers\ExpenseController::class, 'update']);
+        $group->post('/hr/expenses/{id}/delete', [\App\Controllers\ExpenseController::class, 'delete']);
+        $group->post('/hr/expenses/{id}/submit', [\App\Controllers\ExpenseController::class, 'submit']);
+        $group->post('/hr/expenses/{id}/approve', [\App\Controllers\ExpenseController::class, 'approve']);
+        $group->post('/hr/expenses/{id}/reject', [\App\Controllers\ExpenseController::class, 'reject']);
+        $group->post('/hr/expenses/{id}/lines', [\App\Controllers\ExpenseController::class, 'addLine']);
+        $group->post('/hr/expenses/{id}/lines/{lineId}/delete', [\App\Controllers\ExpenseController::class, 'removeLine']);
 
         // ─── ObjektNavigator ─────────────────────────────────────────────────
         // Static routes BEFORE parameterised routes
