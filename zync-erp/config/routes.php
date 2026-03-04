@@ -310,6 +310,39 @@ return function (App $app) {
         $group->post('/safety/resources/{id}', [\App\Controllers\SafetyController::class, 'updateResource']);
         $group->post('/safety/resources/{id}/delete', [\App\Controllers\SafetyController::class, 'deleteResource']);
         $group->post('/safety/resources/{id}/inspect', [\App\Controllers\SafetyController::class, 'inspectResource']);
+
+        // ─── Departments (Avdelningar) ────────────────────────────
+        $group->get('/departments', [\App\Controllers\DepartmentController::class, 'index']);
+        $group->get('/departments/create', [\App\Controllers\DepartmentController::class, 'create']);
+        $group->post('/departments', [\App\Controllers\DepartmentController::class, 'store']);
+        $group->get('/departments/{id}/edit', [\App\Controllers\DepartmentController::class, 'edit']);
+        $group->post('/departments/{id}', [\App\Controllers\DepartmentController::class, 'update']);
+        $group->post('/departments/{id}/delete', [\App\Controllers\DepartmentController::class, 'destroy']);
+
+        // ─── Employees (Personal) ────────────────────────────────
+        $group->get('/employees', [\App\Controllers\EmployeeController::class, 'index']);
+        $group->get('/employees/create', [\App\Controllers\EmployeeController::class, 'create']);
+        $group->post('/employees', [\App\Controllers\EmployeeController::class, 'store']);
+        $group->get('/employees/{id}/edit', [\App\Controllers\EmployeeController::class, 'edit']);
+        $group->post('/employees/{id}', [\App\Controllers\EmployeeController::class, 'update']);
+        $group->post('/employees/{id}/delete', [\App\Controllers\EmployeeController::class, 'destroy']);
+
+        // ─── Certificates (Certifikat) ───────────────────────────
+        $group->get('/certificates', [\App\Controllers\CertificateController::class, 'index']);
+        $group->get('/certificates/create', [\App\Controllers\CertificateController::class, 'create']);
+        $group->post('/certificates', [\App\Controllers\CertificateController::class, 'store']);
+        $group->get('/certificates/{id}/edit', [\App\Controllers\CertificateController::class, 'edit']);
+        $group->post('/certificates/{id}', [\App\Controllers\CertificateController::class, 'update']);
+        $group->post('/certificates/{id}/delete', [\App\Controllers\CertificateController::class, 'destroy']);
+
+        // ─── Inventory (Lager) ───────────────────────────────────
+        $group->get('/inventory', [\App\Controllers\InventoryController::class, 'index']);
+        $group->get('/inventory/{id}', [\App\Controllers\InventoryController::class, 'show']);
+
+        // ─── My Page (Min Sida) ──────────────────────────────────
+        $group->get('/my-page', [\App\Controllers\MyPageController::class, 'index']);
+        $group->get('/my-page/edit', [\App\Controllers\MyPageController::class, 'edit']);
+        $group->post('/my-page', [\App\Controllers\MyPageController::class, 'update']);
     })->add(new CsrfMiddleware())->add(new AuthMiddleware());
 
     // Admin routes — require Chef level (7) or higher
