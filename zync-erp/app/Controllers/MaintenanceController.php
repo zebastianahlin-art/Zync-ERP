@@ -831,4 +831,63 @@ class MaintenanceController extends Controller
             "SELECT id, code, name FROM cost_centers WHERE is_active = 1 AND is_deleted = 0 ORDER BY code"
         )->fetchAll(\PDO::FETCH_ASSOC);
     }
+
+    /** GET /equipment/{id}/documents */
+    public function equipmentDocuments(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $equipment = $this->equipRepo->find((int) $args['id']);
+        if ($equipment === null) { return $this->notFound($response); }
+        $stmt = \App\Core\Database::pdo()->prepare('SELECT * FROM equipment_documents WHERE equipment_id = ? AND is_deleted = 0 ORDER BY uploaded_at DESC');
+        $stmt->execute([$args['id']]);
+        $documents = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $this->render($response, 'equipment/documents', ['title' => 'Dokument – ' . $equipment['name'] . ' – ZYNC ERP', 'equipment' => $equipment, 'documents' => $documents]);
+    }
+
+    /** POST /equipment/{id}/documents/delete/{docId} */
+    public function equipmentDeleteDocument(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $stmt = \App\Core\Database::pdo()->prepare('UPDATE equipment_documents SET is_deleted = 1 WHERE id = ? AND equipment_id = ?');
+        $stmt->execute([$args['docId'], $args['id']]);
+        Flash::set('success', 'Dokumentet har tagits bort.');
+        return $this->redirect($response, '/equipment/' . $args['id'] . '/documents');
+    }
+
+    /** GET /machines/{id}/documents */
+    public function machineDocuments(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $machine = $this->machineRepo->find((int) $args['id']);
+        if ($machine === null) { return $this->notFound($response); }
+        $stmt = \App\Core\Database::pdo()->prepare('SELECT * FROM equipment_documents WHERE machine_id = ? AND is_deleted = 0 ORDER BY uploaded_at DESC');
+        $stmt->execute([$args['id']]);
+        $documents = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $this->render($response, 'machines/documents', ['title' => 'Dokument – ' . $machine['name'] . ' – ZYNC ERP', 'machine' => $machine, 'documents' => $documents]);
+    }
+
+    /** POST /machines/{id}/documents/delete/{docId} */
+    public function machineDeleteDocument(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $stmt = \App\Core\Database::pdo()->prepare('UPDATE equipment_documents SET is_deleted = 1 WHERE id = ? AND machine_id = ?');
+        $stmt->execute([$args['docId'], $args['id']]);
+        Flash::set('success', 'Dokumentet har tagits bort.');
+        return $this->redirect($response, '/machines/' . $args['id'] . '/documents');
+    }
+
+    /** POST /machines/{id}/spare-parts */
+    public function machineAddSparePart(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $body = (array) $request->getParsedBody();
+        $stmt = \App\Core\Database::pdo()->prepare('INSERT INTO machine_spare_parts (machine_id, article_id, quantity_recommended, notes, is_critical) VALUES (?, ?, ?, ?, ?)');
+        $stmt->execute([$args['id'], $body['article_id'] ?? null, $body['quantity_recommended'] ?? 1, $body['notes'] ?? null, isset($body['is_critical']) ? 1 : 0]);
+        Flash::set('success', 'Reservdel tillagd.');
+        return $this->redirect($response, '/machines/' . $args['id']);
+    }
+
+    /** POST /machines/{id}/spare-parts/{partId}/delete */
+    public function machineDeleteSparePart(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $stmt = \App\Core\Database::pdo()->prepare('DELETE FROM machine_spare_parts WHERE id = ? AND machine_id = ?');
+        $stmt->execute([$args['partId'], $args['id']]);
+        Flash::set('success', 'Reservdel borttagen.');
+        return $this->redirect($response, '/machines/' . $args['id']);
+    }
 }

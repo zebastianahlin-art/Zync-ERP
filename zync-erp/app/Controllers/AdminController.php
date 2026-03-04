@@ -215,6 +215,86 @@ class AdminController extends Controller
         return $errors;
     }
 
+    // ─── Role Management ──────────────────────────────────────
+
+    /** GET /admin/roles */
+    public function rolesIndex(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        return $this->render($response, 'admin/roles/index', [
+            'title' => 'Roller – Admin – ZYNC ERP',
+            'roles' => $this->repo->allRoles(),
+        ]);
+    }
+
+    /** GET /admin/roles/create */
+    public function createRole(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        return $this->render($response, 'admin/roles/create', [
+            'title'  => 'Skapa roll – Admin – ZYNC ERP',
+            'errors' => [],
+            'old'    => [],
+        ]);
+    }
+
+    /** POST /admin/roles */
+    public function storeRole(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $body = (array) $request->getParsedBody();
+        $data = [
+            'name'  => trim((string) ($body['name'] ?? '')),
+            'slug'  => trim((string) ($body['slug'] ?? '')),
+            'level' => (int) ($body['level'] ?? 1),
+        ];
+        $errors = [];
+        if ($data['name'] === '') $errors['name'] = 'Namn är obligatoriskt.';
+        if ($data['slug'] === '') $errors['slug'] = 'Slug är obligatoriskt.';
+        if (!empty($errors)) {
+            return $this->render($response, 'admin/roles/create', ['title' => 'Skapa roll – Admin – ZYNC ERP', 'errors' => $errors, 'old' => $data]);
+        }
+        $this->repo->createRole($data);
+        Flash::set('success', 'Rollen har skapats.');
+        return $this->redirect($response, '/admin/roles');
+    }
+
+    /** GET /admin/roles/{id}/edit */
+    public function editRole(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $role = $this->repo->findRole((int) $args['id']);
+        if ($role === null) return $this->notFound($response);
+        return $this->render($response, 'admin/roles/edit', ['title' => 'Redigera roll – Admin – ZYNC ERP', 'role' => $role, 'errors' => []]);
+    }
+
+    /** POST /admin/roles/{id} */
+    public function updateRole(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id   = (int) $args['id'];
+        $role = $this->repo->findRole($id);
+        if ($role === null) return $this->notFound($response);
+        $body = (array) $request->getParsedBody();
+        $data = [
+            'name'  => trim((string) ($body['name'] ?? '')),
+            'slug'  => trim((string) ($body['slug'] ?? '')),
+            'level' => (int) ($body['level'] ?? 1),
+        ];
+        $errors = [];
+        if ($data['name'] === '') $errors['name'] = 'Namn är obligatoriskt.';
+        if ($data['slug'] === '') $errors['slug'] = 'Slug är obligatoriskt.';
+        if (!empty($errors)) {
+            return $this->render($response, 'admin/roles/edit', ['title' => 'Redigera roll – Admin – ZYNC ERP', 'role' => array_merge($role, $data), 'errors' => $errors]);
+        }
+        $this->repo->updateRole($id, $data);
+        Flash::set('success', 'Rollen har uppdaterats.');
+        return $this->redirect($response, '/admin/roles');
+    }
+
+    /** POST /admin/roles/{id}/delete */
+    public function destroyRole(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $this->repo->deleteRole((int) $args['id']);
+        Flash::set('success', 'Rollen har tagits bort.');
+        return $this->redirect($response, '/admin/roles');
+    }
+
     private function notFound(ResponseInterface $response): ResponseInterface
     {
         $response->getBody()->write('<h1>404 – Användaren hittades inte</h1>');

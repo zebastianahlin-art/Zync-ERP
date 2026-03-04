@@ -170,4 +170,33 @@ class AdminUserRepository
         }
         return (int) $stmt->fetchColumn() > 0;
     }
+
+    // ─── Role Management ──────────────────────────────────────
+
+    public function findRole(int $id): ?array
+    {
+        $stmt = Database::pdo()->prepare('SELECT * FROM roles WHERE id = ? AND is_deleted = 0');
+        $stmt->execute([$id]);
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
+    public function createRole(array $data): int
+    {
+        $stmt = Database::pdo()->prepare('INSERT INTO roles (name, slug, level) VALUES (:name, :slug, :level)');
+        $stmt->execute(['name' => $data['name'], 'slug' => $data['slug'], 'level' => $data['level']]);
+        return (int) Database::pdo()->lastInsertId();
+    }
+
+    public function updateRole(int $id, array $data): void
+    {
+        $stmt = Database::pdo()->prepare('UPDATE roles SET name = :name, slug = :slug, level = :level WHERE id = :id AND is_deleted = 0');
+        $stmt->execute(['name' => $data['name'], 'slug' => $data['slug'], 'level' => $data['level'], 'id' => $id]);
+    }
+
+    public function deleteRole(int $id): void
+    {
+        $stmt = Database::pdo()->prepare('UPDATE roles SET is_deleted = 1 WHERE id = ?');
+        $stmt->execute([$id]);
+    }
 }
