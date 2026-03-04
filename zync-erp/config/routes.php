@@ -343,6 +343,68 @@ return function (App $app) {
         $group->get('/my-page', [\App\Controllers\MyPageController::class, 'index']);
         $group->get('/my-page/edit', [\App\Controllers\MyPageController::class, 'edit']);
         $group->post('/my-page', [\App\Controllers\MyPageController::class, 'update']);
+
+        // ─── Production (Produktion) ─────────────────────────────────────────
+        $group->get('/production', [\App\Controllers\ProductionController::class, 'index']);
+        $group->get('/production/lines', [\App\Controllers\ProductionController::class, 'lines']);
+        $group->get('/production/lines/create', [\App\Controllers\ProductionController::class, 'createLine']);
+        $group->post('/production/lines', [\App\Controllers\ProductionController::class, 'storeLine']);
+        $group->get('/production/lines/{id}', [\App\Controllers\ProductionController::class, 'showLine']);
+        $group->get('/production/lines/{id}/edit', [\App\Controllers\ProductionController::class, 'editLine']);
+        $group->post('/production/lines/{id}', [\App\Controllers\ProductionController::class, 'updateLine']);
+        $group->post('/production/lines/{id}/delete', [\App\Controllers\ProductionController::class, 'deleteLine']);
+        $group->get('/production/orders', [\App\Controllers\ProductionController::class, 'orders']);
+        $group->get('/production/stock', [\App\Controllers\ProductionController::class, 'stock']);
+
+        // ─── Sales ───────────────────────────────────────────────────────────
+        $group->get('/sales', [\App\Controllers\SalesController::class, 'index']);
+        $group->get('/sales/quotes', [\App\Controllers\SalesController::class, 'quotes']);
+        $group->get('/sales/quotes/create', [\App\Controllers\SalesController::class, 'createQuote']);
+        $group->post('/sales/quotes', [\App\Controllers\SalesController::class, 'storeQuote']);
+        $group->get('/sales/quotes/{id}', [\App\Controllers\SalesController::class, 'showQuote']);
+        $group->get('/sales/quotes/{id}/edit', [\App\Controllers\SalesController::class, 'editQuote']);
+        $group->post('/sales/quotes/{id}', [\App\Controllers\SalesController::class, 'updateQuote']);
+        $group->post('/sales/quotes/{id}/delete', [\App\Controllers\SalesController::class, 'deleteQuote']);
+        $group->get('/sales/orders', [\App\Controllers\SalesController::class, 'orders']);
+        $group->get('/sales/pricing', [\App\Controllers\SalesController::class, 'pricing']);
+
+        // ─── Projects (Projekt) ──────────────────────────────────────────────
+        $group->get('/projects', [\App\Controllers\ProjectController::class, 'index']);
+        $group->get('/projects/create', [\App\Controllers\ProjectController::class, 'create']);
+        $group->post('/projects', [\App\Controllers\ProjectController::class, 'store']);
+        $group->get('/projects/{id}', [\App\Controllers\ProjectController::class, 'show']);
+        $group->get('/projects/{id}/edit', [\App\Controllers\ProjectController::class, 'edit']);
+        $group->post('/projects/{id}', [\App\Controllers\ProjectController::class, 'update']);
+        $group->post('/projects/{id}/delete', [\App\Controllers\ProjectController::class, 'destroy']);
+
+        // ─── HR: Payroll (Lönehantering) ─────────────────────────────────────
+        $group->get('/hr/payroll', [\App\Controllers\PayrollController::class, 'index']);
+        $group->get('/hr/payroll/periods/create', [\App\Controllers\PayrollController::class, 'createPeriod']);
+        $group->post('/hr/payroll/periods', [\App\Controllers\PayrollController::class, 'storePeriod']);
+        $group->get('/hr/payroll/periods/{id}', [\App\Controllers\PayrollController::class, 'showPeriod']);
+
+        // ─── HR: Attendance (Närvaro/Frånvaro) ──────────────────────────────
+        $group->get('/hr/attendance', [\App\Controllers\AttendanceController::class, 'index']);
+        $group->get('/hr/attendance/create', [\App\Controllers\AttendanceController::class, 'create']);
+        $group->post('/hr/attendance', [\App\Controllers\AttendanceController::class, 'store']);
+        $group->get('/hr/attendance/balances', [\App\Controllers\AttendanceController::class, 'balances']);
+
+        // ─── HR: Training (Utbildningar) ─────────────────────────────────────
+        $group->get('/hr/training', [\App\Controllers\TrainingController::class, 'index']);
+        $group->get('/hr/training/courses/create', [\App\Controllers\TrainingController::class, 'createCourse']);
+        $group->post('/hr/training/courses', [\App\Controllers\TrainingController::class, 'storeCourse']);
+        $group->get('/hr/training/sessions', [\App\Controllers\TrainingController::class, 'sessions']);
+        $group->get('/hr/training/participants', [\App\Controllers\TrainingController::class, 'participants']);
+
+        // ─── HR: Recruitment (Rekrytering) ───────────────────────────────────
+        $group->get('/hr/recruitment', [\App\Controllers\RecruitmentController::class, 'index']);
+        $group->get('/hr/recruitment/positions/create', [\App\Controllers\RecruitmentController::class, 'createPosition']);
+        $group->post('/hr/recruitment/positions', [\App\Controllers\RecruitmentController::class, 'storePosition']);
+        $group->get('/hr/recruitment/positions/{id}', [\App\Controllers\RecruitmentController::class, 'showPosition']);
+        $group->get('/hr/recruitment/applicants', [\App\Controllers\RecruitmentController::class, 'applicants']);
+
+        // ─── Reports (Rapporter) ─────────────────────────────────────────────
+        $group->get('/reports', [\App\Controllers\ReportController::class, 'index']);
     })->add(new CsrfMiddleware())->add(new AuthMiddleware());
 
     // Admin routes — require Chef level (7) or higher
@@ -354,6 +416,14 @@ return function (App $app) {
         $group->get('/users/{id}/edit', [\App\Controllers\AdminController::class, 'editUser']);
         $group->post('/users/{id}', [\App\Controllers\AdminController::class, 'updateUser']);
         $group->post('/users/{id}/toggle', [\App\Controllers\AdminController::class, 'toggleUser']);
+
+        // Role management
+        $group->get('/roles', [\App\Controllers\AdminController::class, 'roles']);
+        $group->get('/roles/create', [\App\Controllers\AdminController::class, 'createRole']);
+        $group->post('/roles', [\App\Controllers\AdminController::class, 'storeRole']);
+        $group->get('/roles/{id}/edit', [\App\Controllers\AdminController::class, 'editRole']);
+        $group->post('/roles/{id}', [\App\Controllers\AdminController::class, 'updateRole']);
+        $group->post('/roles/{id}/delete', [\App\Controllers\AdminController::class, 'deleteRole']);
     })->add(new CsrfMiddleware())->add(new \App\Middleware\RoleMiddleware(minLevel: 7))->add(new AuthMiddleware());
 
     // Public API routes (no JWT required)
