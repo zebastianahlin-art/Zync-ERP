@@ -110,8 +110,25 @@ return function (App $app) {
         $group->get('/purchasing/agreements/create', [\App\Controllers\PurchaseController::class, 'createAgreement']);
         $group->post('/purchasing/agreements', [\App\Controllers\PurchaseController::class, 'storeAgreement']);
         $group->get('/purchasing/agreements/history', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Historiska Avtal');
-        $group->get('/purchasing/agreements/templates', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Avtalsmallar');
-        $group->get('/purchasing/audits', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Leverantörsaudit');
+        // Supplier Audits
+        $group->get('/purchasing/supplier-audits', [\App\Controllers\PurchaseController::class, 'supplierAuditIndex']);
+        $group->get('/purchasing/supplier-audits/create', [\App\Controllers\PurchaseController::class, 'createSupplierAudit']);
+        $group->post('/purchasing/supplier-audits', [\App\Controllers\PurchaseController::class, 'storeSupplierAudit']);
+        $group->get('/purchasing/supplier-audits/{id}', [\App\Controllers\PurchaseController::class, 'showSupplierAudit']);
+        $group->get('/purchasing/supplier-audits/{id}/edit', [\App\Controllers\PurchaseController::class, 'editSupplierAudit']);
+        $group->post('/purchasing/supplier-audits/{id}', [\App\Controllers\PurchaseController::class, 'updateSupplierAudit']);
+        $group->post('/purchasing/supplier-audits/{id}/delete', [\App\Controllers\PurchaseController::class, 'deleteSupplierAudit']);
+        // Agreement Templates
+        $group->get('/purchasing/agreement-templates', [\App\Controllers\PurchaseController::class, 'agreementTemplateIndex']);
+        $group->get('/purchasing/agreement-templates/create', [\App\Controllers\PurchaseController::class, 'createAgreementTemplate']);
+        $group->post('/purchasing/agreement-templates', [\App\Controllers\PurchaseController::class, 'storeAgreementTemplate']);
+        $group->get('/purchasing/agreement-templates/{id}', [\App\Controllers\PurchaseController::class, 'showAgreementTemplate']);
+        $group->get('/purchasing/agreement-templates/{id}/edit', [\App\Controllers\PurchaseController::class, 'editAgreementTemplate']);
+        $group->post('/purchasing/agreement-templates/{id}', [\App\Controllers\PurchaseController::class, 'updateAgreementTemplate']);
+        $group->post('/purchasing/agreement-templates/{id}/delete', [\App\Controllers\PurchaseController::class, 'deleteAgreementTemplate']);
+        // Keep redirects for old URLs
+        $group->get('/purchasing/agreements/templates', [\App\Controllers\PurchaseController::class, 'agreementTemplateIndex']);
+        $group->get('/purchasing/audits', [\App\Controllers\PurchaseController::class, 'supplierAuditIndex']);
         $group->get('/purchasing/agreements/{id}', [\App\Controllers\PurchaseController::class, 'showAgreement']);
         $group->get('/purchasing/agreements/{id}/edit', [\App\Controllers\PurchaseController::class, 'editAgreement']);
         $group->post('/purchasing/agreements/{id}', [\App\Controllers\PurchaseController::class, 'updateAgreement']);
@@ -369,11 +386,33 @@ return function (App $app) {
 
         // ─── Inventory (Lager) ───────────────────────────────────
         $group->get('/inventory', [\App\Controllers\InventoryController::class, 'index']);
-        $group->get('/inventory/transactions', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Lagertransaktionshistorik');
-        $group->get('/inventory/order', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Beställ Lagerartiklar');
-        $group->get('/inventory/receiving', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Inleverans');
-        $group->get('/inventory/withdrawal', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Uttag av Lagerartiklar');
-        $group->get('/inventory/stocktaking', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Inventering');
+        // Warehouses
+        $group->get('/inventory/warehouses', [\App\Controllers\InventoryController::class, 'warehouseIndex']);
+        $group->get('/inventory/warehouses/create', [\App\Controllers\InventoryController::class, 'createWarehouse']);
+        $group->post('/inventory/warehouses', [\App\Controllers\InventoryController::class, 'storeWarehouse']);
+        $group->get('/inventory/warehouses/{id}/edit', [\App\Controllers\InventoryController::class, 'editWarehouse']);
+        $group->post('/inventory/warehouses/{id}', [\App\Controllers\InventoryController::class, 'updateWarehouse']);
+        $group->post('/inventory/warehouses/{id}/delete', [\App\Controllers\InventoryController::class, 'deleteWarehouse']);
+        // Transactions
+        $group->get('/inventory/transactions', [\App\Controllers\InventoryController::class, 'transactionIndex']);
+        $group->get('/inventory/transactions/create', [\App\Controllers\InventoryController::class, 'createTransaction']);
+        $group->post('/inventory/transactions', [\App\Controllers\InventoryController::class, 'storeTransaction']);
+        $group->get('/inventory/transactions/{id}', [\App\Controllers\InventoryController::class, 'showTransaction']);
+        // Receiving
+        $group->get('/inventory/receiving', [\App\Controllers\InventoryController::class, 'receivingIndex']);
+        $group->get('/inventory/receiving/{poId}', [\App\Controllers\InventoryController::class, 'receivingShow']);
+        $group->post('/inventory/receiving/{poId}', [\App\Controllers\InventoryController::class, 'storeReceiving']);
+        // Issues
+        $group->get('/inventory/issues', [\App\Controllers\InventoryController::class, 'issueIndex']);
+        $group->get('/inventory/issues/create', [\App\Controllers\InventoryController::class, 'createIssue']);
+        $group->post('/inventory/issues', [\App\Controllers\InventoryController::class, 'storeIssue']);
+        // Stocktaking
+        $group->get('/inventory/stocktaking', [\App\Controllers\InventoryController::class, 'stocktakingIndex']);
+        $group->get('/inventory/stocktaking/create', [\App\Controllers\InventoryController::class, 'createStocktaking']);
+        $group->post('/inventory/stocktaking', [\App\Controllers\InventoryController::class, 'storeStocktaking']);
+        $group->get('/inventory/stocktaking/{id}', [\App\Controllers\InventoryController::class, 'showStocktaking']);
+        $group->post('/inventory/stocktaking/{id}/count', [\App\Controllers\InventoryController::class, 'storeCount']);
+        $group->post('/inventory/stocktaking/{id}/approve', [\App\Controllers\InventoryController::class, 'approveStocktaking']);
         $group->get('/inventory/{id}', [\App\Controllers\InventoryController::class, 'show']);
 
         // ─── My Page (Min Sida) ──────────────────────────────────

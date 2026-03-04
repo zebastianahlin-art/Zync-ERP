@@ -94,12 +94,11 @@ function mobileActive(string $path, string $currentPath): string {
                         Lager <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="show" x-transition class="absolute left-0 mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        <a href="/inventory" class="block px-4 py-2 text-sm <?= mobileActive('/inventory', $currentPath) ?>">Dashboard</a>
-                        <a href="/articles" class="block px-4 py-2 text-sm <?= mobileActive('/articles', $currentPath) ?>">Lagerartiklar</a>
-                        <a href="/inventory/transactions" class="block px-4 py-2 text-sm <?= mobileActive('/inventory/transactions', $currentPath) ?>">Lagertransaktionshistorik</a>
-                        <a href="/inventory/order" class="block px-4 py-2 text-sm <?= mobileActive('/inventory/order', $currentPath) ?>">Beställ lagerartiklar</a>
+                        <a href="/inventory" class="block px-4 py-2 text-sm <?= mobileActive('/inventory', $currentPath) ?>">Lageröversikt</a>
+                        <a href="/inventory/warehouses" class="block px-4 py-2 text-sm <?= mobileActive('/inventory/warehouses', $currentPath) ?>">Lagerställen</a>
+                        <a href="/inventory/transactions" class="block px-4 py-2 text-sm <?= mobileActive('/inventory/transactions', $currentPath) ?>">Transaktioner</a>
                         <a href="/inventory/receiving" class="block px-4 py-2 text-sm <?= mobileActive('/inventory/receiving', $currentPath) ?>">Inleverans</a>
-                        <a href="/inventory/withdrawal" class="block px-4 py-2 text-sm <?= mobileActive('/inventory/withdrawal', $currentPath) ?>">Uttag av lagerartiklar</a>
+                        <a href="/inventory/issues" class="block px-4 py-2 text-sm <?= mobileActive('/inventory/issues', $currentPath) ?>">Uttag</a>
                         <a href="/inventory/stocktaking" class="block px-4 py-2 text-sm <?= mobileActive('/inventory/stocktaking', $currentPath) ?>">Inventering</a>
                     </div>
                 </div>
@@ -114,7 +113,7 @@ function mobileActive(string $path, string $currentPath): string {
                         <hr class="my-1 border-gray-200 dark:border-gray-700">
                         <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Leverantörer</p>
                         <a href="/suppliers" class="block px-4 py-2 text-sm <?= mobileActive('/suppliers', $currentPath) ?>">Leverantörsregister</a>
-                        <a href="/purchasing/audits" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/audits', $currentPath) ?>">Leverantörsaudit</a>
+                        <a href="/purchasing/supplier-audits" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/supplier-audits', $currentPath) ?>">Leverantörsaudit</a>
                         <hr class="my-1 border-gray-200 dark:border-gray-700">
                         <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Inköpsanmodan</p>
                         <a href="/purchasing/requisitions/create" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/requisitions/create', $currentPath) ?>">Skapa inköpsanmodan</a>
@@ -130,7 +129,7 @@ function mobileActive(string $path, string $currentPath): string {
                         <a href="/purchasing/agreements/create" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/agreements/create', $currentPath) ?>">Skapa avtal</a>
                         <a href="/purchasing/agreements" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/agreements', $currentPath) ?>">Aktiva avtal</a>
                         <a href="/purchasing/agreements/history" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/agreements/history', $currentPath) ?>">Historiska avtal</a>
-                        <a href="/purchasing/agreements/templates" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/agreements/templates', $currentPath) ?>">Avtalsmallar</a>
+                        <a href="/purchasing/agreement-templates" class="block px-4 py-2 text-sm <?= mobileActive('/purchasing/agreement-templates', $currentPath) ?>">Avtalsmallar</a>
                     </div>
                 </div>
 
@@ -368,19 +367,18 @@ function mobileActive(string $path, string $currentPath): string {
 
         <!-- 4. Lager -->
         <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Lager</p>
-        <a href="/inventory" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory', $currentPath) ?>">Dashboard</a>
-        <a href="/articles" class="block rounded px-3 py-2 text-sm <?= mobileActive('/articles', $currentPath) ?>">Lagerartiklar</a>
-        <a href="/inventory/transactions" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory/transactions', $currentPath) ?>">Lagertransaktionshistorik</a>
-        <a href="/inventory/order" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory/order', $currentPath) ?>">Beställ lagerartiklar</a>
+        <a href="/inventory" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory', $currentPath) ?>">Lageröversikt</a>
+        <a href="/inventory/warehouses" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory/warehouses', $currentPath) ?>">Lagerställen</a>
+        <a href="/inventory/transactions" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory/transactions', $currentPath) ?>">Transaktioner</a>
         <a href="/inventory/receiving" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory/receiving', $currentPath) ?>">Inleverans</a>
-        <a href="/inventory/withdrawal" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory/withdrawal', $currentPath) ?>">Uttag av lagerartiklar</a>
+        <a href="/inventory/issues" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory/issues', $currentPath) ?>">Uttag</a>
         <a href="/inventory/stocktaking" class="block rounded px-3 py-2 text-sm <?= mobileActive('/inventory/stocktaking', $currentPath) ?>">Inventering</a>
 
         <!-- 5. Inköp -->
         <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Inköp</p>
         <a href="/purchasing" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing', $currentPath) ?>">Dashboard</a>
         <a href="/suppliers" class="block rounded px-3 py-2 text-sm <?= mobileActive('/suppliers', $currentPath) ?>">Leverantörsregister</a>
-        <a href="/purchasing/audits" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/audits', $currentPath) ?>">Leverantörsaudit</a>
+        <a href="/purchasing/supplier-audits" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/supplier-audits', $currentPath) ?>">Leverantörsaudit</a>
         <a href="/purchasing/requisitions/create" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/requisitions/create', $currentPath) ?>">Skapa inköpsanmodan</a>
         <a href="/purchasing/requisitions" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/requisitions', $currentPath) ?>">Ej hanterade anmodan</a>
         <a href="/purchasing/requisitions/history" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/requisitions/history', $currentPath) ?>">Historiska anmodan</a>
@@ -390,7 +388,7 @@ function mobileActive(string $path, string $currentPath): string {
         <a href="/purchasing/agreements/create" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/agreements/create', $currentPath) ?>">Skapa avtal</a>
         <a href="/purchasing/agreements" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/agreements', $currentPath) ?>">Aktiva avtal</a>
         <a href="/purchasing/agreements/history" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/agreements/history', $currentPath) ?>">Historiska avtal</a>
-        <a href="/purchasing/agreements/templates" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/agreements/templates', $currentPath) ?>">Avtalsmallar</a>
+        <a href="/purchasing/agreement-templates" class="block rounded px-3 py-2 text-sm <?= mobileActive('/purchasing/agreement-templates', $currentPath) ?>">Avtalsmallar</a>
 
         <!-- 6. Ekonomi -->
         <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Ekonomi</p>
