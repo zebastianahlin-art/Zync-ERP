@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Flash;
 use App\Models\SupplierRepository;
@@ -24,10 +23,6 @@ class SupplierController extends Controller
     /** GET /suppliers */
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         return $this->render($response, 'suppliers/index', [
             'title'     => 'Leverantörer – ZYNC ERP',
             'suppliers' => $this->repo->all(),
@@ -38,10 +33,6 @@ class SupplierController extends Controller
     /** GET /suppliers/create */
     public function create(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         return $this->render($response, 'suppliers/create', [
             'title'  => 'Ny leverantör – ZYNC ERP',
             'errors' => [],
@@ -52,10 +43,6 @@ class SupplierController extends Controller
     /** POST /suppliers */
     public function store(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $data   = $this->extractData($request);
         $errors = $this->validate($data);
 
@@ -85,10 +72,6 @@ class SupplierController extends Controller
     /** GET /suppliers/{id}/edit */
     public function edit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $supplier = $this->repo->find((int) $args['id']);
         if ($supplier === null) {
             return $this->notFound($response);
@@ -104,10 +87,6 @@ class SupplierController extends Controller
     /** POST /suppliers/{id} */
     public function update(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $id       = (int) $args['id'];
         $supplier = $this->repo->find($id);
         if ($supplier === null) {
@@ -143,10 +122,6 @@ class SupplierController extends Controller
     /** POST /suppliers/{id}/delete */
     public function destroy(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $id = (int) $args['id'];
         if ($this->repo->find($id) !== null) {
             $this->repo->delete($id);

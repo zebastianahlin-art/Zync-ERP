@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Flash;
 use App\Models\CustomerRepository;
@@ -24,10 +23,6 @@ class CustomerController extends Controller
     /** GET /customers */
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         return $this->render($response, 'customers/index', [
             'title'     => 'Kunder – ZYNC ERP',
             'customers' => $this->repo->all(),
@@ -38,10 +33,6 @@ class CustomerController extends Controller
     /** GET /customers/create */
     public function create(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         return $this->render($response, 'customers/create', [
             'title'  => 'Ny kund – ZYNC ERP',
             'errors' => [],
@@ -52,10 +43,6 @@ class CustomerController extends Controller
     /** POST /customers */
     public function store(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $data   = $this->extractData($request);
         $errors = $this->validate($data);
 
@@ -85,10 +72,6 @@ class CustomerController extends Controller
     /** GET /customers/{id}/edit */
     public function edit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $customer = $this->repo->find((int) $args['id']);
         if ($customer === null) {
             return $this->notFound($response);
@@ -104,10 +87,6 @@ class CustomerController extends Controller
     /** POST /customers/{id} */
     public function update(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $id       = (int) $args['id'];
         $customer = $this->repo->find($id);
         if ($customer === null) {
@@ -143,10 +122,6 @@ class CustomerController extends Controller
     /** POST /customers/{id}/delete */
     public function destroy(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $id = (int) $args['id'];
         if ($this->repo->find($id) !== null) {
             $this->repo->delete($id);

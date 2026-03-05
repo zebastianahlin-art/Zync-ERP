@@ -24,10 +24,6 @@ class DepartmentController extends Controller
     /** GET /departments */
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         return $this->render($response, 'departments/index', [
             'title'       => 'Avdelningar – ZYNC ERP',
             'departments' => $this->repo->all(),
@@ -38,10 +34,6 @@ class DepartmentController extends Controller
     /** GET /departments/create */
     public function create(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         return $this->render($response, 'departments/create', [
             'title'       => 'Ny avdelning – ZYNC ERP',
             'departments' => $this->repo->all(),
@@ -53,10 +45,6 @@ class DepartmentController extends Controller
     /** POST /departments */
     public function store(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $data   = $this->extractData($request);
         $errors = $this->validate($data);
 
@@ -78,10 +66,6 @@ class DepartmentController extends Controller
     /** GET /departments/{id}/edit */
     public function edit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $dept = $this->repo->find((int) $args['id']);
         if ($dept === null) {
             return $this->notFound($response);
@@ -98,10 +82,6 @@ class DepartmentController extends Controller
     /** POST /departments/{id} */
     public function update(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $id   = (int) $args['id'];
         $dept = $this->repo->find($id);
         if ($dept === null) {
@@ -128,10 +108,6 @@ class DepartmentController extends Controller
     /** POST /departments/{id}/delete */
     public function destroy(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $id = (int) $args['id'];
         if ($this->repo->find($id) !== null) {
             $this->repo->delete($id);

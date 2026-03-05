@@ -27,10 +27,6 @@ class EmployeeController extends Controller
     /** GET /employees */
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         return $this->render($response, 'employees/index', [
             'title'     => 'Personal – ZYNC ERP',
             'employees' => $this->repo->all(),
@@ -41,10 +37,6 @@ class EmployeeController extends Controller
     /** GET /employees/create */
     public function create(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         return $this->render($response, 'employees/create', [
             'title'       => 'Ny anställd – ZYNC ERP',
             'departments' => $this->deptRepo->all(),
@@ -56,10 +48,6 @@ class EmployeeController extends Controller
     /** POST /employees */
     public function store(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $data   = $this->extractData($request);
         $errors = $this->validate($data);
 
@@ -81,10 +69,6 @@ class EmployeeController extends Controller
     /** GET /employees/{id}/edit */
     public function edit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $employee = $this->repo->find((int) $args['id']);
         if ($employee === null) {
             return $this->notFound($response);
@@ -101,10 +85,6 @@ class EmployeeController extends Controller
     /** POST /employees/{id} */
     public function update(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $id       = (int) $args['id'];
         $employee = $this->repo->find($id);
         if ($employee === null) {
@@ -131,10 +111,6 @@ class EmployeeController extends Controller
     /** POST /employees/{id}/delete */
     public function destroy(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $id = (int) $args['id'];
         if ($this->repo->find($id) !== null) {
             $this->repo->delete($id);

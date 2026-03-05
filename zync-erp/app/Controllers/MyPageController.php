@@ -16,10 +16,6 @@ class MyPageController extends Controller
     /** GET /my-page */
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $user = Auth::user();
 
         return $this->render($response, 'my-page/index', [
@@ -31,10 +27,6 @@ class MyPageController extends Controller
     /** GET /my-page/edit */
     public function edit(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $user = Auth::user();
 
         return $this->render($response, 'my-page/edit', [
@@ -47,10 +39,6 @@ class MyPageController extends Controller
     /** POST /my-page */
     public function update(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $id   = Auth::id();
         $user = Auth::user();
         $body = (array) $request->getParsedBody();
