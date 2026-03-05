@@ -90,8 +90,7 @@ class RecruitmentController extends Controller
     {
         $position = $this->repo->findPosition((int) $args['id']);
         if ($position === null) {
-            $response->getBody()->write('<h1>404 – Hittades inte</h1>');
-            return $response->withStatus(404);
+            return $this->notFound($response);
         }
 
         return $this->render($response, 'hr/recruitment/show', [

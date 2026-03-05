@@ -39,9 +39,13 @@ class ObjectNavigatorRepository
      */
     public function tree(): array
     {
-        $sql = "SELECT * FROM object_registry WHERE is_deleted = 0 AND parent_id IS NULL
-                ORDER BY object_type ASC, display_name ASC";
-        return Database::pdo()->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $sql = "SELECT * FROM object_registry WHERE is_deleted = 0 AND parent_id IS NULL
+                    ORDER BY object_type ASC, display_name ASC";
+            return Database::pdo()->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     /**
@@ -63,11 +67,15 @@ class ObjectNavigatorRepository
      */
     public function findByTypeAndId(string $type, int $id): ?array
     {
-        $stmt = Database::pdo()->prepare(
-            "SELECT * FROM object_registry WHERE object_type = ? AND object_id = ? AND is_deleted = 0"
-        );
-        $stmt->execute([$type, $id]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        try {
+            $stmt = Database::pdo()->prepare(
+                "SELECT * FROM object_registry WHERE object_type = ? AND object_id = ? AND is_deleted = 0"
+            );
+            $stmt->execute([$type, $id]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     /**
@@ -75,10 +83,14 @@ class ObjectNavigatorRepository
      */
     public function countByType(): array
     {
-        $sql = "SELECT object_type, COUNT(*) AS cnt
-                FROM object_registry WHERE is_deleted = 0
-                GROUP BY object_type ORDER BY cnt DESC";
-        return Database::pdo()->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $sql = "SELECT object_type, COUNT(*) AS cnt
+                    FROM object_registry WHERE is_deleted = 0
+                    GROUP BY object_type ORDER BY cnt DESC";
+            return Database::pdo()->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     /**

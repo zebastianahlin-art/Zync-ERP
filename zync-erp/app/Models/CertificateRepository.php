@@ -28,17 +28,21 @@ class CertificateRepository
 
     public function find(int $id): ?array
     {
-        $stmt = Database::pdo()->prepare(
-            'SELECT c.*,
-                    CONCAT(e.first_name, \' \', e.last_name) AS employee_name,
-                    ct.name AS certificate_type_name
-             FROM certificates c
-             LEFT JOIN employees e ON c.employee_id = e.id
-             LEFT JOIN certificate_types ct ON c.certificate_type_id = ct.id
-             WHERE c.id = ? AND c.is_deleted = 0'
-        );
-        $stmt->execute([$id]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT c.*,
+                        CONCAT(e.first_name, \' \', e.last_name) AS employee_name,
+                        ct.name AS certificate_type_name
+                 FROM certificates c
+                 LEFT JOIN employees e ON c.employee_id = e.id
+                 LEFT JOIN certificate_types ct ON c.certificate_type_id = ct.id
+                 WHERE c.id = ? AND c.is_deleted = 0'
+            );
+            $stmt->execute([$id]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function create(array $data): int

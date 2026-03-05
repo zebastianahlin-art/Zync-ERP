@@ -76,16 +76,20 @@ class InventoryRepository
 
     public function findStock(int $id): ?array
     {
-        $stmt = Database::pdo()->prepare(
-            "SELECT s.*, a.name AS article_name, a.article_number, a.unit, a.purchase_price,
-                    w.name AS warehouse_name
-             FROM inventory_stock s
-             LEFT JOIN articles a ON s.article_id = a.id
-             LEFT JOIN warehouses w ON s.warehouse_id = w.id
-             WHERE s.id = ? AND s.is_deleted = 0"
-        );
-        $stmt->execute([$id]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        try {
+            $stmt = Database::pdo()->prepare(
+                "SELECT s.*, a.name AS article_name, a.article_number, a.unit, a.purchase_price,
+                        w.name AS warehouse_name
+                 FROM inventory_stock s
+                 LEFT JOIN articles a ON s.article_id = a.id
+                 LEFT JOIN warehouses w ON s.warehouse_id = w.id
+                 WHERE s.id = ? AND s.is_deleted = 0"
+            );
+            $stmt->execute([$id]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function adjustStock(int $articleId, int $warehouseId, float $quantity, string $type, array $meta = []): void
@@ -152,26 +156,34 @@ class InventoryRepository
                 ORDER BY t.created_at DESC
                 LIMIT 500";
 
-        $stmt = Database::pdo()->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = Database::pdo()->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function getTransactionById(int $id): ?array
     {
-        $stmt = Database::pdo()->prepare(
-            "SELECT t.*, a.name AS article_name, a.article_number,
-                    w.name AS warehouse_name, u.full_name AS created_by_name,
-                    tw.name AS to_warehouse_name
-             FROM inventory_transactions t
-             LEFT JOIN articles a ON t.article_id = a.id
-             LEFT JOIN warehouses w ON t.warehouse_id = w.id
-             LEFT JOIN warehouses tw ON t.to_warehouse_id = tw.id
-             LEFT JOIN users u ON t.created_by = u.id
-             WHERE t.id = ? AND t.is_deleted = 0"
-        );
-        $stmt->execute([$id]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        try {
+            $stmt = Database::pdo()->prepare(
+                "SELECT t.*, a.name AS article_name, a.article_number,
+                        w.name AS warehouse_name, u.full_name AS created_by_name,
+                        tw.name AS to_warehouse_name
+                 FROM inventory_transactions t
+                 LEFT JOIN articles a ON t.article_id = a.id
+                 LEFT JOIN warehouses w ON t.warehouse_id = w.id
+                 LEFT JOIN warehouses tw ON t.to_warehouse_id = tw.id
+                 LEFT JOIN users u ON t.created_by = u.id
+                 WHERE t.id = ? AND t.is_deleted = 0"
+            );
+            $stmt->execute([$id]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function createTransaction(array $data): int
@@ -223,31 +235,35 @@ class InventoryRepository
 
     public function getReceivingOrder(int $poId): ?array
     {
-        $pdo = Database::pdo();
+        try {
+            $pdo = Database::pdo();
 
-        $stmtOrder = $pdo->prepare(
-            "SELECT po.*, s.name AS supplier_name
-             FROM purchase_orders po
-             LEFT JOIN suppliers s ON po.supplier_id = s.id
-             WHERE po.id = ? AND po.is_deleted = 0"
-        );
-        $stmtOrder->execute([$poId]);
-        $order = $stmtOrder->fetch(\PDO::FETCH_ASSOC);
+            $stmtOrder = $pdo->prepare(
+                "SELECT po.*, s.name AS supplier_name
+                 FROM purchase_orders po
+                 LEFT JOIN suppliers s ON po.supplier_id = s.id
+                 WHERE po.id = ? AND po.is_deleted = 0"
+            );
+            $stmtOrder->execute([$poId]);
+            $order = $stmtOrder->fetch(\PDO::FETCH_ASSOC);
 
-        if (!$order) {
+            if (!$order) {
+                return null;
+            }
+
+            $stmtLines = $pdo->prepare(
+                "SELECT pol.*, a.name AS article_name, a.article_number, a.unit
+                 FROM purchase_order_lines pol
+                 LEFT JOIN articles a ON pol.article_id = a.id
+                 WHERE pol.order_id = ? AND pol.is_deleted = 0"
+            );
+            $stmtLines->execute([$poId]);
+            $lines = $stmtLines->fetchAll(\PDO::FETCH_ASSOC);
+
+            return ['order' => $order, 'lines' => $lines];
+        } catch (\Exception $e) {
             return null;
         }
-
-        $stmtLines = $pdo->prepare(
-            "SELECT pol.*, a.name AS article_name, a.article_number, a.unit
-             FROM purchase_order_lines pol
-             LEFT JOIN articles a ON pol.article_id = a.id
-             WHERE pol.order_id = ? AND pol.is_deleted = 0"
-        );
-        $stmtLines->execute([$poId]);
-        $lines = $stmtLines->fetchAll(\PDO::FETCH_ASSOC);
-
-        return ['order' => $order, 'lines' => $lines];
     }
 
     public function storeReceiving(int $poId, array $lines, int $warehouseId, int $userId): void
@@ -369,33 +385,37 @@ class InventoryRepository
 
     public function getStocktakingById(int $id): ?array
     {
-        $pdo = Database::pdo();
+        try {
+            $pdo = Database::pdo();
 
-        $stmtSt = $pdo->prepare(
-            "SELECT st.*, w.name AS warehouse_name, u.full_name AS approved_by_name
-             FROM stocktakings st
-             LEFT JOIN warehouses w ON st.warehouse_id = w.id
-             LEFT JOIN users u ON st.approved_by = u.id
-             WHERE st.id = ? AND st.is_deleted = 0"
-        );
-        $stmtSt->execute([$id]);
-        $stocktaking = $stmtSt->fetch(\PDO::FETCH_ASSOC);
+            $stmtSt = $pdo->prepare(
+                "SELECT st.*, w.name AS warehouse_name, u.full_name AS approved_by_name
+                 FROM stocktakings st
+                 LEFT JOIN warehouses w ON st.warehouse_id = w.id
+                 LEFT JOIN users u ON st.approved_by = u.id
+                 WHERE st.id = ? AND st.is_deleted = 0"
+            );
+            $stmtSt->execute([$id]);
+            $stocktaking = $stmtSt->fetch(\PDO::FETCH_ASSOC);
 
-        if (!$stocktaking) {
+            if (!$stocktaking) {
+                return null;
+            }
+
+            $stmtLines = $pdo->prepare(
+                "SELECT sl.*, a.name AS article_name, a.article_number, a.unit
+                 FROM stocktaking_lines sl
+                 LEFT JOIN articles a ON sl.article_id = a.id
+                 WHERE sl.stocktaking_id = ?
+                 ORDER BY a.name ASC"
+            );
+            $stmtLines->execute([$id]);
+            $lines = $stmtLines->fetchAll(\PDO::FETCH_ASSOC);
+
+            return ['stocktaking' => $stocktaking, 'lines' => $lines];
+        } catch (\Exception $e) {
             return null;
         }
-
-        $stmtLines = $pdo->prepare(
-            "SELECT sl.*, a.name AS article_name, a.article_number, a.unit
-             FROM stocktaking_lines sl
-             LEFT JOIN articles a ON sl.article_id = a.id
-             WHERE sl.stocktaking_id = ?
-             ORDER BY a.name ASC"
-        );
-        $stmtLines->execute([$id]);
-        $lines = $stmtLines->fetchAll(\PDO::FETCH_ASSOC);
-
-        return ['stocktaking' => $stocktaking, 'lines' => $lines];
     }
 
     public function createStocktaking(array $data): int
@@ -419,19 +439,23 @@ class InventoryRepository
         $stocktakingId = (int) $pdo->lastInsertId();
 
         // Pre-populate lines from current inventory_stock for this warehouse
-        $stmtStock = $pdo->prepare(
-            "SELECT article_id, quantity FROM inventory_stock
-             WHERE warehouse_id = ? AND is_deleted = 0"
-        );
-        $stmtStock->execute([$warehouseId]);
-        $stockRows = $stmtStock->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmtStock = $pdo->prepare(
+                "SELECT article_id, quantity FROM inventory_stock
+                 WHERE warehouse_id = ? AND is_deleted = 0"
+            );
+            $stmtStock->execute([$warehouseId]);
+            $stockRows = $stmtStock->fetchAll(\PDO::FETCH_ASSOC);
 
-        $stmtLine = $pdo->prepare(
-            "INSERT IGNORE INTO stocktaking_lines (stocktaking_id, article_id, system_quantity)
-             VALUES (?, ?, ?)"
-        );
-        foreach ($stockRows as $row) {
-            $stmtLine->execute([$stocktakingId, (int) $row['article_id'], (float) $row['quantity']]);
+            $stmtLine = $pdo->prepare(
+                "INSERT IGNORE INTO stocktaking_lines (stocktaking_id, article_id, system_quantity)
+                 VALUES (?, ?, ?)"
+            );
+            foreach ($stockRows as $row) {
+                $stmtLine->execute([$stocktakingId, (int) $row['article_id'], (float) $row['quantity']]);
+            }
+        } catch (\Exception $e) {
+            // Pre-population is optional – continue without it
         }
 
         return $stocktakingId;

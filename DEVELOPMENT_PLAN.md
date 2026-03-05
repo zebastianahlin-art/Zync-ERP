@@ -247,7 +247,43 @@ Dashboard, Underhåll, ObjektNavigator, Lager, Inköp, Ekonomi, Hälsa & Säkerh
 - **46 migrationer** körda
 - **15 ERP-moduler** implementerade
 - **0 PlaceholderController-routes** kvar
-- **Totalt antal PRs:** #34, #35, #37, #38, #39, #40, #41, #42, #43, #45, #46, #47, #48
+- **Totalt antal PRs:** #34, #35, #37, #38, #39, #40, #41, #42, #43, #45, #46, #47, #48, #49, #50
+
+---
+
+## PR #49 & #50 — Rensning & Harmonisering
+
+- **PR #49** — Ta bort redundanta `Auth::check()`-guards i controllers (AuthMiddleware hanterar det)
+- **PR #50** — Rensa oanvända `use`-importer + harmonisera FinanceController
+
+---
+
+## Fullständig Åtgärdsplan (FAS A–F)
+
+### FAS A: Kritiska buggfixar
+**Status:** ✅ Åtgärdad (PR #51 / detta PR)
+
+Åtgärder genomförda:
+- **A1 (ObjectNavigator):** Lade till `try/catch` i `ObjectNavigatorRepository::tree()`, `countByType()` och `findByTypeAndId()` — förhindrar kraschar om `object_registry`-tabellen saknas.
+- **A2–A7 (Lager):** Lade till `try/catch` i `InventoryRepository::findStock()`, `getTransactions()`, `getTransactionById()`, `getReceivingOrder()`, `getStocktakingById()` och `createStocktaking()` — säker felhantering vid saknade tabeller eller felaktiga joins.
+- **A8 (Ekonomi/Resultaträkning):** Befintlig `try/catch` i `FinanceController::trialBalance()` hanterar alla SQL-fel i `JournalEntryRepository`.
+- **A9 (AI-ingenjör):** Alla metoder i `AiEngineerRepository` har redan `try/catch`.
+- **A10–A12 (CS):** Alla metoder i `CustomerServiceRepository` har redan `try/catch`. Tabellen `cs_tickets` är korrekt definierad i migration 0039.
+- **A13 (Projekt):** Lade till `try/catch` i `ProjectRepository::find()`, `all()`, `allCustomers()` och `allUsers()`.
+- **A14 (Certifikat):** Lade till `try/catch` i `CertificateRepository::find()`.
+- **A15 (Lön):** Alla metoder i `PayrollRepository` har redan `try/catch`.
+- **A16 (Utbildning):** Alla metoder i `TrainingRepository` har redan `try/catch`.
+- **A17 (Rekrytering):** Lade till `try/catch` i `RecruitmentRepository::findPosition()`. Fixade `RecruitmentController::showPosition()` att använda ärvd `$this->notFound($response)` istället för custom inline-svar.
+
+### FAS B: UX & Funktionsuppgraderingar
+**Status:** 🔄 Delvis klar (PR #51 / detta PR)
+
+- **B1 (Anläggningsregister):** ✅ Klart sedan PR #39 — menyn visar "Anläggningsregister" och vyerna/kontrollern använder rätt titel.
+- **B2 (Sälj — Ny Kund):** ✅ Åtgärdad — `views/customers/create.php`, `edit.php` och `index.php` har fått Tailwind `dark:`-klasser för dark mode + `<?= \App\Core\Csrf::field() ?>` i alla formulär.
+- **B3–B6:** ⏳ Planerade i kommande PR.
+
+### FAS C–F
+**Status:** ⏳ Planerade i kommande PRs.
 
 ---
 
