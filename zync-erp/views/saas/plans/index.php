@@ -4,6 +4,26 @@ $planColors = [
     'professional' => 'purple',
     'enterprise'   => 'amber',
 ];
+
+// Static class maps to avoid Tailwind purge issues (CDN: not needed, but good practice)
+$headerBg = [
+    'indigo' => 'bg-indigo-600',
+    'purple' => 'bg-purple-600',
+    'amber'  => 'bg-amber-600',
+    'gray'   => 'bg-gray-600',
+];
+$headerText = [
+    'indigo' => 'text-indigo-100',
+    'purple' => 'text-purple-100',
+    'amber'  => 'text-amber-100',
+    'gray'   => 'text-gray-100',
+];
+$badgeBg = [
+    'indigo' => 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300',
+    'purple' => 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300',
+    'amber'  => 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+    'gray'   => 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300',
+];
 ?>
 <div class="space-y-6">
 
@@ -42,16 +62,19 @@ $planColors = [
                 if (!empty($plan['included_modules'])) {
                     $modules = is_string($plan['included_modules']) ? json_decode($plan['included_modules'], true) : $plan['included_modules'];
                 }
+                $hBg    = $headerBg[$color]  ?? $headerBg['gray'];
+                $hText  = $headerText[$color] ?? $headerText['gray'];
+                $mBadge = $badgeBg[$color]    ?? $badgeBg['gray'];
             ?>
             <div class="rounded-2xl bg-white dark:bg-gray-800 shadow-md overflow-hidden flex flex-col">
-                <div class="bg-<?= htmlspecialchars($color, ENT_QUOTES, 'UTF-8') ?>-600 px-6 py-5">
+                <div class="<?= $hBg ?> px-6 py-5">
                     <div class="flex items-center justify-between">
                         <h2 class="text-xl font-bold text-white"><?= htmlspecialchars($plan['name'], ENT_QUOTES, 'UTF-8') ?></h2>
                         <?php if (!$plan['is_active']): ?>
                             <span class="rounded-full bg-white/20 px-2 py-0.5 text-xs text-white">Inaktiv</span>
                         <?php endif; ?>
                     </div>
-                    <p class="mt-1 text-<?= htmlspecialchars($color, ENT_QUOTES, 'UTF-8') ?>-100 text-sm"><?= htmlspecialchars((string) ($plan['description'] ?? ''), ENT_QUOTES, 'UTF-8') ?></p>
+                    <p class="mt-1 <?= $hText ?> text-sm"><?= htmlspecialchars((string) ($plan['description'] ?? ''), ENT_QUOTES, 'UTF-8') ?></p>
                 </div>
 
                 <div class="p-6 flex-1 space-y-4">
@@ -91,7 +114,7 @@ $planColors = [
                         <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Inkluderade moduler</p>
                         <div class="flex flex-wrap gap-1">
                             <?php foreach ($modules as $mod): ?>
-                            <span class="rounded-full bg-<?= htmlspecialchars($color, ENT_QUOTES, 'UTF-8') ?>-100 dark:bg-<?= htmlspecialchars($color, ENT_QUOTES, 'UTF-8') ?>-900/30 px-2 py-0.5 text-xs text-<?= htmlspecialchars($color, ENT_QUOTES, 'UTF-8') ?>-700 dark:text-<?= htmlspecialchars($color, ENT_QUOTES, 'UTF-8') ?>-300">
+                            <span class="rounded-full px-2 py-0.5 text-xs <?= $mBadge ?>">
                                 <?= htmlspecialchars((string) $mod, ENT_QUOTES, 'UTF-8') ?>
                             </span>
                             <?php endforeach; ?>

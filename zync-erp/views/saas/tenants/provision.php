@@ -1,11 +1,5 @@
 <?php
 $e = fn(string $v) => htmlspecialchars($v, ENT_QUOTES, 'UTF-8');
-
-$planDefaults = [
-    'starter'      => ['Starter', '999 kr/mån – Underhåll & Drift', 10],
-    'professional' => ['Professional', '2 499 kr/mån – HR, Ekonomi, Projekt', 50],
-    'enterprise'   => ['Enterprise', '4 999 kr/mån – Komplett ERP', 999],
-];
 ?>
 <div class="space-y-6" x-data="{ step: 1 }">
 
