@@ -816,9 +816,13 @@ class MaintenanceController extends Controller
 
     private function getUsers(): array
     {
-        return Database::pdo()->query(
-            "SELECT id, full_name FROM users WHERE is_active = 1 ORDER BY full_name"
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query(
+                "SELECT id, full_name FROM users WHERE is_active = 1 ORDER BY full_name"
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     private function getArticles(): array

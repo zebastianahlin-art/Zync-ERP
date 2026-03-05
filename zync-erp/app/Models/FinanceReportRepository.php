@@ -89,34 +89,38 @@ class FinanceReportRepository
      */
     public function getBalanceSheet(string $from, string $to): array
     {
-        $stmt = Database::pdo()->prepare(
-            "SELECT coa.account_number, coa.name AS account_name, coa.account_class,
-                    COALESCE(SUM(jel.debit), 0) AS total_debit,
-                    COALESCE(SUM(jel.credit), 0) AS total_credit,
-                    COALESCE(SUM(jel.debit), 0) - COALESCE(SUM(jel.credit), 0) AS balance
-             FROM chart_of_accounts coa
-             LEFT JOIN journal_entry_lines jel ON jel.account_id = coa.id
-             LEFT JOIN journal_entries je ON jel.entry_id = je.id
-                 AND je.is_deleted = 0 AND je.entry_date BETWEEN ? AND ?
-             WHERE coa.is_active = 1 AND coa.account_class IN ('1','2')
-             GROUP BY coa.id, coa.account_number, coa.name, coa.account_class
-             HAVING (total_debit > 0 OR total_credit > 0)
-             ORDER BY coa.account_number"
-        );
-        $stmt->execute([$from, $to]);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = Database::pdo()->prepare(
+                "SELECT coa.account_number, coa.name AS account_name, coa.account_class,
+                        COALESCE(SUM(jel.debit), 0) AS total_debit,
+                        COALESCE(SUM(jel.credit), 0) AS total_credit,
+                        COALESCE(SUM(jel.debit), 0) - COALESCE(SUM(jel.credit), 0) AS balance
+                 FROM chart_of_accounts coa
+                 LEFT JOIN journal_entry_lines jel ON jel.account_id = coa.id
+                 LEFT JOIN journal_entries je ON jel.entry_id = je.id
+                     AND je.is_deleted = 0 AND je.entry_date BETWEEN ? AND ?
+                 WHERE coa.is_active = 1 AND coa.account_class IN ('1','2')
+                 GROUP BY coa.id, coa.account_number, coa.name, coa.account_class
+                 HAVING (total_debit > 0 OR total_credit > 0)
+                 ORDER BY coa.account_number"
+            );
+            $stmt->execute([$from, $to]);
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-        $assets = [];
-        $liabilities = [];
-        foreach ($rows as $row) {
-            if ($row['account_class'] === '1') {
-                $assets[] = $row;
-            } else {
-                $liabilities[] = $row;
+            $assets = [];
+            $liabilities = [];
+            foreach ($rows as $row) {
+                if ($row['account_class'] === '1') {
+                    $assets[] = $row;
+                } else {
+                    $liabilities[] = $row;
+                }
             }
-        }
 
-        return ['assets' => $assets, 'liabilities' => $liabilities];
+            return ['assets' => $assets, 'liabilities' => $liabilities];
+        } catch (\Exception $e) {
+            return ['assets' => [], 'liabilities' => []];
+        }
     }
 
     /**

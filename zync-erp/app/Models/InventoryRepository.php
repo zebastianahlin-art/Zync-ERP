@@ -468,14 +468,18 @@ class InventoryRepository
         $articleId = (int) $data['article_id'];
 
         // Get current system quantity from inventory_stock
-        $stmtSys = $pdo->prepare(
-            "SELECT quantity FROM inventory_stock
-             WHERE article_id = ?
-               AND warehouse_id = (SELECT warehouse_id FROM stocktakings WHERE id = ?)
-               AND is_deleted = 0"
-        );
-        $stmtSys->execute([$articleId, $id]);
-        $systemQty = (float) ($stmtSys->fetchColumn() ?: 0);
+        try {
+            $stmtSys = $pdo->prepare(
+                "SELECT quantity FROM inventory_stock
+                 WHERE article_id = ?
+                   AND warehouse_id = (SELECT warehouse_id FROM stocktakings WHERE id = ?)
+                   AND is_deleted = 0"
+            );
+            $stmtSys->execute([$articleId, $id]);
+            $systemQty = (float) ($stmtSys->fetchColumn() ?: 0);
+        } catch (\Exception $e) {
+            $systemQty = 0.0;
+        }
 
         $pdo->prepare(
             "INSERT INTO stocktaking_lines (stocktaking_id, article_id, system_quantity, counted_quantity, notes)
@@ -558,14 +562,18 @@ class InventoryRepository
 
     public function getWarehouseById(int $id): ?array
     {
-        $stmt = Database::pdo()->prepare(
-            "SELECT w.*, u.full_name AS responsible_name
-             FROM warehouses w
-             LEFT JOIN users u ON w.responsible_user_id = u.id
-             WHERE w.id = ? AND w.is_deleted = 0"
-        );
-        $stmt->execute([$id]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        try {
+            $stmt = Database::pdo()->prepare(
+                "SELECT w.*, u.full_name AS responsible_name
+                 FROM warehouses w
+                 LEFT JOIN users u ON w.responsible_user_id = u.id
+                 WHERE w.id = ? AND w.is_deleted = 0"
+            );
+            $stmt->execute([$id]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function createWarehouse(array $data): int

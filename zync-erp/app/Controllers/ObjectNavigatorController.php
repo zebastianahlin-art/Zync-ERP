@@ -111,8 +111,12 @@ class ObjectNavigatorController extends Controller
 
     public function sync(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $this->repo->sync();
-        Flash::set('success', 'Objektregistret har synkroniserats.');
+        try {
+            $this->repo->sync();
+            Flash::set('success', 'Objektregistret har synkroniserats.');
+        } catch (\Exception $e) {
+            Flash::set('error', 'Synkroniseringen misslyckades. Kontrollera att alla tabeller är skapade.');
+        }
         return $this->redirect($response, '/objects');
     }
 }

@@ -4,6 +4,12 @@
         <a href="/maintenance/ai/recommendations" class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition">💡 Rekommendationer</a>
     </div>
 
+    <?php if (empty($aiConfigured)): ?>
+    <div class="rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-4 text-sm text-yellow-800 dark:text-yellow-200">
+        ⚠️ <strong>AI-tjänst ej konfigurerad.</strong> Ställ in <code>AI_API_KEY</code> i <code>.env</code> för att aktivera AI-funktioner.
+    </div>
+    <?php endif; ?>
+
     <!-- Stats grid -->
     <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-5">

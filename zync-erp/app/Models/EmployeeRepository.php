@@ -25,14 +25,18 @@ class EmployeeRepository
 
     public function find(int $id): ?array
     {
-        $stmt = Database::pdo()->prepare(
-            'SELECT e.*, d.name AS department_name
-             FROM employees e
-             LEFT JOIN departments d ON e.department_id = d.id
-             WHERE e.id = ? AND e.is_deleted = 0'
-        );
-        $stmt->execute([$id]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT e.*, d.name AS department_name
+                 FROM employees e
+                 LEFT JOIN departments d ON e.department_id = d.id
+                 WHERE e.id = ? AND e.is_deleted = 0'
+            );
+            $stmt->execute([$id]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function create(array $data): int
