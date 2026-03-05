@@ -68,4 +68,165 @@ class TrainingRepository
             return [];
         }
     }
+
+    public function findCourse(int $id): ?array
+    {
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT tc.*,
+                 (SELECT COUNT(*) FROM training_sessions s WHERE s.course_id = tc.id AND s.is_deleted = 0) AS session_count
+                 FROM training_courses tc WHERE tc.id = ? AND tc.is_deleted = 0'
+            );
+            $stmt->execute([$id]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    public function updateCourse(int $id, array $data): void
+    {
+        $stmt = Database::pdo()->prepare(
+            'UPDATE training_courses SET name=:name, description=:description, duration_h=:duration_h,
+             provider=:provider, category=:category, is_mandatory=:is_mandatory
+             WHERE id=:id AND is_deleted=0'
+        );
+        $stmt->execute([
+            'name'         => $data['name'],
+            'description'  => $data['description'] ?: null,
+            'duration_h'   => $data['duration_h'] ?: null,
+            'provider'     => $data['provider'] ?: null,
+            'category'     => $data['category'] ?: null,
+            'is_mandatory' => $data['is_mandatory'] ?? 0,
+            'id'           => $id,
+        ]);
+    }
+
+    public function deleteCourse(int $id): void
+    {
+        Database::pdo()->prepare('UPDATE training_courses SET is_deleted=1 WHERE id=?')->execute([$id]);
+    }
+
+    public function createSession(array $data): int
+    {
+        $stmt = Database::pdo()->prepare(
+            'INSERT INTO training_sessions (course_id, start_date, end_date, location, trainer, max_participants, status, created_by)
+             VALUES (:course_id, :start_date, :end_date, :location, :trainer, :max_participants, :status, :created_by)'
+        );
+        $stmt->execute([
+            'course_id'       => $data['course_id'],
+            'start_date'      => $data['start_date'] ?: null,
+            'end_date'        => $data['end_date'] ?: null,
+            'location'        => $data['location'] ?: null,
+            'trainer'         => $data['trainer'] ?: null,
+            'max_participants'=> $data['max_participants'] ?: null,
+            'status'          => $data['status'] ?? 'planned',
+            'created_by'      => $data['created_by'] ?? null,
+        ]);
+        return (int) Database::pdo()->lastInsertId();
+    }
+
+    public function findSession(int $id): ?array
+    {
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT ts.*, tc.name AS course_name,
+                 (SELECT COUNT(*) FROM training_participants tp WHERE tp.session_id = ts.id AND tp.is_deleted = 0) AS participant_count
+                 FROM training_sessions ts
+                 LEFT JOIN training_courses tc ON ts.course_id = tc.id
+                 WHERE ts.id = ? AND ts.is_deleted = 0'
+            );
+            $stmt->execute([$id]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    public function updateSession(int $id, array $data): void
+    {
+        $stmt = Database::pdo()->prepare(
+            'UPDATE training_sessions SET course_id=:course_id, start_date=:start_date, end_date=:end_date,
+             location=:location, trainer=:trainer, max_participants=:max_participants, status=:status
+             WHERE id=:id AND is_deleted=0'
+        );
+        $stmt->execute([
+            'course_id'       => $data['course_id'] ?: null,
+            'start_date'      => $data['start_date'] ?: null,
+            'end_date'        => $data['end_date'] ?: null,
+            'location'        => $data['location'] ?: null,
+            'trainer'         => $data['trainer'] ?: null,
+            'max_participants'=> $data['max_participants'] ?: null,
+            'status'          => $data['status'] ?? 'planned',
+            'id'              => $id,
+        ]);
+    }
+
+    public function deleteSession(int $id): void
+    {
+        Database::pdo()->prepare('UPDATE training_sessions SET is_deleted=1 WHERE id=?')->execute([$id]);
+    }
+
+    public function sessionParticipants(int $sessionId): array
+    {
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT tp.*, e.first_name, e.last_name
+                 FROM training_participants tp
+                 LEFT JOIN employees e ON tp.employee_id = e.id
+                 WHERE tp.session_id = :id AND tp.is_deleted = 0
+                 ORDER BY e.last_name ASC'
+            );
+            $stmt->execute(['id' => $sessionId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    public function addParticipant(int $sessionId, int $employeeId): int
+    {
+        $stmt = Database::pdo()->prepare(
+            'INSERT INTO training_participants (session_id, employee_id, status) VALUES (:session_id, :employee_id, :status)'
+        );
+        $stmt->execute(['session_id'=>$sessionId,'employee_id'=>$employeeId,'status'=>'registered']);
+        return (int) Database::pdo()->lastInsertId();
+    }
+
+    public function removeParticipant(int $participantId): void
+    {
+        Database::pdo()->prepare('UPDATE training_participants SET is_deleted=1 WHERE id=?')->execute([$participantId]);
+    }
+
+    public function updateParticipantStatus(int $participantId, string $status): void
+    {
+        $stmt = Database::pdo()->prepare('UPDATE training_participants SET status=:status WHERE id=:id');
+        $stmt->execute(['status'=>$status,'id'=>$participantId]);
+    }
+
+    public function upcomingSessions(): array
+    {
+        try {
+            return Database::pdo()->query(
+                "SELECT ts.*, tc.name AS course_name
+                 FROM training_sessions ts
+                 LEFT JOIN training_courses tc ON ts.course_id = tc.id
+                 WHERE ts.is_deleted = 0 AND ts.status = 'planned' AND ts.start_date >= CURDATE()
+                 ORDER BY ts.start_date ASC LIMIT 20"
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    public function allEmployees(): array
+    {
+        try {
+            return Database::pdo()->query(
+                'SELECT id, first_name, last_name FROM employees WHERE is_deleted = 0 ORDER BY last_name ASC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
 }

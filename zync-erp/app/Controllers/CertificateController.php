@@ -138,6 +138,37 @@ class CertificateController extends Controller
         ];
     }
 
+    public function show(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $cert = $this->repo->find((int) $args['id']);
+        if ($cert === null) {
+            return $this->notFound($response);
+        }
+        return $this->render($response, 'certificates/show', [
+            'title'       => 'Certifikat – ZYNC ERP',
+            'certificate' => $cert,
+        ]);
+    }
+
+    public function expiring(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $params = $request->getQueryParams();
+        $days = max(1, (int) ($params['days'] ?? 30));
+        return $this->render($response, 'certificates/expiring', [
+            'title'        => 'Certifikat som löper ut – ZYNC ERP',
+            'certificates' => $this->repo->expiringCertificates($days),
+            'days'         => $days,
+        ]);
+    }
+
+    public function expired(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        return $this->render($response, 'certificates/expired', [
+            'title'        => 'Utgångna certifikat – ZYNC ERP',
+            'certificates' => $this->repo->expiredCertificates(),
+        ]);
+    }
+
     /** @return array<string, string> */
     private function validate(array $data): array
     {

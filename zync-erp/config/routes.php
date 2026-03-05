@@ -434,8 +434,11 @@ return function (App $app) {
         // ─── Certificates (Certifikat) ───────────────────────────
         $group->get('/certificates', [\App\Controllers\CertificateController::class, 'index']);
         $group->get('/certificates/create', [\App\Controllers\CertificateController::class, 'create']);
+        $group->get('/certificates/expiring', [\App\Controllers\CertificateController::class, 'expiring']);
+        $group->get('/certificates/expired', [\App\Controllers\CertificateController::class, 'expired']);
         $group->post('/certificates', [\App\Controllers\CertificateController::class, 'store']);
         $group->get('/certificates/{id}/edit', [\App\Controllers\CertificateController::class, 'edit']);
+        $group->get('/certificates/{id}', [\App\Controllers\CertificateController::class, 'show']);
         $group->post('/certificates/{id}', [\App\Controllers\CertificateController::class, 'update']);
         $group->post('/certificates/{id}/delete', [\App\Controllers\CertificateController::class, 'destroy']);
 
@@ -571,7 +574,18 @@ return function (App $app) {
         $group->get('/hr/payroll', [\App\Controllers\PayrollController::class, 'index']);
         $group->get('/hr/payroll/periods/create', [\App\Controllers\PayrollController::class, 'createPeriod']);
         $group->post('/hr/payroll/periods', [\App\Controllers\PayrollController::class, 'storePeriod']);
+        $group->get('/hr/payroll/periods/{id}/edit', [\App\Controllers\PayrollController::class, 'editPeriod']);
+        $group->post('/hr/payroll/periods/{id}', [\App\Controllers\PayrollController::class, 'updatePeriod']);
+        $group->post('/hr/payroll/periods/{id}/delete', [\App\Controllers\PayrollController::class, 'deletePeriod']);
+        $group->post('/hr/payroll/periods/{id}/close', [\App\Controllers\PayrollController::class, 'closePeriod']);
+        $group->post('/hr/payroll/periods/{id}/generate', [\App\Controllers\PayrollController::class, 'generatePayslips']);
+        $group->get('/hr/payroll/periods/{id}/payslips/create', [\App\Controllers\PayrollController::class, 'createPayslip']);
+        $group->post('/hr/payroll/periods/{id}/payslips', [\App\Controllers\PayrollController::class, 'storePayslip']);
         $group->get('/hr/payroll/periods/{id}', [\App\Controllers\PayrollController::class, 'showPeriod']);
+        $group->get('/hr/payroll/payslips/{slipId}/edit', [\App\Controllers\PayrollController::class, 'editPayslip']);
+        $group->post('/hr/payroll/payslips/{slipId}', [\App\Controllers\PayrollController::class, 'updatePayslip']);
+        $group->post('/hr/payroll/payslips/{slipId}/delete', [\App\Controllers\PayrollController::class, 'deletePayslip']);
+        $group->get('/hr/payroll/payslips/{slipId}', [\App\Controllers\PayrollController::class, 'showPayslip']);
 
         // ─── HR: Attendance (Närvaro/Frånvaro) ──────────────────────────────
         $group->get('/hr/attendance', [\App\Controllers\AttendanceController::class, 'index']);
@@ -583,6 +597,19 @@ return function (App $app) {
         $group->get('/hr/training', [\App\Controllers\TrainingController::class, 'index']);
         $group->get('/hr/training/courses/create', [\App\Controllers\TrainingController::class, 'createCourse']);
         $group->post('/hr/training/courses', [\App\Controllers\TrainingController::class, 'storeCourse']);
+        $group->get('/hr/training/courses/{id}/edit', [\App\Controllers\TrainingController::class, 'editCourse']);
+        $group->post('/hr/training/courses/{id}', [\App\Controllers\TrainingController::class, 'updateCourse']);
+        $group->post('/hr/training/courses/{id}/delete', [\App\Controllers\TrainingController::class, 'deleteCourse']);
+        $group->get('/hr/training/courses/{id}', [\App\Controllers\TrainingController::class, 'showCourse']);
+        $group->get('/hr/training/sessions/create', [\App\Controllers\TrainingController::class, 'createSession']);
+        $group->post('/hr/training/sessions', [\App\Controllers\TrainingController::class, 'storeSession']);
+        $group->get('/hr/training/sessions/{id}/edit', [\App\Controllers\TrainingController::class, 'editSession']);
+        $group->post('/hr/training/sessions/{id}', [\App\Controllers\TrainingController::class, 'updateSession']);
+        $group->post('/hr/training/sessions/{id}/delete', [\App\Controllers\TrainingController::class, 'deleteSession']);
+        $group->post('/hr/training/sessions/{id}/participants', [\App\Controllers\TrainingController::class, 'addParticipant']);
+        $group->post('/hr/training/sessions/{id}/participants/{participantId}/remove', [\App\Controllers\TrainingController::class, 'removeParticipant']);
+        $group->post('/hr/training/sessions/{id}/participants/{participantId}/complete', [\App\Controllers\TrainingController::class, 'completeParticipant']);
+        $group->get('/hr/training/sessions/{id}', [\App\Controllers\TrainingController::class, 'showSession']);
         $group->get('/hr/training/sessions', [\App\Controllers\TrainingController::class, 'sessions']);
         $group->get('/hr/training/participants', [\App\Controllers\TrainingController::class, 'participants']);
 
@@ -590,8 +617,18 @@ return function (App $app) {
         $group->get('/hr/recruitment', [\App\Controllers\RecruitmentController::class, 'index']);
         $group->get('/hr/recruitment/positions/create', [\App\Controllers\RecruitmentController::class, 'createPosition']);
         $group->post('/hr/recruitment/positions', [\App\Controllers\RecruitmentController::class, 'storePosition']);
+        $group->get('/hr/recruitment/positions/{id}/edit', [\App\Controllers\RecruitmentController::class, 'editPosition']);
+        $group->post('/hr/recruitment/positions/{id}', [\App\Controllers\RecruitmentController::class, 'updatePosition']);
+        $group->post('/hr/recruitment/positions/{id}/delete', [\App\Controllers\RecruitmentController::class, 'deletePosition']);
+        $group->get('/hr/recruitment/positions/{id}/applicants/create', [\App\Controllers\RecruitmentController::class, 'createApplicant']);
+        $group->post('/hr/recruitment/positions/{id}/applicants', [\App\Controllers\RecruitmentController::class, 'storeApplicant']);
         $group->get('/hr/recruitment/positions/{id}', [\App\Controllers\RecruitmentController::class, 'showPosition']);
         $group->get('/hr/recruitment/applicants', [\App\Controllers\RecruitmentController::class, 'applicants']);
+        $group->get('/hr/recruitment/applicants/{applicantId}/edit', [\App\Controllers\RecruitmentController::class, 'editApplicant']);
+        $group->post('/hr/recruitment/applicants/{applicantId}', [\App\Controllers\RecruitmentController::class, 'updateApplicant']);
+        $group->post('/hr/recruitment/applicants/{applicantId}/delete', [\App\Controllers\RecruitmentController::class, 'deleteApplicant']);
+        $group->post('/hr/recruitment/applicants/{applicantId}/status', [\App\Controllers\RecruitmentController::class, 'updateApplicantStatus']);
+        $group->get('/hr/recruitment/applicants/{applicantId}', [\App\Controllers\RecruitmentController::class, 'showApplicant']);
 
         // ─── HR: Expenses (Reseräkningar) ────────────────────────────────────
         $group->get('/hr/expenses', [\App\Controllers\ExpenseController::class, 'index']);

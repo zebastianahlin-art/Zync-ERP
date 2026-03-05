@@ -100,4 +100,72 @@ class CertificateRepository
             return [];
         }
     }
+
+    public function expiringCertificates(int $days = 30): array
+    {
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT c.*,
+                        CONCAT(e.first_name, \' \', e.last_name) AS employee_name,
+                        ct.name AS certificate_type_name
+                 FROM certificates c
+                 LEFT JOIN employees e ON c.employee_id = e.id
+                 LEFT JOIN certificate_types ct ON c.certificate_type_id = ct.id
+                 WHERE c.expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL :days DAY)
+                   AND c.is_deleted = 0
+                 ORDER BY c.expiry_date ASC'
+            );
+            $stmt->execute(['days' => $days]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    public function expiredCertificates(): array
+    {
+        try {
+            return Database::pdo()->query(
+                'SELECT c.*,
+                        CONCAT(e.first_name, \' \', e.last_name) AS employee_name,
+                        ct.name AS certificate_type_name
+                 FROM certificates c
+                 LEFT JOIN employees e ON c.employee_id = e.id
+                 LEFT JOIN certificate_types ct ON c.certificate_type_id = ct.id
+                 WHERE c.expiry_date < CURDATE() AND c.is_deleted = 0
+                 ORDER BY c.expiry_date DESC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    public function certificatesByEmployee(int $employeeId): array
+    {
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT c.*,
+                        ct.name AS certificate_type_name
+                 FROM certificates c
+                 LEFT JOIN certificate_types ct ON c.certificate_type_id = ct.id
+                 WHERE c.employee_id = :id AND c.is_deleted = 0
+                 ORDER BY c.expiry_date ASC'
+            );
+            $stmt->execute(['id' => $employeeId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    public function certificateTypes(): array
+    {
+        try {
+            return Database::pdo()->query(
+                'SELECT DISTINCT ct.name FROM certificate_types ct WHERE ct.is_deleted = 0 ORDER BY ct.name ASC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
 }

@@ -1,3 +1,9 @@
+<?php if (!empty($success)): ?>
+<div class="mb-4 rounded-lg bg-green-50 dark:bg-green-900/20 p-4 text-green-800 dark:text-green-300 text-sm">
+    <?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?>
+</div>
+<?php endif; ?>
+
 <div class="space-y-6">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Utbildningar</h1>
@@ -25,19 +31,32 @@
                         <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400 uppercase text-xs tracking-wide">Kategori</th>
                         <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400 uppercase text-xs tracking-wide">Tid (h)</th>
                         <th class="px-4 py-3 text-left text-gray-500 dark:text-gray-400 uppercase text-xs tracking-wide">Obligatorisk</th>
+                        <th class="px-4 py-3"></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                     <?php foreach ($courses as $course): ?>
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td class="px-4 py-3 font-medium text-gray-900 dark:text-white"><?= htmlspecialchars($course['name'], ENT_QUOTES, 'UTF-8') ?></td>
+                        <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                            <a href="/hr/training/courses/<?= (int)$course['id'] ?>" class="hover:text-indigo-600 dark:hover:text-indigo-400">
+                                <?= htmlspecialchars($course['name'], ENT_QUOTES, 'UTF-8') ?>
+                            </a>
+                        </td>
                         <td class="px-4 py-3 text-gray-600 dark:text-gray-400"><?= htmlspecialchars($course['category'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
-                        <td class="px-4 py-3"><?= htmlspecialchars((string) ($course['duration_h'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
-                        <td class="px-4 py-3"><?= $course['is_mandatory'] ? '<span class="text-green-600 dark:text-green-400">Ja</span>' : 'Nej' ?></td>
+                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400"><?= htmlspecialchars((string)($course['duration_h'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
+                        <td class="px-4 py-3"><?= $course['is_mandatory'] ? '<span class="text-green-600 dark:text-green-400">Ja</span>' : '<span class="text-gray-500 dark:text-gray-400">Nej</span>' ?></td>
+                        <td class="px-4 py-3 text-right whitespace-nowrap">
+                            <a href="/hr/training/courses/<?= (int)$course['id'] ?>" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline mr-2">Visa</a>
+                            <a href="/hr/training/courses/<?= (int)$course['id'] ?>/edit" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline mr-2">Redigera</a>
+                            <form method="POST" action="/hr/training/courses/<?= (int)$course['id'] ?>/delete" class="inline" onsubmit="return confirm('Ta bort utbildningen?')">
+                                <?= \App\Core\Csrf::field() ?>
+                                <button type="submit" class="text-xs text-red-500 hover:text-red-700">Ta bort</button>
+                            </form>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                     <?php if (empty($courses)): ?>
-                    <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">Inga utbildningar registrerade ännu</td></tr>
+                    <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 dark:text-gray-500">Inga utbildningar registrerade ännu</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
