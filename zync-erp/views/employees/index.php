@@ -48,8 +48,8 @@
                     ?>
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50"
                         x-show="
-                            (search === '' || '<?= strtolower(htmlspecialchars($emp['first_name'] . ' ' . $emp['last_name'] . ' ' . ($emp['email'] ?? ''), ENT_QUOTES, 'UTF-8')) ?>'.includes(search.toLowerCase())) &&
-                            (statusFilter === '' || statusFilter === '<?= htmlspecialchars($empStatus, ENT_QUOTES, 'UTF-8') ?>')
+                            (search === '' || <?= json_encode(strtolower($emp['first_name'] . ' ' . $emp['last_name'] . ' ' . ($emp['email'] ?? ''))) ?>.includes(search.toLowerCase())) &&
+                            (statusFilter === '' || statusFilter === <?= json_encode($empStatus) ?>)
                         ">
                         <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">
                             <a href="/employees/<?= (int)$emp['id'] ?>" class="hover:text-indigo-600 dark:hover:text-indigo-400">

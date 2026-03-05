@@ -49,7 +49,7 @@
                 ['href'=>'/hr/attendance','icon'=>'&#128197;','title'=>'N&#228;rvaro','desc'=>'N&#228;rvaro &amp; fr&#229;nvaro'],
                 ['href'=>'/hr/training','icon'=>'&#127891;','title'=>'Utbildningar','desc'=>'Kurser &amp; tillf&#228;llen'],
                 ['href'=>'/hr/recruitment','icon'=>'&#128269;','title'=>'Rekrytering','desc'=>'Tj&#228;nster &amp; s&#246;kande'],
-                ['href'=>'/hr/expenses','icon'=>'&#129534;','title'=>'Utl&#228;gg','desc'=>'Resер&#228;kningar'],
+                ['href'=>'/hr/expenses','icon'=>'&#129534;','title'=>'Utl&#228;gg','desc'=>'Reser&#228;kningar'],
                 ['href'=>'/employees/create','icon'=>'&#10133;','title'=>'Ny anst&#228;lld','desc'=>'Registrera ny personal'],
             ];
             foreach ($modules as $m): ?>
