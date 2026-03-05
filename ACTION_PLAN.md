@@ -65,7 +65,7 @@
 
 ## 📌 FAS E: Min Sida — Personlig arbetsyta
 **Prio: MEDEL-HÖG**
-**Status: ⏳ Planerad**
+**Status: ✅ Klar (PR #60)**
 
 | # | Åtgärd |
 |---|--------|
