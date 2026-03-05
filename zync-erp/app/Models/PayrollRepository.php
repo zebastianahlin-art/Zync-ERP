@@ -10,18 +10,26 @@ class PayrollRepository
 {
     public function allPeriods(): array
     {
-        return Database::pdo()->query(
-            'SELECT * FROM payroll_periods WHERE is_deleted = 0 ORDER BY period_from DESC'
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query(
+                'SELECT * FROM payroll_periods WHERE is_deleted = 0 ORDER BY period_from DESC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function findPeriod(int $id): ?array
     {
-        $stmt = Database::pdo()->prepare(
-            'SELECT * FROM payroll_periods WHERE id = ? AND is_deleted = 0'
-        );
-        $stmt->execute([$id]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT * FROM payroll_periods WHERE id = ? AND is_deleted = 0'
+            );
+            $stmt->execute([$id]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function createPeriod(array $data): int
@@ -42,14 +50,18 @@ class PayrollRepository
 
     public function periodPayslips(int $periodId): array
     {
-        $stmt = Database::pdo()->prepare(
-            'SELECT ps.*, e.first_name, e.last_name
-             FROM payroll_payslips ps
-             LEFT JOIN employees e ON ps.employee_id = e.id
-             WHERE ps.period_id = ? AND ps.is_deleted = 0
-             ORDER BY e.last_name ASC'
-        );
-        $stmt->execute([$periodId]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT ps.*, e.first_name, e.last_name
+                 FROM payroll_payslips ps
+                 LEFT JOIN employees e ON ps.employee_id = e.id
+                 WHERE ps.period_id = ? AND ps.is_deleted = 0
+                 ORDER BY e.last_name ASC'
+            );
+            $stmt->execute([$periodId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 }

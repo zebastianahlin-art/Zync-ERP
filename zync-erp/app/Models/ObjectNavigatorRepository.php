@@ -84,51 +84,80 @@ class ObjectNavigatorRepository
     /**
      * Sync live data into the object_registry table.
      * This rebuilds/upserts entries from the primary tables.
+     * Each source table is synced independently; failures in one do not abort the others.
      */
     public function sync(): void
     {
         $pdo = Database::pdo();
 
         // Machines
-        $machines = $pdo->query("SELECT id, name, location, status FROM machines WHERE is_deleted = 0")->fetchAll(\PDO::FETCH_ASSOC);
-        foreach ($machines as $m) {
-            $this->upsert($pdo, 'machine', $m['id'], $m['name'], implode(' ', array_filter([$m['name'], $m['location'], $m['status']])), null, null, json_encode(['status' => $m['status'], 'location' => $m['location']]));
+        try {
+            $machines = $pdo->query("SELECT id, name, location, status FROM machines WHERE is_deleted = 0")->fetchAll(\PDO::FETCH_ASSOC);
+            foreach ($machines as $m) {
+                $this->upsert($pdo, 'machine', $m['id'], $m['name'], implode(' ', array_filter([$m['name'], $m['location'], $m['status']])), null, null, json_encode(['status' => $m['status'], 'location' => $m['location']]));
+            }
+        } catch (\Exception $e) {
+            // machines table unavailable – skip
         }
 
         // Equipment
-        $equip = $pdo->query("SELECT e.id, e.name, e.location, e.status, m.id AS parent_mid FROM equipment e LEFT JOIN machines m ON e.parent_id = m.id WHERE e.is_deleted = 0")->fetchAll(\PDO::FETCH_ASSOC);
-        foreach ($equip as $e) {
-            $this->upsert($pdo, 'equipment', $e['id'], $e['name'], implode(' ', array_filter([$e['name'], $e['location'], $e['status']])), $e['parent_mid'] ? 'machine' : null, $e['parent_mid'] ?: null, json_encode(['status' => $e['status']]));
+        try {
+            $equip = $pdo->query("SELECT e.id, e.name, e.location, e.status, m.id AS parent_mid FROM equipment e LEFT JOIN machines m ON e.parent_id = m.id WHERE e.is_deleted = 0")->fetchAll(\PDO::FETCH_ASSOC);
+            foreach ($equip as $e) {
+                $this->upsert($pdo, 'equipment', $e['id'], $e['name'], implode(' ', array_filter([$e['name'], $e['location'], $e['status']])), $e['parent_mid'] ? 'machine' : null, $e['parent_mid'] ?: null, json_encode(['status' => $e['status']]));
+            }
+        } catch (\Exception $e) {
+            // equipment table unavailable – skip
         }
 
         // Articles
-        $articles = $pdo->query("SELECT id, article_number, name, unit FROM articles WHERE is_deleted = 0")->fetchAll(\PDO::FETCH_ASSOC);
-        foreach ($articles as $a) {
-            $this->upsert($pdo, 'article', $a['id'], $a['name'] . ' (' . $a['article_number'] . ')', implode(' ', array_filter([$a['name'], $a['article_number'], $a['unit']])), null, null, json_encode(['article_number' => $a['article_number']]));
+        try {
+            $articles = $pdo->query("SELECT id, article_number, name, unit FROM articles WHERE is_deleted = 0")->fetchAll(\PDO::FETCH_ASSOC);
+            foreach ($articles as $a) {
+                $this->upsert($pdo, 'article', $a['id'], $a['name'] . ' (' . $a['article_number'] . ')', implode(' ', array_filter([$a['name'], $a['article_number'], $a['unit']])), null, null, json_encode(['article_number' => $a['article_number']]));
+            }
+        } catch (\Exception $e) {
+            // articles table unavailable – skip
         }
 
         // Customers
-        $customers = $pdo->query("SELECT id, name, email FROM customers WHERE is_deleted = 0")->fetchAll(\PDO::FETCH_ASSOC);
-        foreach ($customers as $c) {
-            $this->upsert($pdo, 'customer', $c['id'], $c['name'], implode(' ', array_filter([$c['name'], $c['email']])), null, null, null);
+        try {
+            $customers = $pdo->query("SELECT id, name, email FROM customers WHERE is_deleted = 0")->fetchAll(\PDO::FETCH_ASSOC);
+            foreach ($customers as $c) {
+                $this->upsert($pdo, 'customer', $c['id'], $c['name'], implode(' ', array_filter([$c['name'], $c['email']])), null, null, null);
+            }
+        } catch (\Exception $e) {
+            // customers table unavailable – skip
         }
 
         // Suppliers
-        $suppliers = $pdo->query("SELECT id, name, email FROM suppliers WHERE is_deleted = 0")->fetchAll(\PDO::FETCH_ASSOC);
-        foreach ($suppliers as $s) {
-            $this->upsert($pdo, 'supplier', $s['id'], $s['name'], implode(' ', array_filter([$s['name'], $s['email']])), null, null, null);
+        try {
+            $suppliers = $pdo->query("SELECT id, name, email FROM suppliers WHERE is_deleted = 0")->fetchAll(\PDO::FETCH_ASSOC);
+            foreach ($suppliers as $s) {
+                $this->upsert($pdo, 'supplier', $s['id'], $s['name'], implode(' ', array_filter([$s['name'], $s['email']])), null, null, null);
+            }
+        } catch (\Exception $e) {
+            // suppliers table unavailable – skip
         }
 
         // Employees (users)
-        $users = $pdo->query("SELECT id, full_name, email FROM users WHERE is_active = 1")->fetchAll(\PDO::FETCH_ASSOC);
-        foreach ($users as $u) {
-            $this->upsert($pdo, 'employee', $u['id'], $u['full_name'], implode(' ', array_filter([$u['full_name'], $u['email']])), null, null, null);
+        try {
+            $users = $pdo->query("SELECT id, full_name, email FROM users WHERE is_active = 1")->fetchAll(\PDO::FETCH_ASSOC);
+            foreach ($users as $u) {
+                $this->upsert($pdo, 'employee', $u['id'], $u['full_name'], implode(' ', array_filter([$u['full_name'], $u['email']])), null, null, null);
+            }
+        } catch (\Exception $e) {
+            // users table unavailable – skip
         }
 
         // Work orders
-        $wos = $pdo->query("SELECT id, wo_number, title, status FROM work_orders WHERE is_deleted = 0")->fetchAll(\PDO::FETCH_ASSOC);
-        foreach ($wos as $w) {
-            $this->upsert($pdo, 'work_order', $w['id'], $w['wo_number'] . ' – ' . $w['title'], implode(' ', array_filter([$w['wo_number'], $w['title'], $w['status']])), null, null, json_encode(['status' => $w['status']]));
+        try {
+            $wos = $pdo->query("SELECT id, wo_number, title, status FROM work_orders WHERE is_deleted = 0")->fetchAll(\PDO::FETCH_ASSOC);
+            foreach ($wos as $w) {
+                $this->upsert($pdo, 'work_order', $w['id'], $w['wo_number'] . ' – ' . $w['title'], implode(' ', array_filter([$w['wo_number'], $w['title'], $w['status']])), null, null, json_encode(['status' => $w['status']]));
+            }
+        } catch (\Exception $e) {
+            // work_orders table unavailable – skip
         }
     }
 

@@ -49,24 +49,32 @@ class ProjectRepository
 
     public function tasks(int $projectId): array
     {
-        $stmt = Database::pdo()->prepare(
-            'SELECT t.*, u.full_name AS assigned_name
-             FROM project_tasks t
-             LEFT JOIN users u ON t.assigned_to = u.id
-             WHERE t.project_id = ? AND t.is_deleted = 0
-             ORDER BY t.due_date ASC'
-        );
-        $stmt->execute([$projectId]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT t.*, u.full_name AS assigned_name
+                 FROM project_tasks t
+                 LEFT JOIN users u ON t.assigned_to = u.id
+                 WHERE t.project_id = ? AND t.is_deleted = 0
+                 ORDER BY t.due_date ASC'
+            );
+            $stmt->execute([$projectId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function budgetLines(int $projectId): array
     {
-        $stmt = Database::pdo()->prepare(
-            'SELECT * FROM project_budget_lines WHERE project_id = ? AND is_deleted = 0 ORDER BY id ASC'
-        );
-        $stmt->execute([$projectId]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT * FROM project_budget_lines WHERE project_id = ? AND is_deleted = 0 ORDER BY id ASC'
+            );
+            $stmt->execute([$projectId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function create(array $data): int
