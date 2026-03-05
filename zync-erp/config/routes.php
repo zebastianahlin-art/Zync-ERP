@@ -669,7 +669,48 @@ return function (App $app) {
         $group->get('/roles/{id}/edit', [\App\Controllers\AdminController::class, 'editRole']);
         $group->post('/roles/{id}', [\App\Controllers\AdminController::class, 'updateRole']);
         $group->post('/roles/{id}/delete', [\App\Controllers\AdminController::class, 'deleteRole']);
+
+        // ─── Admin: Settings, Modules, Site, Audit Log ─────────────────────────
+        $group->get('/settings', [\App\Controllers\AdminController::class, 'settings']);
+        $group->post('/settings', [\App\Controllers\AdminController::class, 'updateSettings']);
+        $group->get('/modules', [\App\Controllers\AdminController::class, 'modules']);
+        $group->post('/modules/{id}/toggle', [\App\Controllers\AdminController::class, 'toggleModule']);
+        $group->get('/site', [\App\Controllers\AdminController::class, 'siteSettings']);
+        $group->post('/site', [\App\Controllers\AdminController::class, 'updateSiteSettings']);
+        $group->get('/audit-log', [\App\Controllers\AdminController::class, 'auditLog']);
+        $group->post('/audit-log/clear', [\App\Controllers\AdminController::class, 'clearAuditLog']);
     })->add(new CsrfMiddleware())->add(new \App\Middleware\RoleMiddleware(minLevel: 7))->add(new AuthMiddleware());
+
+    // SaaS Admin routes — require role_level >= 9
+    $app->group('/saas-admin', function (RouteCollectorProxy $group) {
+        $group->get('', [\App\Controllers\SaasAdminController::class, 'index']);
+
+        // Tenants
+        $group->get('/tenants', [\App\Controllers\SaasAdminController::class, 'tenants']);
+        $group->get('/tenants/create', [\App\Controllers\SaasAdminController::class, 'createTenant']);
+        $group->post('/tenants', [\App\Controllers\SaasAdminController::class, 'storeTenant']);
+        $group->get('/tenants/{id}', [\App\Controllers\SaasAdminController::class, 'showTenant']);
+        $group->get('/tenants/{id}/edit', [\App\Controllers\SaasAdminController::class, 'editTenant']);
+        $group->post('/tenants/{id}', [\App\Controllers\SaasAdminController::class, 'updateTenant']);
+        $group->post('/tenants/{id}/delete', [\App\Controllers\SaasAdminController::class, 'deleteTenant']);
+        $group->post('/tenants/{id}/modules/activate', [\App\Controllers\SaasAdminController::class, 'activateModule']);
+        $group->post('/tenants/{id}/modules/deactivate', [\App\Controllers\SaasAdminController::class, 'deactivateModule']);
+
+        // Invoices
+        $group->get('/invoices', [\App\Controllers\SaasAdminController::class, 'invoices']);
+        $group->get('/invoices/create', [\App\Controllers\SaasAdminController::class, 'createInvoice']);
+        $group->post('/invoices', [\App\Controllers\SaasAdminController::class, 'storeInvoice']);
+        $group->get('/invoices/{id}', [\App\Controllers\SaasAdminController::class, 'showInvoice']);
+        $group->get('/invoices/{id}/edit', [\App\Controllers\SaasAdminController::class, 'editInvoice']);
+        $group->post('/invoices/{id}', [\App\Controllers\SaasAdminController::class, 'updateInvoice']);
+        $group->post('/invoices/{id}/status', [\App\Controllers\SaasAdminController::class, 'updateInvoiceStatus']);
+
+        // Support
+        $group->get('/support', [\App\Controllers\SaasAdminController::class, 'tickets']);
+        $group->get('/support/{id}', [\App\Controllers\SaasAdminController::class, 'showTicket']);
+        $group->post('/support/{id}/status', [\App\Controllers\SaasAdminController::class, 'updateTicketStatus']);
+        $group->post('/support/{id}/comment', [\App\Controllers\SaasAdminController::class, 'addComment']);
+    })->add(new CsrfMiddleware())->add(new \App\Middleware\RoleMiddleware(minLevel: 9))->add(new AuthMiddleware());
 
     // Public API routes (no JWT required)
     $app->group('/api/v1', function (RouteCollectorProxy $group) {

@@ -300,7 +300,38 @@ function mobileActive(string $path, string $currentPath): string {
                 <div class="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
 
                 <?php if (($_layoutUser['role_level'] ?? 0) >= 7): ?>
-                <a href="/admin" class="px-3 py-2 rounded-md transition-colors <?= navActive('/admin', $currentPath) ?>">Admin</a>
+                <!-- Admin dropdown -->
+                <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
+                    <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
+                        Admin <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="show" x-transition class="absolute right-0 mt-1 w-52 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                        <a href="/admin" class="block px-4 py-2 text-sm <?= mobileActive('/admin', $currentPath) ?>">Dashboard (Admin)</a>
+                        <a href="/admin/settings" class="block px-4 py-2 text-sm <?= mobileActive('/admin/settings', $currentPath) ?>">Systeminställningar</a>
+                        <a href="/admin/modules" class="block px-4 py-2 text-sm <?= mobileActive('/admin/modules', $currentPath) ?>">Moduladministration</a>
+                        <a href="/admin/site" class="block px-4 py-2 text-sm <?= mobileActive('/admin/site', $currentPath) ?>">Site-inställningar</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <a href="/admin/users" class="block px-4 py-2 text-sm <?= mobileActive('/admin/users', $currentPath) ?>">Användarhantering</a>
+                        <a href="/admin/roles" class="block px-4 py-2 text-sm <?= mobileActive('/admin/roles', $currentPath) ?>">Rollhantering</a>
+                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                        <a href="/admin/audit-log" class="block px-4 py-2 text-sm <?= mobileActive('/admin/audit-log', $currentPath) ?>">Audit-logg</a>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <?php if (($_layoutUser['role_level'] ?? 0) >= 9): ?>
+                <!-- SaaS Admin dropdown -->
+                <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
+                    <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 flex items-center gap-1">
+                        SaaS Admin <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="show" x-transition class="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                        <a href="/saas-admin" class="block px-4 py-2 text-sm <?= mobileActive('/saas-admin', $currentPath) ?>">Dashboard</a>
+                        <a href="/saas-admin/tenants" class="block px-4 py-2 text-sm <?= mobileActive('/saas-admin/tenants', $currentPath) ?>">Kunder</a>
+                        <a href="/saas-admin/invoices" class="block px-4 py-2 text-sm <?= mobileActive('/saas-admin/invoices', $currentPath) ?>">Fakturering</a>
+                        <a href="/saas-admin/support" class="block px-4 py-2 text-sm <?= mobileActive('/saas-admin/support', $currentPath) ?>">Support</a>
+                    </div>
+                </div>
                 <?php endif; ?>
 
                 <!-- 15. User menu -->
@@ -498,7 +529,21 @@ function mobileActive(string $path, string $currentPath): string {
         <hr class="my-2 border-gray-200 dark:border-gray-700">
         <!-- 14. Admin -->
         <?php if (($_layoutUser['role_level'] ?? 0) >= 7): ?>
-        <a href="/admin" class="block rounded px-3 py-2 text-sm <?= mobileActive('/admin', $currentPath) ?>">Admin</a>
+        <p class="px-3 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Admin</p>
+        <a href="/admin" class="block rounded px-3 py-2 text-sm <?= mobileActive('/admin', $currentPath) ?>">Dashboard (Admin)</a>
+        <a href="/admin/settings" class="block rounded px-3 py-2 text-sm <?= mobileActive('/admin/settings', $currentPath) ?>">Systeminställningar</a>
+        <a href="/admin/modules" class="block rounded px-3 py-2 text-sm <?= mobileActive('/admin/modules', $currentPath) ?>">Moduladministration</a>
+        <a href="/admin/site" class="block rounded px-3 py-2 text-sm <?= mobileActive('/admin/site', $currentPath) ?>">Site-inställningar</a>
+        <a href="/admin/users" class="block rounded px-3 py-2 text-sm <?= mobileActive('/admin/users', $currentPath) ?>">Användarhantering</a>
+        <a href="/admin/roles" class="block rounded px-3 py-2 text-sm <?= mobileActive('/admin/roles', $currentPath) ?>">Rollhantering</a>
+        <a href="/admin/audit-log" class="block rounded px-3 py-2 text-sm <?= mobileActive('/admin/audit-log', $currentPath) ?>">Audit-logg</a>
+        <?php endif; ?>
+        <?php if (($_layoutUser['role_level'] ?? 0) >= 9): ?>
+        <p class="px-3 pt-2 pb-1 text-xs font-semibold text-purple-500 uppercase tracking-wider">SaaS Admin</p>
+        <a href="/saas-admin" class="block rounded px-3 py-2 text-sm <?= mobileActive('/saas-admin', $currentPath) ?>">Dashboard</a>
+        <a href="/saas-admin/tenants" class="block rounded px-3 py-2 text-sm <?= mobileActive('/saas-admin/tenants', $currentPath) ?>">Kunder</a>
+        <a href="/saas-admin/invoices" class="block rounded px-3 py-2 text-sm <?= mobileActive('/saas-admin/invoices', $currentPath) ?>">Fakturering</a>
+        <a href="/saas-admin/support" class="block rounded px-3 py-2 text-sm <?= mobileActive('/saas-admin/support', $currentPath) ?>">Support</a>
         <?php endif; ?>
         <!-- 15. User menu -->
         <a href="/my-page" class="block rounded px-3 py-2 text-sm <?= mobileActive('/my-page', $currentPath) ?>">Min Sida</a>
