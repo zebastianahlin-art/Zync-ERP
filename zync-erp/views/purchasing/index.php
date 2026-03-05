@@ -1,7 +1,6 @@
+<?php $breadcrumbs = [['label' => 'Dashboard', 'url' => '/dashboard'], ['label' => 'Inköp']]; ?>
+<?php include dirname(__DIR__) . '/partials/breadcrumbs.php'; ?>
 <div class="space-y-6">
-    <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Inköp</h1>
-    </div>
 
     <?php if (!empty($success)): ?>
         <div class="rounded-lg bg-green-50 dark:bg-green-900/30 p-4 text-green-800 dark:text-green-200"><?= htmlspecialchars($success) ?></div>

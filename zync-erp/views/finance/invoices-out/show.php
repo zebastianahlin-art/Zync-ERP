@@ -87,7 +87,7 @@ $color = $statusColors[$invoice['status']] ?? 'gray';
                     <td class="px-4 py-3 text-xs font-mono text-gray-500"><?= htmlspecialchars(($l['account_number'] ?? '') ? $l['account_number'] . ' ' . $l['account_name'] : '—') ?></td>
                     <td class="px-4 py-3 text-xs font-mono text-gray-500"><?= htmlspecialchars(($l['cost_center_code'] ?? '') ? $l['cost_center_code'] . ' ' . $l['cost_center_name'] : '—') ?></td>
                     <?php if ($invoice['status'] === 'draft'): ?>
-                    <td class="px-4 py-3"><form method="POST" action="/finance/invoices-out/<?= $invoice['id'] ?>/lines/<?= $l['id'] ?>/delete"><?= \App\Core\Csrf::field() ?><button class="text-red-500 hover:text-red-700 text-xs">Ta bort</button></form></td>
+                    <td class="px-4 py-3"><form method="POST" action="/finance/invoices-out/<?= $invoice['id'] ?>/lines/<?= $l['id'] ?>/delete" onsubmit="return confirm('Ta bort denna rad?')"><?= \App\Core\Csrf::field() ?><button class="text-red-500 hover:text-red-700 text-xs">Ta bort</button></form></td>
                     <?php endif; ?>
                 </tr>
                 <?php endforeach; ?>

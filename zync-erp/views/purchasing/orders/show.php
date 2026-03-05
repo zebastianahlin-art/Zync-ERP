@@ -127,7 +127,7 @@
                         <td class="px-4 py-3 text-gray-600 dark:text-gray-400 font-mono text-xs"><?= htmlspecialchars(($l['cost_center_code'] ?? '') ? $l['cost_center_code'] . ' ' . $l['cost_center_name'] : '—') ?></td>
                         <?php if ($order['status'] === 'draft'): ?>
                         <td class="px-4 py-3">
-                            <form method="POST" action="/purchasing/orders/<?= $order['id'] ?>/lines/<?= $l['id'] ?>/delete" class="inline">
+                            <form method="POST" action="/purchasing/orders/<?= $order['id'] ?>/lines/<?= $l['id'] ?>/delete" class="inline" onsubmit="return confirm('Ta bort denna orderrad?')">
                                 <?= \App\Core\Csrf::field() ?>
                                 <button type="submit" class="text-red-500 hover:text-red-700 text-xs">Ta bort</button>
                             </form>

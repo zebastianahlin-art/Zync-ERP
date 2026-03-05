@@ -1,4 +1,6 @@
 <?php $outStats = $outStats ?? []; $inStats = $inStats ?? []; $overdue = $overdue ?? []; ?>
+<?php $breadcrumbs = [['label' => 'Dashboard', 'url' => '/dashboard'], ['label' => 'Ekonomi']]; ?>
+<?php include dirname(__DIR__) . '/partials/breadcrumbs.php'; ?>
 <div class="space-y-8">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Ekonomi — Översikt</h1>

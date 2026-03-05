@@ -1,3 +1,5 @@
+<?php $breadcrumbs = [['label' => 'Dashboard', 'url' => '/dashboard'], ['label' => 'Underhåll']]; ?>
+<?php include dirname(__DIR__) . '/partials/breadcrumbs.php'; ?>
 <div class="space-y-6">
     <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Underhåll — Dashboard</h1>
 
