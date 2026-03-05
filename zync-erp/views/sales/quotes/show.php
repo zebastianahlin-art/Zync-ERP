@@ -14,7 +14,8 @@
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Kund: <?= htmlspecialchars($quote['customer_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></p>
         </div>
         <div class="flex items-center gap-3">
-            <?php if (empty($quote['converted_to_order_id']) && !in_array($quote['status'], ['rejected','expired'], true)): ?>
+            <?php $terminalStatuses = ['rejected', 'expired']; ?>
+            <?php if (empty($quote['converted_to_order_id']) && !in_array($quote['status'], $terminalStatuses, true)): ?>
             <form method="POST" action="/sales/quotes/<?= $quote['id'] ?>/convert" onsubmit="return confirm('Konvertera offerten till en säljorder?')">
                 <?= \App\Core\Csrf::field() ?>
                 <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition">Konvertera till order</button>

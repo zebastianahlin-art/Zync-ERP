@@ -277,8 +277,7 @@ class TransportRepository
         try {
             $stmt = $pdo->prepare(
                 "INSERT INTO suppliers (name, email, phone, type, is_active, created_by)
-                 VALUES (:name, :email, :phone, 'carrier', 1, :created_by)
-                 ON DUPLICATE KEY UPDATE name = VALUES(name)"
+                 VALUES (:name, :email, :phone, 'carrier', 1, :created_by)"
             );
             $stmt->execute([
                 'name'       => $name,

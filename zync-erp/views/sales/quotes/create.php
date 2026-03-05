@@ -85,14 +85,13 @@
                         <template x-for="(line, index) in lines" :key="index">
                             <tr class="border-t border-gray-200 dark:border-gray-700">
                                 <td class="px-3 py-2">
-                                    <select :name="'line_article_id[' + index + ']'" @change="onArticleChange(index, $event)"
+                                    <select :name="'line_article_id[' + index + ']'" x-model="line.article_id" @change="onArticleChange(index, $event)"
                                         class="w-36 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500">
                                         <option value="">— Välj —</option>
                                         <?php foreach ($articles as $art): ?>
                                         <option value="<?= $art['id'] ?>"
                                             data-price="<?= htmlspecialchars((string) $art['selling_price'], ENT_QUOTES, 'UTF-8') ?>"
-                                            data-name="<?= htmlspecialchars($art['name'], ENT_QUOTES, 'UTF-8') ?>"
-                                            :selected="line.article_id == <?= $art['id'] ?>">
+                                            data-name="<?= htmlspecialchars($art['name'], ENT_QUOTES, 'UTF-8') ?>">
                                             <?= htmlspecialchars($art['article_number'] . ' – ' . $art['name'], ENT_QUOTES, 'UTF-8') ?>
                                         </option>
                                         <?php endforeach; ?>

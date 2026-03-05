@@ -26,6 +26,12 @@ return function (\PDO $pdo): void {
     }
     if (!in_array('converted_to_order_id', $quoteColumns, true)) {
         $pdo->exec("ALTER TABLE sales_quotes ADD COLUMN converted_to_order_id BIGINT UNSIGNED NULL AFTER payment_terms");
+        // FK constraint only if sales_orders exists
+        try {
+            $pdo->exec("ALTER TABLE sales_quotes ADD CONSTRAINT fk_sq_converted_order FOREIGN KEY (converted_to_order_id) REFERENCES sales_orders(id) ON DELETE SET NULL");
+        } catch (\Throwable $e) {
+            // Ignore if constraint already exists or sales_orders not available
+        }
     }
 
     // ── sales_price_lists: description column ────────────────────────────────
