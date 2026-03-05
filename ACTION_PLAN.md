@@ -39,7 +39,7 @@
 
 ## 📌 FAS C: Projektmodulen — Professionell nivå
 **Prio: HÖG**
-**Status: ⏳ Planerad**
+**Status: ✅ Klar (PR #59)**
 
 | # | Åtgärd |
 |---|--------|

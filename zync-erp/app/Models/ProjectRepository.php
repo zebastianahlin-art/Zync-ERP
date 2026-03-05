@@ -97,9 +97,9 @@ class ProjectRepository
     {
         $stmt = Database::pdo()->prepare(
             'INSERT INTO projects (project_number, name, description, customer_id, manager_id,
-             start_date, end_date, status, budget, created_by)
+             start_date, end_date, status, project_type, budget, planned_budget, created_by)
              VALUES (:project_number, :name, :description, :customer_id, :manager_id,
-             :start_date, :end_date, :status, :budget, :created_by)'
+             :start_date, :end_date, :status, :project_type, :budget, :planned_budget, :created_by)'
         );
         $stmt->execute([
             'project_number' => $data['project_number'],
@@ -110,7 +110,9 @@ class ProjectRepository
             'start_date'     => $data['start_date'] ?: null,
             'end_date'       => $data['end_date'] ?: null,
             'status'         => $data['status'] ?? 'planning',
+            'project_type'   => in_array($data['project_type'] ?? '', ['internal','external'], true) ? $data['project_type'] : 'internal',
             'budget'         => $data['budget'] ?: 0,
+            'planned_budget' => $data['planned_budget'] ?: $data['budget'] ?: 0,
             'created_by'     => $data['created_by'] ?? null,
         ]);
         return (int) Database::pdo()->lastInsertId();
@@ -121,7 +123,8 @@ class ProjectRepository
         $stmt = Database::pdo()->prepare(
             'UPDATE projects SET project_number = :project_number, name = :name,
              description = :description, customer_id = :customer_id, manager_id = :manager_id,
-             start_date = :start_date, end_date = :end_date, status = :status, budget = :budget
+             start_date = :start_date, end_date = :end_date, status = :status,
+             project_type = :project_type, budget = :budget, planned_budget = :planned_budget
              WHERE id = :id AND is_deleted = 0'
         );
         $stmt->execute([
@@ -133,9 +136,50 @@ class ProjectRepository
             'start_date'     => $data['start_date'] ?: null,
             'end_date'       => $data['end_date'] ?: null,
             'status'         => $data['status'] ?? 'planning',
+            'project_type'   => in_array($data['project_type'] ?? '', ['internal','external'], true) ? $data['project_type'] : 'internal',
             'budget'         => $data['budget'] ?: 0,
+            'planned_budget' => $data['planned_budget'] ?: $data['budget'] ?: 0,
             'id'             => $id,
         ]);
+    }
+
+    /** Recalculate actual_cost from project_costs + linked POs and store it */
+    public function recalcActualCost(int $projectId): void
+    {
+        try {
+            $pdo = Database::pdo();
+            $stmt = $pdo->prepare(
+                'SELECT COALESCE(SUM(amount),0) FROM project_costs WHERE project_id = ? AND is_deleted = 0'
+            );
+            $stmt->execute([$projectId]);
+            $costsTotal = (float) $stmt->fetchColumn();
+
+            $stmt = $pdo->prepare(
+                'SELECT COALESCE(SUM(po.total_amount),0)
+                 FROM project_purchase_orders ppo
+                 JOIN purchase_orders po ON po.id = ppo.purchase_order_id
+                 WHERE ppo.project_id = ?'
+            );
+            $stmt->execute([$projectId]);
+            $poTotal = (float) $stmt->fetchColumn();
+
+            $pdo->prepare('UPDATE projects SET actual_cost = ? WHERE id = ?')
+                ->execute([$costsTotal + $poTotal, $projectId]);
+        } catch (\Exception $e) {
+            // silently fail – actual_cost is a cache column
+        }
+    }
+
+    /** Return the current actual_cost for a project without a full re-fetch */
+    public function getActualCost(int $projectId): float
+    {
+        try {
+            $stmt = Database::pdo()->prepare('SELECT actual_cost FROM projects WHERE id = ?');
+            $stmt->execute([$projectId]);
+            return (float) $stmt->fetchColumn();
+        } catch (\Exception $e) {
+            return 0.0;
+        }
     }
 
     public function delete(int $id): void
@@ -217,5 +261,137 @@ class ProjectRepository
     public function deleteBudgetLine(int $id): void
     {
         Database::pdo()->prepare('UPDATE project_budget_lines SET is_deleted = 1 WHERE id = ?')->execute([$id]);
+    }
+
+    // ─── C2: Stakeholders ────────────────────────────────────────────────────
+
+    public function stakeholders(int $projectId): array
+    {
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT * FROM project_stakeholders WHERE project_id = ? AND is_deleted = 0 ORDER BY name ASC'
+            );
+            $stmt->execute([$projectId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    public function addStakeholder(int $projectId, array $data): int
+    {
+        $stmt = Database::pdo()->prepare(
+            'INSERT INTO project_stakeholders (project_id, name, role, email, phone, notes)
+             VALUES (?, ?, ?, ?, ?, ?)'
+        );
+        $stmt->execute([
+            $projectId,
+            $data['name'],
+            $data['role'] ?: 'Teammedlem',
+            $data['email'] ?: null,
+            $data['phone'] ?: null,
+            $data['notes'] ?: null,
+        ]);
+        return (int) Database::pdo()->lastInsertId();
+    }
+
+    public function deleteStakeholder(int $id): void
+    {
+        Database::pdo()->prepare('UPDATE project_stakeholders SET is_deleted = 1 WHERE id = ?')->execute([$id]);
+    }
+
+    // ─── C3: Koppling till Inköp ─────────────────────────────────────────────
+
+    public function linkedPurchaseOrders(int $projectId): array
+    {
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT ppo.id AS link_id, ppo.notes AS link_notes,
+                        po.id, po.order_number, po.status, po.total_amount, po.order_date,
+                        s.name AS supplier_name
+                 FROM project_purchase_orders ppo
+                 JOIN purchase_orders po ON po.id = ppo.purchase_order_id
+                 LEFT JOIN suppliers s ON po.supplier_id = s.id
+                 WHERE ppo.project_id = ?
+                 ORDER BY po.order_date DESC'
+            );
+            $stmt->execute([$projectId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    public function linkPurchaseOrder(int $projectId, int $poId, string $notes = ''): void
+    {
+        try {
+            $stmt = Database::pdo()->prepare(
+                'INSERT IGNORE INTO project_purchase_orders (project_id, purchase_order_id, notes) VALUES (?, ?, ?)'
+            );
+            $stmt->execute([$projectId, $poId, $notes ?: null]);
+        } catch (\Exception $e) {
+            // duplicate — ignore
+        }
+    }
+
+    public function unlinkPurchaseOrder(int $linkId): void
+    {
+        Database::pdo()->prepare('DELETE FROM project_purchase_orders WHERE id = ?')->execute([$linkId]);
+    }
+
+    public function allPurchaseOrders(): array
+    {
+        try {
+            return Database::pdo()->query(
+                "SELECT po.id, po.order_number, po.total_amount, po.status, s.name AS supplier_name
+                 FROM purchase_orders po
+                 LEFT JOIN suppliers s ON po.supplier_id = s.id
+                 WHERE po.is_deleted = 0
+                 ORDER BY po.order_date DESC"
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    // ─── C6: Kostnader ───────────────────────────────────────────────────────
+
+    public function costs(int $projectId): array
+    {
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT pc.*, u.full_name AS created_by_name
+                 FROM project_costs pc
+                 LEFT JOIN users u ON pc.created_by = u.id
+                 WHERE pc.project_id = ? AND pc.is_deleted = 0
+                 ORDER BY pc.cost_date DESC, pc.id DESC'
+            );
+            $stmt->execute([$projectId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    public function addCost(int $projectId, array $data): int
+    {
+        $stmt = Database::pdo()->prepare(
+            'INSERT INTO project_costs (project_id, description, amount, cost_date, category, created_by)
+             VALUES (?, ?, ?, ?, ?, ?)'
+        );
+        $stmt->execute([
+            $projectId,
+            $data['description'],
+            (float) ($data['amount'] ?? 0),
+            $data['cost_date'] ?: null,
+            $data['category'] ?: null,
+            $data['created_by'] ?? null,
+        ]);
+        return (int) Database::pdo()->lastInsertId();
+    }
+
+    public function deleteCost(int $id): void
+    {
+        Database::pdo()->prepare('UPDATE project_costs SET is_deleted = 1 WHERE id = ?')->execute([$id]);
     }
 }

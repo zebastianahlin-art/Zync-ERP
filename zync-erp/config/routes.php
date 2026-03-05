@@ -569,6 +569,20 @@ return function (App $app) {
         $group->post('/projects/{id}/tasks/{taskId}/delete', [\App\Controllers\ProjectController::class, 'deleteTask']);
         $group->post('/projects/{id}/budget', [\App\Controllers\ProjectController::class, 'addBudgetLine']);
         $group->post('/projects/{id}/budget/{lineId}/delete', [\App\Controllers\ProjectController::class, 'deleteBudgetLine']);
+        // C2 – Stakeholders
+        $group->post('/projects/{id}/stakeholders', [\App\Controllers\ProjectController::class, 'addStakeholder']);
+        $group->post('/projects/{id}/stakeholders/{stakeholderId}/delete', [\App\Controllers\ProjectController::class, 'deleteStakeholder']);
+        // C3 – Koppling till Inköp
+        $group->post('/projects/{id}/purchase-orders', [\App\Controllers\ProjectController::class, 'linkPurchaseOrder']);
+        $group->post('/projects/{id}/purchase-orders/{linkId}/delete', [\App\Controllers\ProjectController::class, 'unlinkPurchaseOrder']);
+        // C4 – PDF-rapport
+        $group->get('/projects/{id}/report', [\App\Controllers\ProjectController::class, 'report']);
+        // C5 – Kanban
+        $group->get('/projects/{id}/kanban', [\App\Controllers\ProjectController::class, 'kanban']);
+        $group->post('/projects/{id}/tasks/{taskId}/status', [\App\Controllers\ProjectController::class, 'updateTaskStatus']);
+        // C6 – Kostnader
+        $group->post('/projects/{id}/costs', [\App\Controllers\ProjectController::class, 'addCost']);
+        $group->post('/projects/{id}/costs/{costId}/delete', [\App\Controllers\ProjectController::class, 'deleteCost']);
 
         // ─── HR: Payroll (Lönehantering) ─────────────────────────────────────
         $group->get('/hr/payroll', [\App\Controllers\PayrollController::class, 'index']);
