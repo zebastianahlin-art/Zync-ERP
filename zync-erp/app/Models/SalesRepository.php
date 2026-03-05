@@ -25,6 +25,17 @@ class SalesRepository
         )->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    public function allArticles(): array
+    {
+        try {
+            return Database::pdo()->query(
+                'SELECT id, article_number, name, unit, selling_price FROM articles WHERE is_deleted = 0 ORDER BY article_number ASC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
     // ─── Quotes ────────────────────────────────────────────────────────────────
 
     public function allQuotes(): array
@@ -52,43 +63,86 @@ class SalesRepository
 
     public function quoteLines(int $quoteId): array
     {
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT ql.*, a.article_number, a.name AS article_name, a.unit AS article_unit
+                 FROM sales_quote_lines ql
+                 LEFT JOIN articles a ON ql.article_id = a.id
+                 WHERE ql.quote_id = ? AND ql.is_deleted = 0
+                 ORDER BY ql.id ASC'
+            );
+            $stmt->execute([$quoteId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            $stmt = Database::pdo()->prepare(
+                'SELECT * FROM sales_quote_lines WHERE quote_id = ? AND is_deleted = 0 ORDER BY id ASC'
+            );
+            $stmt->execute([$quoteId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        }
+    }
+
+    public function addQuoteLine(int $quoteId, array $data): void
+    {
         $stmt = Database::pdo()->prepare(
-            'SELECT * FROM sales_quote_lines WHERE quote_id = ? AND is_deleted = 0 ORDER BY id ASC'
+            'INSERT INTO sales_quote_lines (quote_id, article_id, description, quantity, unit_price, discount)
+             VALUES (:quote_id, :article_id, :description, :quantity, :unit_price, :discount)'
         );
+        $stmt->execute([
+            'quote_id'    => $quoteId,
+            'article_id'  => $data['article_id'] ?: null,
+            'description' => $data['description'] ?: null,
+            'quantity'    => (float) ($data['quantity'] ?? 1),
+            'unit_price'  => (float) ($data['unit_price'] ?? 0),
+            'discount'    => (float) ($data['discount'] ?? 0),
+        ]);
+    }
+
+    public function deleteQuoteLines(int $quoteId): void
+    {
+        $stmt = Database::pdo()->prepare('UPDATE sales_quote_lines SET is_deleted = 1 WHERE quote_id = ?');
         $stmt->execute([$quoteId]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     public function createQuote(array $data): int
     {
-        $stmt = Database::pdo()->prepare(
-            'INSERT INTO sales_quotes (quote_number, customer_id, valid_until, status, notes, created_by)
-             VALUES (:quote_number, :customer_id, :valid_until, :status, :notes, :created_by)'
+        $pdo  = Database::pdo();
+        $stmt = $pdo->prepare(
+            'INSERT INTO sales_quotes
+             (quote_number, customer_id, valid_until, status, notes, delivery_terms, payment_terms, created_by)
+             VALUES
+             (:quote_number, :customer_id, :valid_until, :status, :notes, :delivery_terms, :payment_terms, :created_by)'
         );
         $stmt->execute([
-            'quote_number' => $data['quote_number'],
-            'customer_id'  => $data['customer_id'] ?: null,
-            'valid_until'  => $data['valid_until'] ?: null,
-            'status'       => $data['status'] ?? 'draft',
-            'notes'        => $data['notes'] ?: null,
-            'created_by'   => $data['created_by'] ?? null,
+            'quote_number'   => $data['quote_number'],
+            'customer_id'    => $data['customer_id'] ?: null,
+            'valid_until'    => $data['valid_until'] ?: null,
+            'status'         => $data['status'] ?? 'draft',
+            'notes'          => $data['notes'] ?: null,
+            'delivery_terms' => $data['delivery_terms'] ?: null,
+            'payment_terms'  => $data['payment_terms'] ?: null,
+            'created_by'     => $data['created_by'] ?? null,
         ]);
-        return (int) Database::pdo()->lastInsertId();
+        return (int) $pdo->lastInsertId();
     }
 
     public function updateQuote(int $id, array $data): void
     {
         $stmt = Database::pdo()->prepare(
-            'UPDATE sales_quotes SET quote_number = :quote_number, customer_id = :customer_id,
-             valid_until = :valid_until, status = :status, notes = :notes WHERE id = :id AND is_deleted = 0'
+            'UPDATE sales_quotes SET
+             quote_number = :quote_number, customer_id = :customer_id, valid_until = :valid_until,
+             status = :status, notes = :notes, delivery_terms = :delivery_terms, payment_terms = :payment_terms
+             WHERE id = :id AND is_deleted = 0'
         );
         $stmt->execute([
-            'quote_number' => $data['quote_number'],
-            'customer_id'  => $data['customer_id'] ?: null,
-            'valid_until'  => $data['valid_until'] ?: null,
-            'status'       => $data['status'] ?? 'draft',
-            'notes'        => $data['notes'] ?: null,
-            'id'           => $id,
+            'quote_number'   => $data['quote_number'],
+            'customer_id'    => $data['customer_id'] ?: null,
+            'valid_until'    => $data['valid_until'] ?: null,
+            'status'         => $data['status'] ?? 'draft',
+            'notes'          => $data['notes'] ?: null,
+            'delivery_terms' => $data['delivery_terms'] ?: null,
+            'payment_terms'  => $data['payment_terms'] ?: null,
+            'id'             => $id,
         ]);
     }
 
@@ -96,6 +150,60 @@ class SalesRepository
     {
         $stmt = Database::pdo()->prepare('UPDATE sales_quotes SET is_deleted = 1 WHERE id = ?');
         $stmt->execute([$id]);
+    }
+
+    /**
+     * Konvertera offert till säljorder. Kopierar offertrader och uppdaterar offertens status.
+     */
+    public function convertQuoteToOrder(int $quoteId, int $createdBy): int
+    {
+        $pdo   = Database::pdo();
+        $quote = $this->findQuote($quoteId);
+        if (!$quote) {
+            throw new \RuntimeException('Offerten hittades inte.');
+        }
+
+        $year  = date('Y');
+        $count = (int) $pdo->query('SELECT COUNT(*) FROM sales_orders')->fetchColumn() + 1;
+        $orderNumber = 'ORD-' . $year . '-' . str_pad((string) $count, 4, '0', STR_PAD_LEFT);
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO sales_orders (order_number, customer_id, quote_id, status, notes, created_by)
+             VALUES (:order_number, :customer_id, :quote_id, :status, :notes, :created_by)'
+        );
+        $stmt->execute([
+            'order_number' => $orderNumber,
+            'customer_id'  => $quote['customer_id'] ?: null,
+            'quote_id'     => $quoteId,
+            'status'       => 'confirmed',
+            'notes'        => $quote['notes'] ?: null,
+            'created_by'   => $createdBy,
+        ]);
+        $orderId = (int) $pdo->lastInsertId();
+
+        // Kopiera offertrader till orderrader
+        $lines = $this->quoteLines($quoteId);
+        foreach ($lines as $line) {
+            $ls = $pdo->prepare(
+                'INSERT INTO sales_order_lines (order_id, article_id, description, quantity, unit_price, discount)
+                 VALUES (:order_id, :article_id, :description, :quantity, :unit_price, :discount)'
+            );
+            $ls->execute([
+                'order_id'    => $orderId,
+                'article_id'  => $line['article_id'] ?: null,
+                'description' => $line['description'] ?: null,
+                'quantity'    => $line['quantity'],
+                'unit_price'  => $line['unit_price'],
+                'discount'    => $line['discount'],
+            ]);
+        }
+
+        // Uppdatera offertens status och länk till order
+        $pdo->prepare(
+            'UPDATE sales_quotes SET status = :status, converted_to_order_id = :oid WHERE id = :id'
+        )->execute(['status' => 'accepted', 'oid' => $orderId, 'id' => $quoteId]);
+
+        return $orderId;
     }
 
     // ─── Orders ────────────────────────────────────────────────────────────────
@@ -260,23 +368,36 @@ class SalesRepository
 
     public function priceListItems(int $priceListId): array
     {
-        $stmt = Database::pdo()->prepare(
-            'SELECT * FROM sales_price_list_items WHERE price_list_id = ? AND is_deleted = 0 ORDER BY id ASC'
-        );
-        $stmt->execute([$priceListId]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT pli.*, a.article_number, a.name AS article_name, a.unit AS article_unit
+                 FROM sales_price_list_items pli
+                 LEFT JOIN articles a ON pli.article_id = a.id
+                 WHERE pli.price_list_id = ? AND pli.is_deleted = 0
+                 ORDER BY pli.id ASC'
+            );
+            $stmt->execute([$priceListId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            $stmt = Database::pdo()->prepare(
+                'SELECT * FROM sales_price_list_items WHERE price_list_id = ? AND is_deleted = 0 ORDER BY id ASC'
+            );
+            $stmt->execute([$priceListId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        }
     }
 
     public function addPriceListItem(int $priceListId, array $data): int
     {
         $pdo  = Database::pdo();
         $stmt = $pdo->prepare(
-            'INSERT INTO sales_price_list_items (price_list_id, product_name, description, unit_price, currency, unit)
-             VALUES (:price_list_id, :product_name, :description, :unit_price, :currency, :unit)'
+            'INSERT INTO sales_price_list_items (price_list_id, article_id, product_name, description, unit_price, currency, unit)
+             VALUES (:price_list_id, :article_id, :product_name, :description, :unit_price, :currency, :unit)'
         );
         $stmt->execute([
             'price_list_id' => $priceListId,
-            'product_name'  => $data['product_name'],
+            'article_id'    => $data['article_id'] ?: null,
+            'product_name'  => $data['product_name'] ?: '',
             'description'   => $data['description'] ?: null,
             'unit_price'    => (float) ($data['unit_price'] ?? 0),
             'currency'      => $data['currency'] ?? 'SEK',

@@ -43,11 +43,23 @@
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Leverantör</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Leverantör (avsändare)</label>
             <select name="supplier_id" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="">— Välj leverantör —</option>
                 <?php foreach ($suppliers as $s): ?>
                 <option value="<?= $s['id'] ?>" <?= ($old['supplier_id'] ?? '') == $s['id'] ? 'selected' : '' ?>><?= htmlspecialchars($s['name'], ENT_QUOTES, 'UTF-8') ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Artikel / Gods</label>
+            <select name="article_id" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">— Välj artikel (valfritt) —</option>
+                <?php foreach ($articles ?? [] as $a): ?>
+                <option value="<?= $a['id'] ?>" <?= ($old['article_id'] ?? '') == $a['id'] ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($a['article_number'] . ' – ' . $a['name'], ENT_QUOTES, 'UTF-8') ?>
+                </option>
                 <?php endforeach; ?>
             </select>
         </div>

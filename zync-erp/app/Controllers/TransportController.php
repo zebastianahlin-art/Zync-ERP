@@ -48,6 +48,7 @@ class TransportController extends Controller
             'carriers'  => $this->repo->allCarriers(),
             'customers' => $this->repo->allCustomers(),
             'suppliers' => $this->repo->allSuppliers(),
+            'articles'  => $this->repo->allArticles(),
             'errors'    => [],
             'old'       => [],
         ]);
@@ -65,6 +66,7 @@ class TransportController extends Controller
                 'carriers'  => $this->repo->allCarriers(),
                 'customers' => $this->repo->allCustomers(),
                 'suppliers' => $this->repo->allSuppliers(),
+                'articles'  => $this->repo->allArticles(),
                 'errors'    => $errors,
                 'old'       => $data,
             ]);
@@ -175,9 +177,10 @@ class TransportController extends Controller
     public function createCarrier(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         return $this->render($response, 'transport/carriers/create', [
-            'title'  => 'Ny transportör – ZYNC ERP',
-            'errors' => [],
-            'old'    => [],
+            'title'     => 'Ny transportör – ZYNC ERP',
+            'suppliers' => $this->repo->allSuppliers(),
+            'errors'    => [],
+            'old'       => [],
         ]);
     }
 
@@ -189,14 +192,31 @@ class TransportController extends Controller
 
         if (!empty($errors)) {
             return $this->render($response, 'transport/carriers/create', [
-                'title'  => 'Ny transportör – ZYNC ERP',
-                'errors' => $errors,
-                'old'    => $data,
+                'title'     => 'Ny transportör – ZYNC ERP',
+                'suppliers' => $this->repo->allSuppliers(),
+                'errors'    => $errors,
+                'old'       => $data,
             ]);
         }
 
         $data['created_by'] = Auth::id();
-        $this->repo->createCarrier($data);
+        $carrierId = $this->repo->createCarrier($data);
+
+        // B6: Synkronisera med leverantörsregistret
+        $body = (array) $request->getParsedBody();
+        $syncSupplier    = !empty($body['sync_supplier']);
+        $existingSupplId = (int) ($body['existing_supplier_id'] ?? 0);
+        if ($syncSupplier || $existingSupplId > 0) {
+            $this->repo->syncCarrierWithSupplier(
+                $carrierId,
+                $data['name'],
+                $data['email'] ?? '',
+                $data['phone'] ?? '',
+                (int) Auth::id(),
+                $existingSupplId ?: null
+            );
+        }
+
         Flash::set('success', 'Transportören skapades.');
         return $this->redirect($response, '/transport/carriers');
     }
@@ -260,6 +280,7 @@ class TransportController extends Controller
             'customer_id'      => trim((string) ($body['customer_id']      ?? '')),
             'supplier_id'      => trim((string) ($body['supplier_id']      ?? '')),
             'sales_order_id'   => trim((string) ($body['sales_order_id']   ?? '')),
+            'article_id'       => trim((string) ($body['article_id']       ?? '')),
             'pickup_address'   => trim((string) ($body['pickup_address']   ?? '')),
             'delivery_address' => trim((string) ($body['delivery_address'] ?? '')),
             'pickup_date'      => trim((string) ($body['pickup_date']      ?? '')),

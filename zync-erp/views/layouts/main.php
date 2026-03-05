@@ -73,10 +73,10 @@ function mobileActive(string $path, string $currentPath): string {
                     </div>
                 </div>
 
-                <!-- 3. ObjektNavigator -->
+                <!-- 3. Anläggningsregister -->
                 <div class="relative" x-data="{ show: false }" @mouseenter="show=true" @mouseleave="show=false">
                     <button class="px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
-                        ObjektNavigator <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        Anläggningsregister <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="show" x-transition class="absolute left-0 mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
                         <a href="/objects" class="block px-4 py-2 text-sm <?= mobileActive('/objects', $currentPath) ?>">Navigator</a>
@@ -403,8 +403,8 @@ function mobileActive(string $path, string $currentPath): string {
         <a href="/maintenance/ai/recommendations" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/ai/recommendations', $currentPath) ?>">Rekommendationer</a>
         <a href="/maintenance/inspections" class="block rounded px-3 py-2 text-sm <?= mobileActive('/maintenance/inspections', $currentPath) ?>">Besiktningar</a>
 
-        <!-- 3. ObjektNavigator -->
-        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">ObjektNavigator</p>
+        <!-- 3. Anläggningsregister -->
+        <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Anläggningsregister</p>
         <a href="/objects" class="block rounded px-3 py-2 text-sm <?= mobileActive('/objects', $currentPath) ?>">Navigator</a>
         <a href="/objects/tree" class="block rounded px-3 py-2 text-sm <?= mobileActive('/objects/tree', $currentPath) ?>">Objektträd</a>
         <a href="/equipment" class="block rounded px-3 py-2 text-sm <?= mobileActive('/equipment', $currentPath) ?>">Utrustning</a>

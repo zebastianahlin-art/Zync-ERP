@@ -45,6 +45,7 @@ class SalesController extends Controller
         return $this->render($response, 'sales/quotes/create', [
             'title'     => 'Ny offert – ZYNC ERP',
             'customers' => $this->repo->allCustomers(),
+            'articles'  => $this->repo->allArticles(),
             'errors'    => [],
             'old'       => [],
         ]);
@@ -60,6 +61,7 @@ class SalesController extends Controller
             return $this->render($response, 'sales/quotes/create', [
                 'title'     => 'Ny offert – ZYNC ERP',
                 'customers' => $this->repo->allCustomers(),
+                'articles'  => $this->repo->allArticles(),
                 'errors'    => $errors,
                 'old'       => $data,
             ]);
@@ -67,6 +69,28 @@ class SalesController extends Controller
 
         $data['created_by'] = Auth::id();
         $id = $this->repo->createQuote($data);
+
+        // Spara offertrader
+        $body  = (array) $request->getParsedBody();
+        $descs = (array) ($body['line_description'] ?? []);
+        $artIds = (array) ($body['line_article_id'] ?? []);
+        $qtys   = (array) ($body['line_quantity'] ?? []);
+        $prices = (array) ($body['line_unit_price'] ?? []);
+        $discs  = (array) ($body['line_discount'] ?? []);
+        foreach ($descs as $i => $desc) {
+            $qty = (float) ($qtys[$i] ?? 1);
+            if ($qty <= 0 && trim($desc) === '') {
+                continue;
+            }
+            $this->repo->addQuoteLine($id, [
+                'article_id'  => $artIds[$i] ?? null,
+                'description' => $desc,
+                'quantity'    => $qty ?: 1,
+                'unit_price'  => (float) ($prices[$i] ?? 0),
+                'discount'    => (float) ($discs[$i] ?? 0),
+            ]);
+        }
+
         Flash::set('success', 'Offerten skapades.');
         return $this->redirect($response, '/sales/quotes/' . $id);
     }
@@ -137,6 +161,25 @@ class SalesController extends Controller
             Flash::set('success', 'Offerten togs bort.');
         }
         return $this->redirect($response, '/sales/quotes');
+    }
+
+    /** POST /sales/quotes/{id}/convert */
+    public function convertQuote(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id    = (int) $args['id'];
+        $quote = $this->repo->findQuote($id);
+        if ($quote === null) {
+            return $this->notFound($response);
+        }
+
+        try {
+            $orderId = $this->repo->convertQuoteToOrder($id, (int) Auth::id());
+            Flash::set('success', 'Offerten konverterades till säljorder.');
+            return $this->redirect($response, '/sales/orders/' . $orderId);
+        } catch (\Exception $e) {
+            Flash::set('error', 'Kunde inte konvertera offerten: ' . $e->getMessage());
+            return $this->redirect($response, '/sales/quotes/' . $id);
+        }
     }
 
     /** GET /sales/orders */
@@ -325,9 +368,10 @@ class SalesController extends Controller
         }
 
         return $this->render($response, 'sales/pricing/show', [
-            'title' => 'Prislista – ZYNC ERP',
-            'list'  => $list,
-            'items' => $this->repo->priceListItems((int) $args['id']),
+            'title'    => 'Prislista – ZYNC ERP',
+            'list'     => $list,
+            'items'    => $this->repo->priceListItems((int) $args['id']),
+            'articles' => $this->repo->allArticles(),
         ]);
     }
 
@@ -393,14 +437,29 @@ class SalesController extends Controller
 
         $body = (array) $request->getParsedBody();
         $item = [
+            'article_id'   => trim((string) ($body['article_id']   ?? '')),
             'product_name' => trim((string) ($body['product_name'] ?? '')),
-            'description'  => trim((string) ($body['description'] ?? '')),
+            'description'  => trim((string) ($body['description']  ?? '')),
             'unit_price'   => (float) ($body['unit_price'] ?? 0),
             'currency'     => in_array($body['currency'] ?? '', ['SEK','EUR','USD'], true) ? $body['currency'] : 'SEK',
             'unit'         => trim((string) ($body['unit'] ?? '')),
         ];
 
-        if ($item['product_name'] !== '') {
+        // Fyll i produktnamn från artikel om inte angivet
+        if ($item['product_name'] === '' && $item['article_id'] !== '') {
+            $articles = $this->repo->allArticles();
+            foreach ($articles as $art) {
+                if ((string) $art['id'] === $item['article_id']) {
+                    $item['product_name'] = $art['name'];
+                    if ($item['unit'] === '') {
+                        $item['unit'] = $art['unit'] ?? '';
+                    }
+                    break;
+                }
+            }
+        }
+
+        if ($item['product_name'] !== '' || $item['article_id'] !== '') {
             $this->repo->addPriceListItem($id, $item);
             Flash::set('success', 'Artikel lades till.');
         }
@@ -547,11 +606,13 @@ class SalesController extends Controller
     {
         $body = (array) $request->getParsedBody();
         return [
-            'quote_number' => trim((string) ($body['quote_number'] ?? '')),
-            'customer_id'  => trim((string) ($body['customer_id'] ?? '')),
-            'valid_until'  => trim((string) ($body['valid_until'] ?? '')),
-            'status'       => in_array($body['status'] ?? '', ['draft','sent','accepted','rejected','expired'], true) ? $body['status'] : 'draft',
-            'notes'        => trim((string) ($body['notes'] ?? '')),
+            'quote_number'   => trim((string) ($body['quote_number']   ?? '')),
+            'customer_id'    => trim((string) ($body['customer_id']    ?? '')),
+            'valid_until'    => trim((string) ($body['valid_until']    ?? '')),
+            'status'         => in_array($body['status'] ?? '', ['draft','sent','accepted','rejected','expired'], true) ? $body['status'] : 'draft',
+            'notes'          => trim((string) ($body['notes']          ?? '')),
+            'delivery_terms' => trim((string) ($body['delivery_terms'] ?? '')),
+            'payment_terms'  => trim((string) ($body['payment_terms']  ?? '')),
         ];
     }
 

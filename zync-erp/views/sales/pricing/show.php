@@ -63,17 +63,35 @@
     <!-- Add item form -->
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
         <h2 class="font-semibold text-gray-900 dark:text-white text-sm mb-4">Lägg till artikel</h2>
-        <form method="POST" action="/sales/pricing/<?= (int) $list['id'] ?>/items" class="space-y-4">
+        <form method="POST" action="/sales/pricing/<?= (int) $list['id'] ?>/items" class="space-y-4"
+              x-data="{ selectedArticle: '' }" @change.from-select="fillFromArticle($event)">
             <?= \App\Core\Csrf::field() ?>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Välj från artikelregister</label>
+                <select name="article_id" x-model="selectedArticle" @change="fillFromArticle($event)"
+                    class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">— Välj artikel (valfritt) —</option>
+                    <?php foreach ($articles ?? [] as $art): ?>
+                    <option value="<?= $art['id'] ?>"
+                        data-name="<?= htmlspecialchars($art['name'], ENT_QUOTES, 'UTF-8') ?>"
+                        data-price="<?= htmlspecialchars((string)$art['selling_price'], ENT_QUOTES, 'UTF-8') ?>"
+                        data-unit="<?= htmlspecialchars($art['unit'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                        <?= htmlspecialchars($art['article_number'] . ' – ' . $art['name'], ENT_QUOTES, 'UTF-8') ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Produktnamn <span class="text-red-500">*</span></label>
-                    <input type="text" name="product_name" required
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Produktnamn</label>
+                    <input type="text" name="product_name" id="pli_name"
                         class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Enhet</label>
-                    <input type="text" name="unit" placeholder="st, kg, h …"
+                    <input type="text" name="unit" id="pli_unit" placeholder="st, kg, h …"
                         class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
             </div>
@@ -85,7 +103,7 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">À-pris</label>
-                    <input type="number" name="unit_price" step="0.01" min="0" value="0"
+                    <input type="number" name="unit_price" id="pli_price" step="0.01" min="0" value="0"
                         class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div>
@@ -103,3 +121,17 @@
         </form>
     </div>
 </div>
+
+<script>
+function fillFromArticle(evt) {
+    const opt = evt.target.selectedOptions[0];
+    if (!opt || !opt.value) return;
+    const nameEl  = document.getElementById('pli_name');
+    const priceEl = document.getElementById('pli_price');
+    const unitEl  = document.getElementById('pli_unit');
+    if (nameEl  && !nameEl.value)  nameEl.value  = opt.dataset.name  || '';
+    if (priceEl) priceEl.value = opt.dataset.price || '0';
+    if (unitEl  && !unitEl.value)  unitEl.value  = opt.dataset.unit  || '';
+}
+</script>
+
