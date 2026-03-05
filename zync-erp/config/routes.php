@@ -420,7 +420,7 @@ return function (App $app) {
         $group->post('/departments/{id}/delete', [\App\Controllers\DepartmentController::class, 'destroy']);
 
         // ─── HR Dashboard ────────────────────────────────────────
-        $group->get('/hr/dashboard', [\App\Controllers\HrController::class, 'dashboard']);
+        $group->get('/hr', [\App\Controllers\HrController::class, 'dashboard']);
 
         // ─── Employees (Personal) ────────────────────────────────
         $group->get('/employees', [\App\Controllers\EmployeeController::class, 'index']);

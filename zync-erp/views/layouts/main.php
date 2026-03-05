@@ -280,7 +280,7 @@ function mobileActive(string $path, string $currentPath): string {
                         HR <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="show" x-transition class="absolute left-0 mt-1 w-52 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        <a href="/hr/dashboard" class="block px-4 py-2 text-sm font-semibold <?= mobileActive('/hr/dashboard', $currentPath) ?>">🏠 HR Dashboard</a>
+                        <a href="/hr" class="block px-4 py-2 text-sm font-semibold <?= mobileActive('/hr', $currentPath) ?>">🏠 HR Dashboard</a>
                         <hr class="my-1 border-gray-200 dark:border-gray-700">
                         <a href="/departments" class="block px-4 py-2 text-sm <?= mobileActive('/departments', $currentPath) ?>">Avdelningar</a>
                         <a href="/employees" class="block px-4 py-2 text-sm <?= mobileActive('/employees', $currentPath) ?>">Personal</a>
@@ -585,7 +585,7 @@ function mobileActive(string $path, string $currentPath): string {
 
         <!-- 12. HR -->
         <p class="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">HR</p>
-        <a href="/hr/dashboard" class="block rounded px-3 py-2 text-sm font-semibold <?= mobileActive('/hr/dashboard', $currentPath) ?>">🏠 HR Dashboard</a>
+        <a href="/hr" class="block rounded px-3 py-2 text-sm font-semibold <?= mobileActive('/hr', $currentPath) ?>">🏠 HR Dashboard</a>
         <a href="/departments" class="block rounded px-3 py-2 text-sm <?= mobileActive('/departments', $currentPath) ?>">Avdelningar</a>
         <a href="/employees" class="block rounded px-3 py-2 text-sm <?= mobileActive('/employees', $currentPath) ?>">Personal</a>
         <a href="/certificates" class="block rounded px-3 py-2 text-sm <?= mobileActive('/certificates', $currentPath) ?>">Certifikat</a>
