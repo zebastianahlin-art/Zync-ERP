@@ -477,6 +477,11 @@ return function (App $app) {
         $group->get('/my-page', [\App\Controllers\MyPageController::class, 'index']);
         $group->get('/my-page/edit', [\App\Controllers\MyPageController::class, 'edit']);
         $group->post('/my-page', [\App\Controllers\MyPageController::class, 'update']);
+        $group->get('/my-page/calendar-events', [\App\Controllers\MyPageController::class, 'calendarEvents']);
+        $group->get('/my-page/payslips', [\App\Controllers\MyPageController::class, 'payslips']);
+        $group->get('/my-page/payslips/{id}', [\App\Controllers\MyPageController::class, 'showPayslip']);
+        $group->get('/my-page/contract', [\App\Controllers\MyPageController::class, 'contract']);
+        $group->get('/my-page/tickets', [\App\Controllers\MyPageController::class, 'tickets']);
 
         // ─── Production (Produktion) ─────────────────────────────────────────
         $group->get('/production', [\App\Controllers\ProductionController::class, 'index']);
