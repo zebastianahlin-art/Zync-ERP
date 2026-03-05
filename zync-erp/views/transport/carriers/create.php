@@ -1,6 +1,31 @@
 <div class="max-w-xl space-y-6">
     <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Ny transportör</h1>
 
+    <!-- Synkronisera direkt från leverantör -->
+    <?php if (!empty($suppliers)): ?>
+    <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4 space-y-3">
+        <h2 class="text-sm font-semibold text-indigo-700 dark:text-indigo-300">Synkronisera från leverantörsregistret</h2>
+        <p class="text-xs text-gray-600 dark:text-gray-400">Skapa transportören automatiskt baserat på en befintlig leverantör.</p>
+        <form method="POST" action="/transport/carriers/sync-supplier" class="flex gap-2">
+            <?= \App\Core\Csrf::field() ?>
+            <select name="supplier_id" required class="flex-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">— Välj leverantör —</option>
+                <?php foreach ($suppliers as $s): ?>
+                <option value="<?= (int)$s['id'] ?>"><?= htmlspecialchars($s['name'], ENT_QUOTES, 'UTF-8') ?></option>
+                <?php endforeach; ?>
+            </select>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition whitespace-nowrap">
+                Synkronisera
+            </button>
+        </form>
+    </div>
+    <div class="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+        <div class="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+        <span>eller skapa manuellt</span>
+        <div class="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+    </div>
+    <?php endif; ?>
+
     <form method="POST" action="/transport/carriers" class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 space-y-4">
         <?= \App\Core\Csrf::field() ?>
 
@@ -71,11 +96,11 @@
             <textarea name="notes" rows="2" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"><?= htmlspecialchars($old['notes'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
         </div>
 
-        <!-- B6: Synkronisera med leverantörsregistret -->
+        <!-- Länka till leverantörsregistret -->
         <div class="border border-indigo-200 dark:border-indigo-800 rounded-lg p-4 space-y-3 bg-indigo-50 dark:bg-indigo-900/20" x-data="{ sync: false }">
             <label class="flex items-center gap-2 text-sm font-medium text-indigo-700 dark:text-indigo-300">
                 <input type="checkbox" name="sync_supplier" value="1" x-model="sync" class="rounded border-gray-300 dark:border-gray-600 text-indigo-600">
-                Synkronisera med leverantörsregistret
+                Länka till befintlig leverantör
             </label>
             <div x-show="sync" class="space-y-2">
                 <p class="text-xs text-gray-500 dark:text-gray-400">Välj befintlig leverantör eller lämna tomt för att skapa ny automatiskt.</p>
@@ -94,3 +119,4 @@
         </div>
     </form>
 </div>
+

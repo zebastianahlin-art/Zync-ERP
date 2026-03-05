@@ -269,6 +269,27 @@ class TransportController extends Controller
         return $this->redirect($response, '/transport/carriers');
     }
 
+    /** POST /transport/carriers/sync-supplier */
+    public function syncFromSupplier(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $body       = (array) $request->getParsedBody();
+        $supplierId = (int) ($body['supplier_id'] ?? 0);
+
+        if ($supplierId <= 0) {
+            Flash::set('error', 'Välj en leverantör att synkronisera.');
+            return $this->redirect($response, '/transport/carriers/create');
+        }
+
+        try {
+            $carrierId = $this->repo->syncCarrierFromSupplier($supplierId, (int) Auth::id());
+            Flash::set('success', 'Transportören synkroniserades från leverantörsregistret.');
+            return $this->redirect($response, '/transport/carriers');
+        } catch (\Exception $e) {
+            Flash::set('error', 'Kunde inte synkronisera: ' . $e->getMessage());
+            return $this->redirect($response, '/transport/carriers/create');
+        }
+    }
+
     /** @return array<string, string> */
     private function extractOrderData(ServerRequestInterface $request): array
     {

@@ -182,6 +182,71 @@ class SalesController extends Controller
         }
     }
 
+    /** GET /sales/quotes/{id}/pdf */
+    public function quotePreviewPdf(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $quote = $this->repo->findQuote((int) $args['id']);
+        if ($quote === null) {
+            return $this->notFound($response);
+        }
+
+        return $this->render($response, 'sales/quotes/preview-pdf', [
+            'title' => 'Offert ' . htmlspecialchars($quote['quote_number'], ENT_QUOTES, 'UTF-8') . ' – Utskrift',
+            'quote' => $quote,
+            'lines' => $this->repo->quoteLines((int) $args['id']),
+        ], null);
+    }
+
+    /** POST /sales/quotes/{id}/send */
+    public function sendQuoteEmail(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id    = (int) $args['id'];
+        $quote = $this->repo->findQuote($id);
+        if ($quote === null) {
+            return $this->notFound($response);
+        }
+
+        $this->repo->updateQuoteStatus($id, 'sent');
+        Flash::set('success', 'Offerten markerades som skickad.');
+        return $this->redirect($response, '/sales/quotes/' . $id);
+    }
+
+    /** POST /sales/quotes/{id}/lines */
+    public function addQuoteLine(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id    = (int) $args['id'];
+        $quote = $this->repo->findQuote($id);
+        if ($quote === null) {
+            return $this->notFound($response);
+        }
+
+        $body = (array) $request->getParsedBody();
+        $this->repo->addQuoteLine($id, [
+            'article_id'  => $body['article_id'] ?? null,
+            'description' => trim((string) ($body['description'] ?? '')),
+            'quantity'    => (float) ($body['quantity'] ?? 1),
+            'unit_price'  => (float) ($body['unit_price'] ?? 0),
+            'discount'    => (float) ($body['discount'] ?? 0),
+        ]);
+
+        Flash::set('success', 'Offertrad lades till.');
+        return $this->redirect($response, '/sales/quotes/' . $id);
+    }
+
+    /** POST /sales/quotes/{id}/lines/{lineId}/delete */
+    public function removeQuoteLine(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id     = (int) $args['id'];
+        $lineId = (int) $args['lineId'];
+        if ($this->repo->findQuote($id) === null) {
+            return $this->notFound($response);
+        }
+
+        $this->repo->removeQuoteLine($lineId);
+        Flash::set('success', 'Offertraden togs bort.');
+        return $this->redirect($response, '/sales/quotes/' . $id);
+    }
+
     /** GET /sales/orders */
     public function orders(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {

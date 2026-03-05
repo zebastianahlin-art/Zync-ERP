@@ -104,6 +104,12 @@ class SalesRepository
         $stmt->execute([$quoteId]);
     }
 
+    public function removeQuoteLine(int $lineId): void
+    {
+        $stmt = Database::pdo()->prepare('UPDATE sales_quote_lines SET is_deleted = 1 WHERE id = ?');
+        $stmt->execute([$lineId]);
+    }
+
     public function createQuote(array $data): int
     {
         $pdo  = Database::pdo();
@@ -150,6 +156,14 @@ class SalesRepository
     {
         $stmt = Database::pdo()->prepare('UPDATE sales_quotes SET is_deleted = 1 WHERE id = ?');
         $stmt->execute([$id]);
+    }
+
+    public function updateQuoteStatus(int $id, string $status): void
+    {
+        $stmt = Database::pdo()->prepare(
+            'UPDATE sales_quotes SET status = ? WHERE id = ? AND is_deleted = 0'
+        );
+        $stmt->execute([$status, $id]);
     }
 
     /**

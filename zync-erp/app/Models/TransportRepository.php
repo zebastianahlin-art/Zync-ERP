@@ -295,4 +295,64 @@ class TransportRepository
             return 0;
         }
     }
+
+    /**
+     * Skapar eller uppdaterar en transportör baserat på leverantörsdata.
+     * Returnerar transportörens ID.
+     */
+    public function syncCarrierFromSupplier(int $supplierId, int $createdBy): int
+    {
+        $pdo = Database::pdo();
+
+        // Hämta leverantörsdata
+        $stmt = $pdo->prepare('SELECT * FROM suppliers WHERE id = ? AND is_deleted = 0');
+        $stmt->execute([$supplierId]);
+        $supplier = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$supplier) {
+            throw new \RuntimeException('Leverantören hittades inte.');
+        }
+
+        // Kontrollera om en transportör redan är länkad till denna leverantör
+        $check = $pdo->prepare(
+            'SELECT id FROM transport_carriers WHERE supplier_id = ? AND is_deleted = 0 LIMIT 1'
+        );
+        $check->execute([$supplierId]);
+        $existing = $check->fetch(\PDO::FETCH_ASSOC);
+
+        if ($existing) {
+            // Uppdatera befintlig transportör
+            $pdo->prepare(
+                'UPDATE transport_carriers SET name = :name, email = :email, phone = :phone
+                 WHERE id = :id AND is_deleted = 0'
+            )->execute([
+                'name'  => $supplier['name'],
+                'email' => $supplier['email'] ?? null,
+                'phone' => $supplier['phone'] ?? null,
+                'id'    => $existing['id'],
+            ]);
+            return (int) $existing['id'];
+        }
+
+        // Skapa ny transportör från leverantörsdata
+        $year   = date('Y');
+        $count  = (int) $pdo->query('SELECT COUNT(*) FROM transport_carriers WHERE is_deleted = 0')->fetchColumn() + 1;
+        $code   = 'TC-' . $year . '-' . str_pad((string) $count, 3, '0', STR_PAD_LEFT);
+
+        $ins = $pdo->prepare(
+            'INSERT INTO transport_carriers (name, code, type, contact_person, phone, email, supplier_id, is_active, created_by)
+             VALUES (:name, :code, :type, :contact_person, :phone, :email, :supplier_id, 1, :created_by)'
+        );
+        $ins->execute([
+            'name'           => $supplier['name'],
+            'code'           => $code,
+            'type'           => 'external',
+            'contact_person' => $supplier['contact_person'] ?? null,
+            'phone'          => $supplier['phone'] ?? null,
+            'email'          => $supplier['email'] ?? null,
+            'supplier_id'    => $supplierId,
+            'created_by'     => $createdBy,
+        ]);
+        return (int) $pdo->lastInsertId();
+    }
 }

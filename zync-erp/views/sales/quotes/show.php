@@ -15,6 +15,16 @@
         </div>
         <div class="flex items-center gap-3">
             <?php $terminalStatuses = ['rejected', 'expired']; ?>
+            <a href="/sales/quotes/<?= (int)$quote['id'] ?>/pdf" target="_blank"
+               class="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg transition">
+                Skriv ut / PDF
+            </a>
+            <?php if ($quote['status'] === 'draft'): ?>
+            <form method="POST" action="/sales/quotes/<?= (int)$quote['id'] ?>/send" onsubmit="return confirm('Markera offerten som skickad?')">
+                <?= \App\Core\Csrf::field() ?>
+                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">Skicka offert</button>
+            </form>
+            <?php endif; ?>
             <?php if (empty($quote['converted_to_order_id']) && !in_array($quote['status'], $terminalStatuses, true)): ?>
             <form method="POST" action="/sales/quotes/<?= $quote['id'] ?>/convert" onsubmit="return confirm('Konvertera offerten till en säljorder?')">
                 <?= \App\Core\Csrf::field() ?>
