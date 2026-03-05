@@ -526,6 +526,10 @@ return function (App $app) {
         $group->post('/sales/quotes/{id}', [\App\Controllers\SalesController::class, 'updateQuote']);
         $group->post('/sales/quotes/{id}/delete', [\App\Controllers\SalesController::class, 'deleteQuote']);
         $group->post('/sales/quotes/{id}/convert', [\App\Controllers\SalesController::class, 'convertQuote']);
+        $group->get('/sales/quotes/{id}/pdf', [\App\Controllers\SalesController::class, 'quotePreviewPdf']);
+        $group->post('/sales/quotes/{id}/send', [\App\Controllers\SalesController::class, 'sendQuoteEmail']);
+        $group->post('/sales/quotes/{id}/lines', [\App\Controllers\SalesController::class, 'addQuoteLine']);
+        $group->post('/sales/quotes/{id}/lines/{lineId}/delete', [\App\Controllers\SalesController::class, 'removeQuoteLine']);
         $group->get('/sales/orders', [\App\Controllers\SalesController::class, 'orders']);
         $group->get('/sales/orders/create', [\App\Controllers\SalesController::class, 'createOrder']);
         $group->post('/sales/orders', [\App\Controllers\SalesController::class, 'storeOrder']);
@@ -634,6 +638,7 @@ return function (App $app) {
         $group->post('/transport/orders/{id}/delete', [\App\Controllers\TransportController::class, 'deleteOrder']);
         $group->get('/transport/carriers', [\App\Controllers\TransportController::class, 'carriers']);
         $group->get('/transport/carriers/create', [\App\Controllers\TransportController::class, 'createCarrier']);
+        $group->post('/transport/carriers/sync-supplier', [\App\Controllers\TransportController::class, 'syncFromSupplier']);
         $group->post('/transport/carriers', [\App\Controllers\TransportController::class, 'storeCarrier']);
         $group->get('/transport/carriers/{id}/edit', [\App\Controllers\TransportController::class, 'editCarrier']);
         $group->post('/transport/carriers/{id}', [\App\Controllers\TransportController::class, 'updateCarrier']);
