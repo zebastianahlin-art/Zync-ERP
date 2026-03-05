@@ -182,7 +182,7 @@ class ProjectRepository
     public function addBudgetLine(int $projectId, array $data): int
     {
         $stmt = Database::pdo()->prepare(
-            'INSERT INTO project_budget_lines (project_id, description, budgeted_amount, actual_amount)
+            'INSERT INTO project_budget_lines (project_id, description, budgeted, actual)
              VALUES (?, ?, ?, ?)'
         );
         $stmt->execute([

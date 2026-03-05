@@ -206,6 +206,7 @@ Skapa placeholder-sidor för moduler som ännu inte är uppgraderade.
 | #48 | Kodkvalitetsförbättringar: Refaktorering & Konsistens | ✅ Klar |
 | #49 | Ta bort redundanta Auth::check()-guards, rensa deprecated requireAuth() | ✅ Mergad |
 | #50 | Rensa oanvända use-importer + harmonisera FinanceController | ✅ Mergad |
+| #51 | Fas A: Kritiska buggfixar — Saknade migrationer + try/catch + kolumnnamnsfix | 🔄 Pågående |
 | #36 | (Ersatt av #37) | ❌ Stängd |
 | #33 | Maintenance Module draft | ❌ Stängd |
 

@@ -100,8 +100,8 @@
 
     <!-- Budget section -->
     <?php
-        $totalBudgeted = array_sum(array_column($budget, 'budgeted_amount'));
-        $totalActual   = array_sum(array_column($budget, 'actual_amount'));
+        $totalBudgeted = array_sum(array_column($budget, 'budgeted'));
+        $totalActual   = array_sum(array_column($budget, 'actual'));
     ?>
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 font-semibold text-gray-900 dark:text-white">Budget</div>
@@ -119,8 +119,8 @@
                 <?php foreach ($budget as $line): ?>
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td class="px-4 py-3 text-gray-900 dark:text-gray-100"><?= htmlspecialchars($line['description'], ENT_QUOTES, 'UTF-8') ?></td>
-                    <td class="px-4 py-3 text-right text-gray-600 dark:text-gray-400"><?= number_format((float) $line['budgeted_amount'], 0, ',', ' ') ?> kr</td>
-                    <td class="px-4 py-3 text-right text-gray-600 dark:text-gray-400"><?= number_format((float) $line['actual_amount'], 0, ',', ' ') ?> kr</td>
+                    <td class="px-4 py-3 text-right text-gray-600 dark:text-gray-400"><?= number_format((float) $line['budgeted'], 0, ',', ' ') ?> kr</td>
+                    <td class="px-4 py-3 text-right text-gray-600 dark:text-gray-400"><?= number_format((float) $line['actual'], 0, ',', ' ') ?> kr</td>
                     <td class="px-4 py-3 text-right">
                         <form method="POST" action="/projects/<?= (int) $project['id'] ?>/budget/<?= (int) $line['id'] ?>/delete" class="inline" onsubmit="return confirm('Ta bort denna budgetrad?')">
                             <?= \App\Core\Csrf::field() ?>
