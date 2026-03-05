@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Flash;
+use App\Models\AdminSettingsRepository;
 use App\Models\AdminUserRepository;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -17,22 +19,140 @@ use Psr\Http\Message\ServerRequestInterface;
 class AdminController extends Controller
 {
     private AdminUserRepository $repo;
+    private AdminSettingsRepository $settings;
 
     public function __construct()
     {
         parent::__construct();
-        $this->repo = new AdminUserRepository();
+        $this->repo     = new AdminUserRepository();
+        $this->settings = new AdminSettingsRepository();
     }
 
-    /** GET /admin — Admin dashboard with stats. */
+    /** GET /admin — Admin dashboard with stats and system info. */
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $stats = $this->repo->stats();
+        $stats      = $this->repo->stats();
+        $sysInfo    = $this->settings->systemInfo();
+        $auditResult = $this->settings->auditLog([], 1, 5);
 
         return $this->render($response, 'admin/index', [
-            'title' => 'Admin – ZYNC ERP',
-            'stats' => $stats,
+            'title'        => 'Admin – ZYNC ERP',
+            'stats'        => $stats,
+            'sys_info'     => $sysInfo,
+            'recent_audit' => $auditResult['rows'],
         ]);
+    }
+
+    // ─── System Settings ──────────────────────────────────────────────────────
+
+    /** GET /admin/settings — Show all system settings grouped by category. */
+    public function settings(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        return $this->render($response, 'admin/settings', [
+            'title'    => 'Systeminställningar – Admin – ZYNC ERP',
+            'settings' => $this->settings->allSettingsGrouped(),
+        ]);
+    }
+
+    /** POST /admin/settings — Batch-update settings. */
+    public function updateSettings(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $body = (array) $request->getParsedBody();
+        $keyValues = [];
+        foreach ($body as $key => $value) {
+            if (str_starts_with((string) $key, '_') || $key === '_token') {
+                continue;
+            }
+            $keyValues[(string) $key] = (string) $value;
+        }
+        if (!empty($keyValues)) {
+            $this->settings->setSettings($keyValues);
+        }
+        Flash::set('success', 'Inställningarna har uppdaterats.');
+        return $this->redirect($response, '/admin/settings');
+    }
+
+    // ─── Module Administration ─────────────────────────────────────────────────
+
+    /** GET /admin/modules — List all ERP modules. */
+    public function modules(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        return $this->render($response, 'admin/modules', [
+            'title'   => 'Moduladministration – Admin – ZYNC ERP',
+            'modules' => $this->settings->allModules(),
+        ]);
+    }
+
+    /** POST /admin/modules/{id}/toggle — Toggle module active/inactive. */
+    public function toggleModule(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id     = (int) $args['id'];
+        $module = $this->settings->findModule($id);
+        if ($module === null) {
+            Flash::set('error', 'Modulen hittades inte.');
+            return $this->redirect($response, '/admin/modules');
+        }
+        $this->settings->toggleModule($id);
+        $label = $module['is_active'] ? 'inaktiverad' : 'aktiverad';
+        Flash::set('success', "Modulen har {$label}.");
+        return $this->redirect($response, '/admin/modules');
+    }
+
+    // ─── Site Settings ─────────────────────────────────────────────────────────
+
+    /** GET /admin/site — Show site/company settings. */
+    public function siteSettings(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        return $this->render($response, 'admin/site', [
+            'title' => 'Site-inställningar – Admin – ZYNC ERP',
+            'site'  => $this->settings->getSiteSettings(),
+        ]);
+    }
+
+    /** POST /admin/site — Update site settings. */
+    public function updateSiteSettings(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $body = (array) $request->getParsedBody();
+        $this->settings->updateSiteSettings($body);
+        Flash::set('success', 'Site-inställningarna har uppdaterats.');
+        return $this->redirect($response, '/admin/site');
+    }
+
+    // ─── Audit Log ─────────────────────────────────────────────────────────────
+
+    /** GET /admin/audit-log — Show audit log with pagination and filters. */
+    public function auditLog(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $query   = $request->getQueryParams();
+        $filters = [
+            'module'    => $query['module']    ?? '',
+            'action'    => $query['action']    ?? '',
+            'user_id'   => $query['user_id']   ?? '',
+            'date_from' => $query['date_from'] ?? '',
+            'date_to'   => $query['date_to']   ?? '',
+        ];
+        $page   = max(1, (int) ($query['page'] ?? 1));
+        $result = $this->settings->auditLog($filters, $page, 50);
+        $users  = $this->repo->all();
+
+        return $this->render($response, 'admin/audit-log', [
+            'title'   => 'Audit-logg – Admin – ZYNC ERP',
+            'rows'    => $result['rows'],
+            'total'   => $result['total'],
+            'page'    => $page,
+            'filters' => $filters,
+            'users'   => $users,
+        ]);
+    }
+
+    /** POST /admin/audit-log/clear — Clear old audit log entries. */
+    public function clearAuditLog(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $body   = (array) $request->getParsedBody();
+        $days   = max(1, (int) ($body['days'] ?? 365));
+        $deleted = $this->settings->clearAuditLog($days);
+        Flash::set('success', "{$deleted} loggposter äldre än {$days} dagar har raderats.");
+        return $this->redirect($response, '/admin/audit-log');
     }
 
     /** GET /admin/users — List all users. */
