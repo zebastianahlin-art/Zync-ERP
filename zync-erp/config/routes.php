@@ -525,6 +525,7 @@ return function (App $app) {
         $group->get('/sales/quotes/{id}/edit', [\App\Controllers\SalesController::class, 'editQuote']);
         $group->post('/sales/quotes/{id}', [\App\Controllers\SalesController::class, 'updateQuote']);
         $group->post('/sales/quotes/{id}/delete', [\App\Controllers\SalesController::class, 'deleteQuote']);
+        $group->post('/sales/quotes/{id}/convert', [\App\Controllers\SalesController::class, 'convertQuote']);
         $group->get('/sales/orders', [\App\Controllers\SalesController::class, 'orders']);
         $group->get('/sales/orders/create', [\App\Controllers\SalesController::class, 'createOrder']);
         $group->post('/sales/orders', [\App\Controllers\SalesController::class, 'storeOrder']);

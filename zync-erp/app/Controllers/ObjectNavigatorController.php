@@ -32,7 +32,7 @@ class ObjectNavigatorController extends Controller
         $typeCounts = $this->repo->countByType();
 
         return $this->render($response, 'objects/index', [
-            'title'      => 'ObjektNavigator – ZYNC ERP',
+            'title'      => 'Anläggningsregister – ZYNC ERP',
             'query'      => $query,
             'type'       => $type,
             'results'    => $results,

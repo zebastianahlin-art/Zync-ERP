@@ -71,6 +71,23 @@
             <textarea name="notes" rows="2" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"><?= htmlspecialchars($old['notes'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
         </div>
 
+        <!-- B6: Synkronisera med leverantörsregistret -->
+        <div class="border border-indigo-200 dark:border-indigo-800 rounded-lg p-4 space-y-3 bg-indigo-50 dark:bg-indigo-900/20" x-data="{ sync: false }">
+            <label class="flex items-center gap-2 text-sm font-medium text-indigo-700 dark:text-indigo-300">
+                <input type="checkbox" name="sync_supplier" value="1" x-model="sync" class="rounded border-gray-300 dark:border-gray-600 text-indigo-600">
+                Synkronisera med leverantörsregistret
+            </label>
+            <div x-show="sync" class="space-y-2">
+                <p class="text-xs text-gray-500 dark:text-gray-400">Välj befintlig leverantör eller lämna tomt för att skapa ny automatiskt.</p>
+                <select name="existing_supplier_id" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">— Skapa ny leverantör automatiskt —</option>
+                    <?php foreach ($suppliers ?? [] as $s): ?>
+                    <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['name'], ENT_QUOTES, 'UTF-8') ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+
         <div class="flex gap-3 pt-2">
             <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">Spara</button>
             <a href="/transport/carriers" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg transition">Avbryt</a>

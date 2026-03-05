@@ -68,11 +68,11 @@ class TransportRepository
 
         $stmt = $pdo->prepare(
             'INSERT INTO transport_orders
-             (transport_number, type, carrier_id, customer_id, supplier_id, sales_order_id,
+             (transport_number, type, carrier_id, customer_id, supplier_id, sales_order_id, article_id,
               pickup_address, delivery_address, pickup_date, delivery_date,
               weight, volume, tracking_number, status, cost, currency, notes, created_by)
              VALUES
-             (:transport_number, :type, :carrier_id, :customer_id, :supplier_id, :sales_order_id,
+             (:transport_number, :type, :carrier_id, :customer_id, :supplier_id, :sales_order_id, :article_id,
               :pickup_address, :delivery_address, :pickup_date, :delivery_date,
               :weight, :volume, :tracking_number, :status, :cost, :currency, :notes, :created_by)'
         );
@@ -83,6 +83,7 @@ class TransportRepository
             'customer_id'      => $data['customer_id']   ?: null,
             'supplier_id'      => $data['supplier_id']   ?: null,
             'sales_order_id'   => $data['sales_order_id'] ?: null,
+            'article_id'       => $data['article_id']    ?: null,
             'pickup_address'   => $data['pickup_address']   ?: null,
             'delivery_address' => $data['delivery_address'] ?: null,
             'pickup_date'      => $data['pickup_date']   ?: null,
@@ -243,5 +244,56 @@ class TransportRepository
         return Database::pdo()->query(
             'SELECT id, name FROM suppliers WHERE is_deleted = 0 ORDER BY name ASC'
         )->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function allArticles(): array
+    {
+        try {
+            return Database::pdo()->query(
+                'SELECT id, article_number, name, unit FROM articles WHERE is_deleted = 0 ORDER BY article_number ASC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Synkroniserar transportören med leverantörsregistret.
+     * Om $supplierId = null skapas en ny leverantör med type='carrier'.
+     * Returnerar leverantörens ID.
+     */
+    public function syncCarrierWithSupplier(int $carrierId, string $name, string $email, string $phone, int $createdBy, ?int $existingSupplierId): int
+    {
+        $pdo = Database::pdo();
+
+        if ($existingSupplierId) {
+            // Länka befintlig leverantör
+            $pdo->prepare('UPDATE transport_carriers SET supplier_id = ? WHERE id = ?')
+                ->execute([$existingSupplierId, $carrierId]);
+            return $existingSupplierId;
+        }
+
+        // Skapa ny leverantör
+        try {
+            $stmt = $pdo->prepare(
+                "INSERT INTO suppliers (name, email, phone, type, is_active, created_by)
+                 VALUES (:name, :email, :phone, 'carrier', 1, :created_by)
+                 ON DUPLICATE KEY UPDATE name = VALUES(name)"
+            );
+            $stmt->execute([
+                'name'       => $name,
+                'email'      => $email ?: null,
+                'phone'      => $phone ?: null,
+                'created_by' => $createdBy,
+            ]);
+            $supplierId = (int) $pdo->lastInsertId();
+            if ($supplierId > 0) {
+                $pdo->prepare('UPDATE transport_carriers SET supplier_id = ? WHERE id = ?')
+                    ->execute([$supplierId, $carrierId]);
+            }
+            return $supplierId;
+        } catch (\Exception $e) {
+            return 0;
+        }
     }
 }
