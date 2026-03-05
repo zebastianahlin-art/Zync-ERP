@@ -219,6 +219,85 @@ class TrainingRepository
         }
     }
 
+    public function availableSlots(int $sessionId): int
+    {
+        try {
+            $session = $this->findSession($sessionId);
+            if ($session === null) {
+                return 0;
+            }
+            $max = (int) ($session['max_participants'] ?? 0);
+            if ($max <= 0) {
+                return 999; // No limit set
+            }
+            $count = (int) ($session['participant_count'] ?? 0);
+            return max(0, $max - $count);
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
+
+    public function bookParticipant(int $sessionId, int $employeeId, string $status = 'registered'): int
+    {
+        // Check if already booked
+        $stmt = Database::pdo()->prepare(
+            'SELECT id FROM training_participants WHERE session_id = :sid AND employee_id = :eid AND is_deleted = 0 LIMIT 1'
+        );
+        $stmt->execute(['sid' => $sessionId, 'eid' => $employeeId]);
+        $existing = $stmt->fetchColumn();
+        if ($existing) {
+            return (int) $existing;
+        }
+
+        return $this->addParticipant($sessionId, $employeeId);
+    }
+
+    public function cancelParticipant(int $participantId, string $reason = ''): void
+    {
+        $stmt = Database::pdo()->prepare(
+            'UPDATE training_participants SET status = :status, cancelled_at = NOW(), cancel_reason = :reason WHERE id = :id'
+        );
+        $stmt->execute(['status' => 'cancelled', 'reason' => $reason ?: null, 'id' => $participantId]);
+    }
+
+    public function courseCategories(): array
+    {
+        try {
+            return Database::pdo()->query(
+                'SELECT DISTINCT category FROM training_courses WHERE is_deleted = 0 AND category IS NOT NULL ORDER BY category ASC'
+            )->fetchAll(\PDO::FETCH_COLUMN);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    public function allCoursesFiltered(?string $category = null, ?string $search = null): array
+    {
+        try {
+            $where = ['tc.is_deleted = 0'];
+            $params = [];
+            if ($category !== null && $category !== '') {
+                $where[] = 'tc.category = :category';
+                $params['category'] = $category;
+            }
+            if ($search !== null && $search !== '') {
+                $where[] = '(tc.name LIKE :search OR tc.description LIKE :search2)';
+                $params['search']  = '%' . $search . '%';
+                $params['search2'] = '%' . $search . '%';
+            }
+            $sql  = 'SELECT tc.*,
+                     (SELECT COUNT(*) FROM training_sessions s WHERE s.course_id = tc.id AND s.is_deleted = 0) AS session_count
+                     FROM training_courses tc
+                     WHERE ' . implode(' AND ', $where) . '
+                     ORDER BY tc.name ASC';
+            $stmt = Database::pdo()->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
     public function allEmployees(): array
     {
         try {

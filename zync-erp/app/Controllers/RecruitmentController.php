@@ -260,13 +260,16 @@ class RecruitmentController extends Controller
 
         $body = (array) $request->getParsedBody();
         $data = [
-            'first_name' => trim((string) ($body['first_name'] ?? '')),
-            'last_name'  => trim((string) ($body['last_name'] ?? '')),
-            'email'      => trim((string) ($body['email'] ?? '')),
-            'phone'      => trim((string) ($body['phone'] ?? '')),
-            'applied_at' => trim((string) ($body['applied_at'] ?? '')),
-            'status'     => trim((string) ($body['status'] ?? 'new')),
-            'notes'      => trim((string) ($body['notes'] ?? '')),
+            'first_name'         => trim((string) ($body['first_name'] ?? '')),
+            'last_name'          => trim((string) ($body['last_name'] ?? '')),
+            'email'              => trim((string) ($body['email'] ?? '')),
+            'phone'              => trim((string) ($body['phone'] ?? '')),
+            'applied_at'         => trim((string) ($body['applied_at'] ?? '')),
+            'status'             => trim((string) ($body['status'] ?? 'new')),
+            'notes'              => trim((string) ($body['notes'] ?? '')),
+            'cv_url'             => trim((string) ($body['cv_url'] ?? '')),
+            'cover_letter'       => trim((string) ($body['cover_letter'] ?? '')),
+            'salary_expectation' => trim((string) ($body['salary_expectation'] ?? '')),
         ];
 
         $this->repo->updateApplicant($applicantId, $data);
@@ -289,6 +292,31 @@ class RecruitmentController extends Controller
             return $this->redirect($response, '/hr/recruitment/positions/' . $positionId);
         }
         return $this->redirect($response, '/hr/recruitment/applicants');
+    }
+
+    public function convertApplicant(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $applicantId = (int) $args['applicantId'];
+        $applicant   = $this->repo->findApplicant($applicantId);
+        if ($applicant === null) {
+            return $this->notFound($response);
+        }
+
+        // Pre-populate employee creation form data
+        $prefill = $this->repo->convertToEmployee($applicantId);
+        $this->repo->updateApplicantStatus($applicantId, 'hired');
+
+        // Redirect to create employee form with pre-populated data in session
+        Flash::set('success', 'Sökande markerades som anst&#228;lld. Fyll i formuläret nedan för att slutföra registreringen.');
+
+        // Store prefill data in session for employee create form
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+        $_SESSION['employee_prefill'] = $prefill;
+        $_SESSION['applicant_source_id'] = $applicantId;
+
+        return $this->redirect($response, '/employees/create');
     }
 
     public function updateApplicantStatus(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface

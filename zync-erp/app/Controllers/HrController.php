@@ -19,10 +19,13 @@ class HrController extends Controller
     public function dashboard(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         return $this->render($response, 'hr/dashboard', [
-            'title'          => 'HR Dashboard – ZYNC ERP',
-            'stats'          => $this->repo->stats(),
-            'upcomingEvents' => $this->repo->upcomingEvents(),
-            'success'        => Flash::get('success'),
+            'title'              => 'HR Dashboard – ZYNC ERP',
+            'stats'              => $this->repo->stats(),
+            'upcomingEvents'     => $this->repo->upcomingEvents(),
+            'recentActivities'   => $this->repo->recentActivities(),
+            'deptDistribution'   => $this->repo->departmentDistribution(),
+            'expiringWidget'     => $this->repo->expiringCertificatesWidget(60),
+            'success'            => Flash::get('success'),
         ]);
     }
 }

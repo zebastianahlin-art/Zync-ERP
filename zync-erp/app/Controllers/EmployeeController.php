@@ -47,12 +47,22 @@ class EmployeeController extends Controller
 
     public function create(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+        // Check for pre-fill data from recruitment conversion
+        $old = [];
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+        if (!empty($_SESSION['employee_prefill'])) {
+            $old = $_SESSION['employee_prefill'];
+            unset($_SESSION['employee_prefill']);
+        }
+
         return $this->render($response, 'employees/create', [
             'title'       => 'Ny anst&#228;lld &#8211; ZYNC ERP',
             'departments' => $this->deptRepo->all(),
             'managers'    => $this->repo->allManagers(),
             'errors'      => [],
-            'old'         => [],
+            'old'         => $old,
         ]);
     }
 
@@ -149,6 +159,23 @@ class EmployeeController extends Controller
             'manager_id'              => trim((string) ($body['manager_id'] ?? '')),
             'emergency_contact_name'  => trim((string) ($body['emergency_contact_name'] ?? '')),
             'emergency_contact_phone' => trim((string) ($body['emergency_contact_phone'] ?? '')),
+            // Extended D2 fields
+            'personal_number'         => trim((string) ($body['personal_number'] ?? '')),
+            'birth_date'              => trim((string) ($body['birth_date'] ?? '')),
+            'gender'                  => trim((string) ($body['gender'] ?? '')),
+            'nationality'             => trim((string) ($body['nationality'] ?? '')),
+            'civil_status'            => trim((string) ($body['civil_status'] ?? '')),
+            'address_street'          => trim((string) ($body['address_street'] ?? '')),
+            'address_zip'             => trim((string) ($body['address_zip'] ?? '')),
+            'address_city'            => trim((string) ($body['address_city'] ?? '')),
+            'private_email'           => trim((string) ($body['private_email'] ?? '')),
+            'private_phone'           => trim((string) ($body['private_phone'] ?? '')),
+            'ice_name'                => trim((string) ($body['ice_name'] ?? '')),
+            'ice_phone'               => trim((string) ($body['ice_phone'] ?? '')),
+            'employment_category'     => trim((string) ($body['employment_category'] ?? '')),
+            'pay_type'                => trim((string) ($body['pay_type'] ?? 'monthly')),
+            'work_percentage'         => trim((string) ($body['work_percentage'] ?? '100')),
+            'profile_image_url'       => trim((string) ($body['profile_image_url'] ?? '')),
         ];
     }
 

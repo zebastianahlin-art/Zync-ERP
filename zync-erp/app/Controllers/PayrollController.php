@@ -225,6 +225,16 @@ class PayrollController extends Controller
         return $this->redirect($response, '/hr/payroll/payslips/' . $slipId);
     }
 
+    public function printPayslip(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $slip = $this->repo->findPayslip((int) $args['slipId']);
+        if ($slip === null) {
+            return $this->notFound($response);
+        }
+
+        return $this->render($response, 'hr/payroll/payslip/print', ['payslip' => $slip], null);
+    }
+
     public function showPayslip(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $slip = $this->repo->findPayslip((int) $args['slipId']);

@@ -58,4 +58,88 @@ class HrRepository
             return [];
         }
     }
+
+    public function recentActivities(): array
+    {
+        $pdo = Database::pdo();
+        $activities = [];
+        try {
+            $rows = $pdo->query(
+                "SELECT 'employee' AS type, CONCAT(first_name, ' ', last_name) AS label, created_at AS ts, id
+                 FROM employees WHERE is_deleted = 0
+                 ORDER BY created_at DESC LIMIT 5"
+            )->fetchAll(\PDO::FETCH_ASSOC);
+            foreach ($rows as $r) {
+                $activities[] = ['type' => 'employee', 'label' => 'Ny anställd: ' . $r['label'], 'ts' => $r['ts'], 'id' => $r['id']];
+            }
+        } catch (\Exception $e) {}
+
+        try {
+            $rows = $pdo->query(
+                "SELECT c.id, CONCAT(e.first_name, ' ', e.last_name) AS emp_name, ct.name AS cert_name, c.created_at
+                 FROM certificates c
+                 LEFT JOIN employees e ON c.employee_id = e.id
+                 LEFT JOIN certificate_types ct ON c.certificate_type_id = ct.id
+                 WHERE c.is_deleted = 0
+                 ORDER BY c.created_at DESC LIMIT 5"
+            )->fetchAll(\PDO::FETCH_ASSOC);
+            foreach ($rows as $r) {
+                $activities[] = ['type' => 'certificate', 'label' => 'Certifikat: ' . ($r['cert_name'] ?? '?') . ' → ' . ($r['emp_name'] ?? '?'), 'ts' => $r['created_at'], 'id' => $r['id']];
+            }
+        } catch (\Exception $e) {}
+
+        usort($activities, fn($a, $b) => strcmp((string)($b['ts'] ?? ''), (string)($a['ts'] ?? '')));
+        return array_slice($activities, 0, 10);
+    }
+
+    public function departmentDistribution(): array
+    {
+        try {
+            return Database::pdo()->query(
+                "SELECT d.name AS department_name, COUNT(e.id) AS employee_count
+                 FROM employees e
+                 LEFT JOIN departments d ON e.department_id = d.id
+                 WHERE e.is_deleted = 0 AND (e.status = 'active' OR e.status IS NULL)
+                 GROUP BY e.department_id, d.name
+                 ORDER BY employee_count DESC
+                 LIMIT 10"
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    public function statsPreviousMonth(): array
+    {
+        $pdo = Database::pdo();
+        $stats = ['total_employees' => 0, 'open_positions' => 0];
+        try {
+            $lastMonth = date('Y-m-d', strtotime('-1 month'));
+            $stats['total_employees'] = (int) $pdo->prepare(
+                "SELECT COUNT(*) FROM employees WHERE is_deleted = 0 AND (status = 'active' OR status IS NULL) AND created_at <= ?"
+            )->execute([$lastMonth]) ? $pdo->query("SELECT COUNT(*) FROM employees WHERE is_deleted = 0 AND created_at <= '$lastMonth'")->fetchColumn() : 0;
+        } catch (\Exception $e) {}
+        return $stats;
+    }
+
+    public function expiringCertificatesWidget(int $days = 60): array
+    {
+        try {
+            $stmt = Database::pdo()->prepare(
+                "SELECT c.*, CONCAT(e.first_name, ' ', e.last_name) AS employee_name, ct.name AS certificate_type_name
+                 FROM certificates c
+                 LEFT JOIN employees e ON c.employee_id = e.id
+                 LEFT JOIN certificate_types ct ON c.certificate_type_id = ct.id
+                 WHERE c.is_deleted = 0
+                   AND c.expiry_date IS NOT NULL
+                   AND c.expiry_date <= DATE_ADD(CURDATE(), INTERVAL :days DAY)
+                 ORDER BY c.expiry_date ASC
+                 LIMIT 10"
+            );
+            $stmt->execute(['days' => $days]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
 }

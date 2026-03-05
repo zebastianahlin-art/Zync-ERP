@@ -441,6 +441,7 @@ return function (App $app) {
         $group->get('/certificates/{id}', [\App\Controllers\CertificateController::class, 'show']);
         $group->post('/certificates/{id}', [\App\Controllers\CertificateController::class, 'update']);
         $group->post('/certificates/{id}/delete', [\App\Controllers\CertificateController::class, 'destroy']);
+        $group->post('/certificates/{id}/renew', [\App\Controllers\CertificateController::class, 'renew']);
 
         // ─── Inventory (Lager) ───────────────────────────────────
         $group->get('/inventory', [\App\Controllers\InventoryController::class, 'index']);
@@ -604,6 +605,7 @@ return function (App $app) {
         $group->get('/hr/payroll/payslips/{slipId}/edit', [\App\Controllers\PayrollController::class, 'editPayslip']);
         $group->post('/hr/payroll/payslips/{slipId}', [\App\Controllers\PayrollController::class, 'updatePayslip']);
         $group->post('/hr/payroll/payslips/{slipId}/delete', [\App\Controllers\PayrollController::class, 'deletePayslip']);
+        $group->get('/hr/payroll/payslips/{slipId}/print', [\App\Controllers\PayrollController::class, 'printPayslip']);
         $group->get('/hr/payroll/payslips/{slipId}', [\App\Controllers\PayrollController::class, 'showPayslip']);
 
         // ─── HR: Attendance (Närvaro/Frånvaro) ──────────────────────────────
@@ -647,6 +649,7 @@ return function (App $app) {
         $group->post('/hr/recruitment/applicants/{applicantId}', [\App\Controllers\RecruitmentController::class, 'updateApplicant']);
         $group->post('/hr/recruitment/applicants/{applicantId}/delete', [\App\Controllers\RecruitmentController::class, 'deleteApplicant']);
         $group->post('/hr/recruitment/applicants/{applicantId}/status', [\App\Controllers\RecruitmentController::class, 'updateApplicantStatus']);
+        $group->get('/hr/recruitment/applicants/{applicantId}/convert', [\App\Controllers\RecruitmentController::class, 'convertApplicant']);
         $group->get('/hr/recruitment/applicants/{applicantId}', [\App\Controllers\RecruitmentController::class, 'showApplicant']);
 
         // ─── HR: Expenses (Reseräkningar) ────────────────────────────────────

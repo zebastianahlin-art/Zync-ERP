@@ -158,11 +158,62 @@ class CertificateRepository
         }
     }
 
-    public function certificateTypes(): array
+    public function expiringInDays(int $days): array
+    {
+        return $this->expiringCertificates($days);
+    }
+
+    public function renew(int $id, array $data): int
+    {
+        $original = $this->find($id);
+        if ($original === null) {
+            throw new \RuntimeException("Certificate {$id} not found");
+        }
+
+        $stmt = Database::pdo()->prepare(
+            'INSERT INTO certificates
+             (employee_id, certificate_type_id, issued_date, expiry_date, file_path, notes, created_by, renewed_from_id)
+             VALUES (:employee_id, :certificate_type_id, :issued_date, :expiry_date, :file_path, :notes, :created_by, :renewed_from_id)'
+        );
+
+        // Check if renewed_from_id column exists, skip if not
+        try {
+            $stmt->execute([
+                'employee_id'         => $original['employee_id'],
+                'certificate_type_id' => $original['certificate_type_id'],
+                'issued_date'         => $data['issued_date'] ?? date('Y-m-d'),
+                'expiry_date'         => $data['expiry_date'] ?? null,
+                'file_path'           => $data['file_path'] ?? $original['file_path'] ?? null,
+                'notes'               => $data['notes'] ?? null,
+                'created_by'          => $data['created_by'] ?? null,
+                'renewed_from_id'     => $id,
+            ]);
+        } catch (\Exception $e) {
+            // Fallback without renewed_from_id
+            $stmt2 = Database::pdo()->prepare(
+                'INSERT INTO certificates
+                 (employee_id, certificate_type_id, issued_date, expiry_date, file_path, notes, created_by)
+                 VALUES (:employee_id, :certificate_type_id, :issued_date, :expiry_date, :file_path, :notes, :created_by)'
+            );
+            $stmt2->execute([
+                'employee_id'         => $original['employee_id'],
+                'certificate_type_id' => $original['certificate_type_id'],
+                'issued_date'         => $data['issued_date'] ?? date('Y-m-d'),
+                'expiry_date'         => $data['expiry_date'] ?? null,
+                'file_path'           => $data['file_path'] ?? $original['file_path'] ?? null,
+                'notes'               => $data['notes'] ?? null,
+                'created_by'          => $data['created_by'] ?? null,
+            ]);
+        }
+
+        return (int) Database::pdo()->lastInsertId();
+    }
+
+    public function allCourses(): array
     {
         try {
             return Database::pdo()->query(
-                'SELECT DISTINCT ct.name FROM certificate_types ct WHERE ct.is_deleted = 0 ORDER BY ct.name ASC'
+                'SELECT id, name FROM training_courses WHERE is_deleted = 0 ORDER BY name ASC'
             )->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\Exception $e) {
             return [];

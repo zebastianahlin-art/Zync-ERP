@@ -208,6 +208,11 @@ class PayrollRepository
         }
     }
 
+    public function employeePayslipHistory(int $employeeId): array
+    {
+        return $this->payslipsByEmployee($employeeId);
+    }
+
     public function allEmployees(): array
     {
         try {
