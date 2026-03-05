@@ -195,6 +195,31 @@ class RecruitmentRepository
         $stmt->execute([$id]);
     }
 
+    public function updateApplicantStatus(int $id, string $status): void
+    {
+        $stmt = Database::pdo()->prepare('UPDATE recruitment_applicants SET status=:status WHERE id=:id AND is_deleted=0');
+        $stmt->execute(['status' => $status, 'id' => $id]);
+    }
+
+    public function positionStats(int $positionId): array
+    {
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT status, COUNT(*) AS cnt FROM recruitment_applicants
+                 WHERE position_id = ? AND is_deleted = 0 GROUP BY status'
+            );
+            $stmt->execute([$positionId]);
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $stats = [];
+            foreach ($rows as $r) {
+                $stats[$r['status']] = (int) $r['cnt'];
+            }
+            return $stats;
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
     public function pipelineStats(int $positionId): array
     {
         return $this->positionStats($positionId);

@@ -4,7 +4,7 @@ use App\Core\Database;
 $pdo = Database::pdo();
 
 $applicantCols = [
-    'pipeline_step' => "VARCHAR(30) NULL DEFAULT 'new' COMMENT 'Ny/Granskning/Intervju/Erbjudande/Anständ/Avvisad'",
+    'pipeline_step' => "VARCHAR(30) NULL DEFAULT 'new' COMMENT 'Ny/Granskning/Intervju/Erbjudande/Anst&#228;lld/Avvisad'",
     'rating'        => "TINYINT UNSIGNED NULL DEFAULT 0 COMMENT 'Betyg 1-5'",
     'cv_url'        => "VARCHAR(500) NULL COMMENT 'CV-fil URL/filnamn'",
     'cover_letter'  => "TEXT NULL",

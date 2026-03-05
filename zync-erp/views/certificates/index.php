@@ -75,12 +75,12 @@
                         <td class="px-4 py-3 text-right whitespace-nowrap">
                             <a href="/certificates/<?= $cert['id'] ?>/edit" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline mr-2">Redigera</a>
                             <?php if ($expired || $exp60): ?>
-                            <button type="button"
-                                x-data="{ open: false }"
-                                @click="open = true"
-                                class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline mr-2">
-                                F&#246;rnya
-                            </button>
+                            <form method="POST" action="/certificates/<?= (int)$cert['id'] ?>/renew" class="inline"
+                                  onsubmit="return confirm('F&#246;rnya detta certifikat? Ett nytt certifikat skapas.')">
+                                <?= \App\Core\Csrf::field() ?>
+                                <input type="hidden" name="issued_date" value="<?= date('Y-m-d') ?>">
+                                <button type="submit" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline mr-2">F&#246;rnya</button>
+                            </form>
                             <?php endif; ?>
                             <form method="POST" action="/certificates/<?= $cert['id'] ?>/delete" class="inline" onsubmit="return confirm('Ta bort certifikat?')">
                                 <?= \App\Core\Csrf::field() ?>

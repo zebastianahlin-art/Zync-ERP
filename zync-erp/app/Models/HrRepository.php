@@ -115,9 +115,11 @@ class HrRepository
         $stats = ['total_employees' => 0, 'open_positions' => 0];
         try {
             $lastMonth = date('Y-m-d', strtotime('-1 month'));
-            $stats['total_employees'] = (int) $pdo->prepare(
+            $stmt = $pdo->prepare(
                 "SELECT COUNT(*) FROM employees WHERE is_deleted = 0 AND (status = 'active' OR status IS NULL) AND created_at <= ?"
-            )->execute([$lastMonth]) ? $pdo->query("SELECT COUNT(*) FROM employees WHERE is_deleted = 0 AND created_at <= '$lastMonth'")->fetchColumn() : 0;
+            );
+            $stmt->execute([$lastMonth]);
+            $stats['total_employees'] = (int) $stmt->fetchColumn();
         } catch (\Exception $e) {}
         return $stats;
     }
