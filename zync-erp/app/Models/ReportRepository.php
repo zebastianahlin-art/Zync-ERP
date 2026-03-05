@@ -143,8 +143,12 @@ class ReportRepository
             $stmt->execute([$from, $to]);
             $data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-            $unpaidOut = (int)$this->pdo->prepare("SELECT COUNT(*) FROM invoices_outgoing WHERE status != 'paid' AND is_deleted = 0")->execute([]) ?: 0;
-            $unpaidIn  = (int)$this->pdo->prepare("SELECT COUNT(*) FROM invoices_incoming WHERE status != 'paid' AND is_deleted = 0")->execute([]) ?: 0;
+            $stmtOut = $this->pdo->prepare("SELECT COUNT(*) FROM invoices_outgoing WHERE status != 'paid' AND is_deleted = 0");
+            $stmtOut->execute([]);
+            $unpaidOut = (int)$stmtOut->fetchColumn();
+            $stmtIn = $this->pdo->prepare("SELECT COUNT(*) FROM invoices_incoming WHERE status != 'paid' AND is_deleted = 0");
+            $stmtIn->execute([]);
+            $unpaidIn = (int)$stmtIn->fetchColumn();
 
             $s1 = $this->pdo->prepare("SELECT COALESCE(SUM(total_amount),0) FROM invoices_outgoing WHERE is_deleted=0 AND invoice_date BETWEEN ? AND ?");
             $s1->execute([$from, $to]); $revenue = (float)$s1->fetchColumn();

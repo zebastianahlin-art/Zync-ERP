@@ -30,7 +30,7 @@
                     <td class="px-4 py-3 text-right font-mono font-semibold"><?= number_format((float)($row['total_amount'] ?? 0), 2, ',', ' ') ?> kr</td>
                 </tr>
                 <?php endforeach; ?>
-                <?php if (empty($data)): ?><tr><td colspan="3" class="px-4 py-6 text-center text-gray-400">Inga inköpsordrar för valt period.</td></tr><?php endif; ?>
+                <?php if (empty($data)): ?><tr><td colspan="3" class="px-4 py-6 text-center text-gray-400">Inga inköpsordrar för vald period.</td></tr><?php endif; ?>
             </tbody>
         </table>
     </div>

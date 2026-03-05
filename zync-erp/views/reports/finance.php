@@ -28,7 +28,7 @@
                     <td class="px-4 py-3 text-right font-mono font-semibold text-green-600 dark:text-green-400"><?= number_format((float)($row['revenue'] ?? 0), 2, ',', ' ') ?> kr</td>
                 </tr>
                 <?php endforeach; ?>
-                <?php if (empty($data)): ?><tr><td colspan="2" class="px-4 py-6 text-center text-gray-400">Inga fakturor för valt period.</td></tr><?php endif; ?>
+                <?php if (empty($data)): ?><tr><td colspan="2" class="px-4 py-6 text-center text-gray-400">Inga fakturor för vald period.</td></tr><?php endif; ?>
             </tbody>
         </table>
     </div>
