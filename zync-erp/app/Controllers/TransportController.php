@@ -312,9 +312,4 @@ class TransportController extends Controller
         return $errors;
     }
 
-    private function notFound(ResponseInterface $response): ResponseInterface
-    {
-        $response->getBody()->write('<h1>404 – Hittades inte</h1>');
-        return $response->withStatus(404);
-    }
 }

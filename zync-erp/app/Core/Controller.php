@@ -51,6 +51,16 @@ abstract class Controller
     }
 
     /**
+     * Return a 404 Not Found PSR-7 response, rendered via the errors/404 view.
+     */
+    protected function notFound(ResponseInterface $response, string $message = 'Sidan hittades inte'): ResponseInterface
+    {
+        $html = $this->view->render('errors/404', ['title' => '404 – Sidan hittades inte', 'message' => $message]);
+        $response->getBody()->write($html);
+        return $response->withStatus(404);
+    }
+
+    /**
      * Require an authenticated session.
      *
      * Returns null when authenticated so callers can continue normally:

@@ -1,10 +1,10 @@
 <div class="space-y-6">
 
     <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold tracking-tight text-gray-900">Customers</h1>
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900">Kunder</h1>
         <a href="/customers/create"
            class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700 transition-colors">
-            + New Customer
+            + Ny kund
         </a>
     </div>
 
@@ -16,16 +16,16 @@
 
     <div class="overflow-hidden rounded-2xl bg-white shadow-md">
         <?php if (empty($customers)): ?>
-            <p class="px-6 py-10 text-center text-sm text-gray-500">No customers yet. <a href="/customers/create" class="text-indigo-600 hover:underline">Add the first one.</a></p>
+            <p class="px-6 py-10 text-center text-sm text-gray-500">Inga kunder ännu. <a href="/customers/create" class="text-indigo-600 hover:underline">Lägg till den första.</a></p>
         <?php else: ?>
             <table class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left font-semibold text-gray-600 uppercase tracking-wide text-xs">Name</th>
-                        <th class="px-6 py-3 text-left font-semibold text-gray-600 uppercase tracking-wide text-xs">Org. Number</th>
-                        <th class="px-6 py-3 text-left font-semibold text-gray-600 uppercase tracking-wide text-xs">Email</th>
-                        <th class="px-6 py-3 text-left font-semibold text-gray-600 uppercase tracking-wide text-xs">Phone</th>
-                        <th class="px-6 py-3 text-right font-semibold text-gray-600 uppercase tracking-wide text-xs">Actions</th>
+                        <th class="px-6 py-3 text-left font-semibold text-gray-600 uppercase tracking-wide text-xs">Namn</th>
+                        <th class="px-6 py-3 text-left font-semibold text-gray-600 uppercase tracking-wide text-xs">Org.nummer</th>
+                        <th class="px-6 py-3 text-left font-semibold text-gray-600 uppercase tracking-wide text-xs">E-post</th>
+                        <th class="px-6 py-3 text-left font-semibold text-gray-600 uppercase tracking-wide text-xs">Telefon</th>
+                        <th class="px-6 py-3 text-right font-semibold text-gray-600 uppercase tracking-wide text-xs">Åtgärder</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 bg-white">
@@ -45,13 +45,13 @@
                             </td>
                             <td class="px-6 py-4 text-right space-x-3">
                                 <a href="/customers/<?= $customer->id ?>/edit"
-                                   class="text-indigo-600 hover:underline">Edit</a>
+                                   class="text-indigo-600 hover:underline">Redigera</a>
                                 <form method="POST" action="/customers/<?= $customer->id ?>/delete"
                                       class="inline"
-                                      onsubmit="return confirm('Delete this customer?')">
+                                      onsubmit="return confirm('Ta bort denna kund?')">
                                     <button type="submit"
                                             class="text-red-600 hover:underline bg-transparent border-0 p-0 cursor-pointer">
-                                        Delete
+                                        Ta bort
                                     </button>
                                 </form>
                             </td>

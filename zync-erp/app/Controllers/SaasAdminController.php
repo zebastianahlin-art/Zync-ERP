@@ -403,9 +403,4 @@ class SaasAdminController extends Controller
         return $errors;
     }
 
-    private function notFound(ResponseInterface $response, string $message = 'Hittades inte.'): ResponseInterface
-    {
-        $response->getBody()->write('<h1>404 – ' . htmlspecialchars($message, ENT_QUOTES, 'UTF-8') . '</h1>');
-        return $response->withStatus(404);
-    }
 }

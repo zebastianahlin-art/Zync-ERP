@@ -176,9 +176,4 @@ class EmployeeController extends Controller
         return $errors;
     }
 
-    private function notFound(ResponseInterface $response): ResponseInterface
-    {
-        $response->getBody()->write('<h1>404 – Anställd hittades inte</h1>');
-        return $response->withStatus(404);
-    }
 }

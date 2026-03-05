@@ -29,7 +29,7 @@ class CustomerController extends Controller
         }
 
         return $this->render($response, 'customers/index', [
-            'title'     => 'Customers – ZYNC ERP',
+            'title'     => 'Kunder – ZYNC ERP',
             'customers' => $this->repo->all(),
             'success'   => Flash::get('success'),
         ]);
@@ -43,7 +43,7 @@ class CustomerController extends Controller
         }
 
         return $this->render($response, 'customers/create', [
-            'title'  => 'New Customer – ZYNC ERP',
+            'title'  => 'Ny kund – ZYNC ERP',
             'errors' => [],
             'old'    => [],
         ]);
@@ -61,7 +61,7 @@ class CustomerController extends Controller
 
         if (!empty($errors)) {
             return $this->render($response, 'customers/create', [
-                'title'  => 'New Customer – ZYNC ERP',
+                'title'  => 'Ny kund – ZYNC ERP',
                 'errors' => $errors,
                 'old'    => $data,
             ]);
@@ -72,13 +72,13 @@ class CustomerController extends Controller
         } catch (\PDOException $e) {
             $errors = $this->handleUniqueViolation($e, $errors);
             return $this->render($response, 'customers/create', [
-                'title'  => 'New Customer – ZYNC ERP',
+                'title'  => 'Ny kund – ZYNC ERP',
                 'errors' => $errors,
                 'old'    => $data,
             ]);
         }
 
-        Flash::set('success', 'Customer created successfully.');
+        Flash::set('success', 'Kunden har skapats.');
         return $this->redirect($response, '/customers');
     }
 
@@ -95,7 +95,7 @@ class CustomerController extends Controller
         }
 
         return $this->render($response, 'customers/edit', [
-            'title'    => 'Edit Customer – ZYNC ERP',
+            'title'    => 'Redigera kund – ZYNC ERP',
             'customer' => $customer,
             'errors'   => [],
         ]);
@@ -119,7 +119,7 @@ class CustomerController extends Controller
 
         if (!empty($errors)) {
             return $this->render($response, 'customers/edit', [
-                'title'    => 'Edit Customer – ZYNC ERP',
+                'title'    => 'Redigera kund – ZYNC ERP',
                 'customer' => $customer,
                 'errors'   => $errors,
             ]);
@@ -130,13 +130,13 @@ class CustomerController extends Controller
         } catch (\PDOException $e) {
             $errors = $this->handleUniqueViolation($e, $errors);
             return $this->render($response, 'customers/edit', [
-                'title'    => 'Edit Customer – ZYNC ERP',
+                'title'    => 'Redigera kund – ZYNC ERP',
                 'customer' => $customer,
                 'errors'   => $errors,
             ]);
         }
 
-        Flash::set('success', 'Customer updated successfully.');
+        Flash::set('success', 'Kunden har uppdaterats.');
         return $this->redirect($response, '/customers');
     }
 
@@ -150,7 +150,7 @@ class CustomerController extends Controller
         $id = (int) $args['id'];
         if ($this->repo->find($id) !== null) {
             $this->repo->delete($id);
-            Flash::set('success', 'Customer deleted.');
+            Flash::set('success', 'Kunden har tagits bort.');
         }
 
         return $this->redirect($response, '/customers');
@@ -178,15 +178,15 @@ class CustomerController extends Controller
         $errors = [];
 
         if ($data['name'] === '') {
-            $errors['name'] = 'Name is required.';
+            $errors['name'] = 'Namn är obligatoriskt.';
         }
         if ($data['org_number'] === '') {
-            $errors['org_number'] = 'Organisation number is required.';
+            $errors['org_number'] = 'Organisationsnummer är obligatoriskt.';
         }
         if ($data['email'] === '') {
-            $errors['email'] = 'Email is required.';
+            $errors['email'] = 'E-postadress är obligatorisk.';
         } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            $errors['email'] = 'Email must be a valid email address.';
+            $errors['email'] = 'Ogiltig e-postadress.';
         }
 
         return $errors;
@@ -200,18 +200,13 @@ class CustomerController extends Controller
     {
         $message = $e->getMessage();
         if (str_contains($message, 'customers_email_unique') || str_contains($message, "'email'")) {
-            $errors['email'] = 'This email address is already in use.';
+            $errors['email'] = 'E-postadressen används redan.';
         } elseif (str_contains($message, 'customers_org_number_unique') || str_contains($message, "'org_number'")) {
-            $errors['org_number'] = 'This organisation number is already registered.';
+            $errors['org_number'] = 'Organisationsnumret är redan registrerat.';
         } else {
-            $errors['general'] = 'A duplicate entry was detected. Please check your input.';
+            $errors['general'] = 'En dubblettpost hittades. Kontrollera dina uppgifter.';
         }
         return $errors;
     }
 
-    private function notFound(ResponseInterface $response): ResponseInterface
-    {
-        $response->getBody()->write('<h1>404 – Customer Not Found</h1>');
-        return $response->withStatus(404);
-    }
 }
