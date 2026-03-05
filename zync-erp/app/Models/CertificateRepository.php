@@ -10,16 +10,20 @@ class CertificateRepository
 {
     public function all(): array
     {
-        return Database::pdo()->query(
-            'SELECT c.*,
-                    CONCAT(e.first_name, \' \', e.last_name) AS employee_name,
-                    ct.name AS certificate_type_name
-             FROM certificates c
-             LEFT JOIN employees e ON c.employee_id = e.id
-             LEFT JOIN certificate_types ct ON c.certificate_type_id = ct.id
-             WHERE c.is_deleted = 0
-             ORDER BY c.expiry_date ASC'
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query(
+                'SELECT c.*,
+                        CONCAT(e.first_name, \' \', e.last_name) AS employee_name,
+                        ct.name AS certificate_type_name
+                 FROM certificates c
+                 LEFT JOIN employees e ON c.employee_id = e.id
+                 LEFT JOIN certificate_types ct ON c.certificate_type_id = ct.id
+                 WHERE c.is_deleted = 0
+                 ORDER BY c.expiry_date ASC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function find(int $id): ?array
@@ -84,8 +88,12 @@ class CertificateRepository
 
     public function allTypes(): array
     {
-        return Database::pdo()->query(
-            'SELECT id, name FROM certificate_types WHERE is_deleted = 0 ORDER BY name ASC'
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query(
+                'SELECT id, name FROM certificate_types WHERE is_deleted = 0 ORDER BY name ASC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 }

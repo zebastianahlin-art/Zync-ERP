@@ -265,9 +265,14 @@ class InventoryController extends Controller
             return $this->redirect($response, '/inventory/stocktaking/create');
         }
 
-        $id = $this->repo->createStocktaking($data);
-        Flash::set('success', 'Inventering skapad.');
-        return $this->redirect($response, "/inventory/stocktaking/{$id}");
+        try {
+            $id = $this->repo->createStocktaking($data);
+            Flash::set('success', 'Inventering skapad.');
+            return $this->redirect($response, "/inventory/stocktaking/{$id}");
+        } catch (\Exception $e) {
+            Flash::set('error', 'Fel vid skapande av inventering: ' . $e->getMessage());
+            return $this->redirect($response, '/inventory/stocktaking/create');
+        }
     }
 
     /** GET /inventory/stocktaking/{id} */

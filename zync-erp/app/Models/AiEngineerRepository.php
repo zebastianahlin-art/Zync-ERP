@@ -13,21 +13,25 @@ class AiEngineerRepository
      */
     public function topFaultyMachines(int $limit = 10, int $days = 365): array
     {
-        $stmt = Database::pdo()->prepare(
-            "SELECT m.id, m.name, m.location,
-                    COUNT(fr.id) AS fault_count,
-                    MAX(fr.created_at) AS last_fault_at
-             FROM machines m
-             JOIN fault_reports fr ON fr.machine_id = m.id
-             WHERE m.is_deleted = 0
-               AND fr.is_deleted = 0
-               AND fr.created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
-             GROUP BY m.id, m.name, m.location
-             ORDER BY fault_count DESC
-             LIMIT ?"
-        );
-        $stmt->execute([$days, $limit]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = Database::pdo()->prepare(
+                "SELECT m.id, m.name, m.location,
+                        COUNT(fr.id) AS fault_count,
+                        MAX(fr.created_at) AS last_fault_at
+                 FROM machines m
+                 JOIN fault_reports fr ON fr.machine_id = m.id
+                 WHERE m.is_deleted = 0
+                   AND fr.is_deleted = 0
+                   AND fr.created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+                 GROUP BY m.id, m.name, m.location
+                 ORDER BY fault_count DESC
+                 LIMIT ?"
+            );
+            $stmt->execute([$days, $limit]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     /**
@@ -36,22 +40,26 @@ class AiEngineerRepository
      */
     public function mtbfPerMachine(): array
     {
-        $sql = "SELECT m.id, m.name,
-                       COUNT(fr.id) AS fault_count,
-                       MIN(fr.created_at) AS first_fault_at,
-                       MAX(fr.created_at) AS last_fault_at,
-                       CASE
-                         WHEN COUNT(fr.id) > 1
-                         THEN TIMESTAMPDIFF(HOUR, MIN(fr.created_at), MAX(fr.created_at)) / (COUNT(fr.id) - 1)
-                         ELSE NULL
-                       END AS mtbf_hours
-                FROM machines m
-                JOIN fault_reports fr ON fr.machine_id = m.id AND fr.is_deleted = 0
-                WHERE m.is_deleted = 0
-                GROUP BY m.id, m.name
-                HAVING fault_count >= 2
-                ORDER BY mtbf_hours ASC";
-        return Database::pdo()->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $sql = "SELECT m.id, m.name,
+                           COUNT(fr.id) AS fault_count,
+                           MIN(fr.created_at) AS first_fault_at,
+                           MAX(fr.created_at) AS last_fault_at,
+                           CASE
+                             WHEN COUNT(fr.id) > 1
+                             THEN TIMESTAMPDIFF(HOUR, MIN(fr.created_at), MAX(fr.created_at)) / (COUNT(fr.id) - 1)
+                             ELSE NULL
+                           END AS mtbf_hours
+                    FROM machines m
+                    JOIN fault_reports fr ON fr.machine_id = m.id AND fr.is_deleted = 0
+                    WHERE m.is_deleted = 0
+                    GROUP BY m.id, m.name
+                    HAVING fault_count >= 2
+                    ORDER BY mtbf_hours ASC";
+            return Database::pdo()->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     /**
@@ -80,18 +88,22 @@ class AiEngineerRepository
      */
     public function trendingFaults(): array
     {
-        $sql = "SELECT m.id, m.name,
-                       SUM(CASE WHEN fr.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) AS faults_last_30,
-                       SUM(CASE WHEN fr.created_at >= DATE_SUB(NOW(), INTERVAL 60 DAY)
-                                 AND fr.created_at < DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) AS faults_prev_30
-                FROM machines m
-                JOIN fault_reports fr ON fr.machine_id = m.id AND fr.is_deleted = 0
-                WHERE m.is_deleted = 0
-                  AND fr.created_at >= DATE_SUB(NOW(), INTERVAL 60 DAY)
-                GROUP BY m.id, m.name
-                HAVING faults_last_30 > faults_prev_30
-                ORDER BY (faults_last_30 - faults_prev_30) DESC";
-        return Database::pdo()->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $sql = "SELECT m.id, m.name,
+                           SUM(CASE WHEN fr.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) AS faults_last_30,
+                           SUM(CASE WHEN fr.created_at >= DATE_SUB(NOW(), INTERVAL 60 DAY)
+                                     AND fr.created_at < DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) AS faults_prev_30
+                    FROM machines m
+                    JOIN fault_reports fr ON fr.machine_id = m.id AND fr.is_deleted = 0
+                    WHERE m.is_deleted = 0
+                      AND fr.created_at >= DATE_SUB(NOW(), INTERVAL 60 DAY)
+                    GROUP BY m.id, m.name
+                    HAVING faults_last_30 > faults_prev_30
+                    ORDER BY (faults_last_30 - faults_prev_30) DESC";
+            return Database::pdo()->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     /**
@@ -101,67 +113,79 @@ class AiEngineerRepository
     {
         $recs = [];
 
-        // Machines with >= 3 faults in last 30 days
-        $stmt = Database::pdo()->prepare(
-            "SELECT m.id, m.name, COUNT(fr.id) AS cnt
-             FROM machines m
-             JOIN fault_reports fr ON fr.machine_id = m.id AND fr.is_deleted = 0
-             WHERE m.is_deleted = 0 AND fr.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-             GROUP BY m.id, m.name
-             HAVING cnt >= 3
-             ORDER BY cnt DESC"
-        );
-        $stmt->execute();
-        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
-            $recs[] = [
-                'machine_id'   => $row['id'],
-                'machine_name' => $row['name'],
-                'type'         => 'frequent_faults',
-                'severity'     => $row['cnt'] >= 5 ? 'critical' : 'high',
-                'message'      => "Maskin \"{$row['name']}\" har haft {$row['cnt']} felanmälningar de senaste 30 dagarna. Överväg förebyggande underhåll.",
-            ];
+        try {
+            // Machines with >= 3 faults in last 30 days
+            $stmt = Database::pdo()->prepare(
+                "SELECT m.id, m.name, COUNT(fr.id) AS cnt
+                 FROM machines m
+                 JOIN fault_reports fr ON fr.machine_id = m.id AND fr.is_deleted = 0
+                 WHERE m.is_deleted = 0 AND fr.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                 GROUP BY m.id, m.name
+                 HAVING cnt >= 3
+                 ORDER BY cnt DESC"
+            );
+            $stmt->execute();
+            foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+                $recs[] = [
+                    'machine_id'   => $row['id'],
+                    'machine_name' => $row['name'],
+                    'type'         => 'frequent_faults',
+                    'severity'     => $row['cnt'] >= 5 ? 'critical' : 'high',
+                    'message'      => "Maskin \"{$row['name']}\" har haft {$row['cnt']} felanmälningar de senaste 30 dagarna. Överväg förebyggande underhåll.",
+                ];
+            }
+        } catch (\Exception $e) {
+            // fault_reports or machines table unavailable
         }
 
-        // Machines with no PM schedule but multiple faults
-        $stmt = Database::pdo()->prepare(
-            "SELECT m.id, m.name, COUNT(fr.id) AS cnt
-             FROM machines m
-             JOIN fault_reports fr ON fr.machine_id = m.id AND fr.is_deleted = 0
-             LEFT JOIN preventive_maintenance_schedules pms ON pms.machine_id = m.id AND pms.is_deleted = 0 AND pms.status = 'active'
-             WHERE m.is_deleted = 0 AND pms.id IS NULL
-             GROUP BY m.id, m.name
-             HAVING cnt >= 2
-             ORDER BY cnt DESC"
-        );
-        $stmt->execute();
-        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
-            $recs[] = [
-                'machine_id'   => $row['id'],
-                'machine_name' => $row['name'],
-                'type'         => 'no_pm_schedule',
-                'severity'     => 'normal',
-                'message'      => "Maskin \"{$row['name']}\" saknar aktivt FU-schema men har {$row['cnt']} registrerade fel. Skapa ett förebyggande underhållsschema.",
-            ];
+        try {
+            // Machines with no PM schedule but multiple faults
+            $stmt = Database::pdo()->prepare(
+                "SELECT m.id, m.name, COUNT(fr.id) AS cnt
+                 FROM machines m
+                 JOIN fault_reports fr ON fr.machine_id = m.id AND fr.is_deleted = 0
+                 LEFT JOIN preventive_maintenance_schedules pms ON pms.machine_id = m.id AND pms.is_deleted = 0 AND pms.status = 'active'
+                 WHERE m.is_deleted = 0 AND pms.id IS NULL
+                 GROUP BY m.id, m.name
+                 HAVING cnt >= 2
+                 ORDER BY cnt DESC"
+            );
+            $stmt->execute();
+            foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+                $recs[] = [
+                    'machine_id'   => $row['id'],
+                    'machine_name' => $row['name'],
+                    'type'         => 'no_pm_schedule',
+                    'severity'     => 'normal',
+                    'message'      => "Maskin \"{$row['name']}\" saknar aktivt FU-schema men har {$row['cnt']} registrerade fel. Skapa ett förebyggande underhållsschema.",
+                ];
+            }
+        } catch (\Exception $e) {
+            // preventive_maintenance_schedules or related table unavailable
         }
 
-        // Machines with overdue PM
-        $stmt = Database::pdo()->prepare(
-            "SELECT m.id, m.name, MIN(pms.next_due_at) AS overdue_since
-             FROM machines m
-             JOIN preventive_maintenance_schedules pms ON pms.machine_id = m.id AND pms.is_deleted = 0 AND pms.status = 'active'
-             WHERE m.is_deleted = 0 AND pms.next_due_at < NOW()
-             GROUP BY m.id, m.name
-             ORDER BY overdue_since ASC"
-        );
-        $stmt->execute();
-        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
-            $recs[] = [
-                'machine_id'   => $row['id'],
-                'machine_name' => $row['name'],
-                'type'         => 'overdue_pm',
-                'severity'     => 'high',
-                'message'      => "Maskin \"{$row['name']}\" har ett förfallet FU-schema (förfallet sedan {$row['overdue_since']}). Utför underhåll snarast.",
-            ];
+        try {
+            // Machines with overdue PM
+            $stmt = Database::pdo()->prepare(
+                "SELECT m.id, m.name, MIN(pms.next_due_at) AS overdue_since
+                 FROM machines m
+                 JOIN preventive_maintenance_schedules pms ON pms.machine_id = m.id AND pms.is_deleted = 0 AND pms.status = 'active'
+                 WHERE m.is_deleted = 0 AND pms.next_due_at < NOW()
+                 GROUP BY m.id, m.name
+                 ORDER BY overdue_since ASC"
+            );
+            $stmt->execute();
+            foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+                $recs[] = [
+                    'machine_id'   => $row['id'],
+                    'machine_name' => $row['name'],
+                    'type'         => 'overdue_pm',
+                    'severity'     => 'high',
+                    'message'      => "Maskin \"{$row['name']}\" har ett förfallet FU-schema (förfallet sedan {$row['overdue_since']}). Utför underhåll snarast.",
+                ];
+            }
+        } catch (\Exception $e) {
+            // preventive_maintenance_schedules table unavailable
         }
 
         return $recs;
@@ -259,13 +283,36 @@ class AiEngineerRepository
     {
         $pdo = Database::pdo();
 
-        $totalFaults = (int) $pdo->query("SELECT COUNT(*) FROM fault_reports WHERE is_deleted = 0")->fetchColumn();
-        $openFaults  = (int) $pdo->query("SELECT COUNT(*) FROM fault_reports WHERE is_deleted = 0 AND status NOT IN ('resolved','closed')")->fetchColumn();
-        $totalWOs    = (int) $pdo->query("SELECT COUNT(*) FROM work_orders WHERE is_deleted = 0")->fetchColumn();
-        $activeWOs   = (int) $pdo->query("SELECT COUNT(*) FROM work_orders WHERE is_deleted = 0 AND status IN ('assigned','in_progress')")->fetchColumn();
-        $activePM    = (int) $pdo->query("SELECT COUNT(*) FROM preventive_maintenance_schedules WHERE is_deleted = 0 AND status = 'active'")->fetchColumn();
-        $overduePM   = (int) $pdo->query("SELECT COUNT(*) FROM preventive_maintenance_schedules WHERE is_deleted = 0 AND status = 'active' AND next_due_at < NOW()")->fetchColumn();
+        $stats = [
+            'totalFaults' => 0,
+            'openFaults'  => 0,
+            'totalWOs'    => 0,
+            'activeWOs'   => 0,
+            'activePM'    => 0,
+            'overduePM'   => 0,
+        ];
 
-        return compact('totalFaults', 'openFaults', 'totalWOs', 'activeWOs', 'activePM', 'overduePM');
+        try {
+            $stats['totalFaults'] = (int) $pdo->query("SELECT COUNT(*) FROM fault_reports WHERE is_deleted = 0")->fetchColumn();
+            $stats['openFaults']  = (int) $pdo->query("SELECT COUNT(*) FROM fault_reports WHERE is_deleted = 0 AND status NOT IN ('resolved','closed')")->fetchColumn();
+        } catch (\Exception $e) {
+            // fault_reports table unavailable
+        }
+
+        try {
+            $stats['totalWOs']  = (int) $pdo->query("SELECT COUNT(*) FROM work_orders WHERE is_deleted = 0")->fetchColumn();
+            $stats['activeWOs'] = (int) $pdo->query("SELECT COUNT(*) FROM work_orders WHERE is_deleted = 0 AND status IN ('assigned','in_progress')")->fetchColumn();
+        } catch (\Exception $e) {
+            // work_orders table unavailable
+        }
+
+        try {
+            $stats['activePM']  = (int) $pdo->query("SELECT COUNT(*) FROM preventive_maintenance_schedules WHERE is_deleted = 0 AND status = 'active'")->fetchColumn();
+            $stats['overduePM'] = (int) $pdo->query("SELECT COUNT(*) FROM preventive_maintenance_schedules WHERE is_deleted = 0 AND status = 'active' AND next_due_at < NOW()")->fetchColumn();
+        } catch (\Exception $e) {
+            // preventive_maintenance_schedules table unavailable
+        }
+
+        return $stats;
     }
 }

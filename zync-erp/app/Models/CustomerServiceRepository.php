@@ -10,52 +10,68 @@ class CustomerServiceRepository
 {
     public function stats(): array
     {
-        $pdo = Database::pdo();
-        return [
-            'open'             => (int) $pdo->query("SELECT COUNT(*) FROM cs_tickets WHERE status = 'open'       AND is_deleted = 0")->fetchColumn(),
-            'in_progress'      => (int) $pdo->query("SELECT COUNT(*) FROM cs_tickets WHERE status = 'in_progress' AND is_deleted = 0")->fetchColumn(),
-            'resolved'         => (int) $pdo->query("SELECT COUNT(*) FROM cs_tickets WHERE status = 'resolved'   AND is_deleted = 0")->fetchColumn(),
-            'closed'           => (int) $pdo->query("SELECT COUNT(*) FROM cs_tickets WHERE status = 'closed'     AND is_deleted = 0")->fetchColumn(),
-        ];
+        try {
+            $pdo = Database::pdo();
+            return [
+                'open'        => (int) $pdo->query("SELECT COUNT(*) FROM cs_tickets WHERE status = 'open'        AND is_deleted = 0")->fetchColumn(),
+                'in_progress' => (int) $pdo->query("SELECT COUNT(*) FROM cs_tickets WHERE status = 'in_progress' AND is_deleted = 0")->fetchColumn(),
+                'resolved'    => (int) $pdo->query("SELECT COUNT(*) FROM cs_tickets WHERE status = 'resolved'    AND is_deleted = 0")->fetchColumn(),
+                'closed'      => (int) $pdo->query("SELECT COUNT(*) FROM cs_tickets WHERE status = 'closed'      AND is_deleted = 0")->fetchColumn(),
+            ];
+        } catch (\Exception $e) {
+            return ['open' => 0, 'in_progress' => 0, 'resolved' => 0, 'closed' => 0];
+        }
     }
 
     public function allTickets(): array
     {
-        return Database::pdo()->query(
-            'SELECT t.*, c.name AS customer_name, u.name AS assigned_name
-             FROM cs_tickets t
-             LEFT JOIN customers c ON t.customer_id = c.id
-             LEFT JOIN users u     ON t.assigned_to  = u.id
-             WHERE t.is_deleted = 0
-             ORDER BY t.created_at DESC'
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query(
+                'SELECT t.*, c.name AS customer_name, u.full_name AS assigned_name
+                 FROM cs_tickets t
+                 LEFT JOIN customers c ON t.customer_id = c.id
+                 LEFT JOIN users u     ON t.assigned_to  = u.id
+                 WHERE t.is_deleted = 0
+                 ORDER BY t.created_at DESC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function myTickets(int $userId): array
     {
-        $stmt = Database::pdo()->prepare(
-            'SELECT t.*, c.name AS customer_name, u.name AS assigned_name
-             FROM cs_tickets t
-             LEFT JOIN customers c ON t.customer_id = c.id
-             LEFT JOIN users u     ON t.assigned_to  = u.id
-             WHERE t.is_deleted = 0 AND t.assigned_to = ?
-             ORDER BY t.created_at DESC'
-        );
-        $stmt->execute([$userId]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT t.*, c.name AS customer_name, u.full_name AS assigned_name
+                 FROM cs_tickets t
+                 LEFT JOIN customers c ON t.customer_id = c.id
+                 LEFT JOIN users u     ON t.assigned_to  = u.id
+                 WHERE t.is_deleted = 0 AND t.assigned_to = ?
+                 ORDER BY t.created_at DESC'
+            );
+            $stmt->execute([$userId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function findTicket(int $id): ?array
     {
-        $stmt = Database::pdo()->prepare(
-            'SELECT t.*, c.name AS customer_name, u.name AS assigned_name
-             FROM cs_tickets t
-             LEFT JOIN customers c ON t.customer_id = c.id
-             LEFT JOIN users u     ON t.assigned_to  = u.id
-             WHERE t.id = ? AND t.is_deleted = 0'
-        );
-        $stmt->execute([$id]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT t.*, c.name AS customer_name, u.full_name AS assigned_name
+                 FROM cs_tickets t
+                 LEFT JOIN customers c ON t.customer_id = c.id
+                 LEFT JOIN users u     ON t.assigned_to  = u.id
+                 WHERE t.id = ? AND t.is_deleted = 0'
+            );
+            $stmt->execute([$id]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function createTicket(array $data): int
@@ -160,28 +176,40 @@ class CustomerServiceRepository
 
     public function ticketComments(int $ticketId): array
     {
-        $stmt = Database::pdo()->prepare(
-            'SELECT tc.*, u.name AS user_name
-             FROM cs_ticket_comments tc
-             LEFT JOIN users u ON tc.user_id = u.id
-             WHERE tc.ticket_id = ?
-             ORDER BY tc.created_at ASC'
-        );
-        $stmt->execute([$ticketId]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT tc.*, u.full_name AS user_name
+                 FROM cs_ticket_comments tc
+                 LEFT JOIN users u ON tc.user_id = u.id
+                 WHERE tc.ticket_id = ?
+                 ORDER BY tc.created_at ASC'
+            );
+            $stmt->execute([$ticketId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function allUsers(): array
     {
-        return Database::pdo()->query(
-            'SELECT id, name FROM users WHERE is_deleted = 0 ORDER BY name ASC'
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query(
+                'SELECT id, full_name AS name FROM users WHERE is_deleted = 0 ORDER BY full_name ASC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function allCustomers(): array
     {
-        return Database::pdo()->query(
-            'SELECT id, name FROM customers WHERE is_deleted = 0 ORDER BY name ASC'
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query(
+                'SELECT id, name FROM customers WHERE is_deleted = 0 ORDER BY name ASC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 }

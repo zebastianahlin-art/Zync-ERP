@@ -124,29 +124,33 @@ class FinanceReportRepository
      */
     public function getTrialBalanceWithBudget(string $from, string $to, int $year): array
     {
-        $stmt = Database::pdo()->prepare(
-            "SELECT coa.account_number, coa.name AS account_name, coa.account_class,
-                    COALESCE(SUM(jel.debit), 0) AS total_debit,
-                    COALESCE(SUM(jel.credit), 0) AS total_credit,
-                    COALESCE(SUM(jel.debit), 0) - COALESCE(SUM(jel.credit), 0) AS balance,
-                    COALESCE(bud.budget_total, 0) AS budget_total
-             FROM chart_of_accounts coa
-             LEFT JOIN journal_entry_lines jel ON jel.account_id = coa.id
-             LEFT JOIN journal_entries je ON jel.entry_id = je.id
-                 AND je.is_deleted = 0 AND je.entry_date BETWEEN ? AND ?
-             LEFT JOIN (
-                 SELECT account_id, SUM(amount) AS budget_total
-                 FROM account_budgets
-                 WHERE fiscal_year = ? AND is_deleted = 0
-                 GROUP BY account_id
-             ) bud ON bud.account_id = coa.id
-             WHERE coa.is_active = 1
-             GROUP BY coa.id, coa.account_number, coa.name, coa.account_class, bud.budget_total
-             HAVING (total_debit > 0 OR total_credit > 0 OR budget_total > 0)
-             ORDER BY coa.account_number"
-        );
-        $stmt->execute([$from, $to, $year]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = Database::pdo()->prepare(
+                "SELECT coa.account_number, coa.name AS account_name, coa.account_class,
+                        COALESCE(SUM(jel.debit), 0) AS total_debit,
+                        COALESCE(SUM(jel.credit), 0) AS total_credit,
+                        COALESCE(SUM(jel.debit), 0) - COALESCE(SUM(jel.credit), 0) AS balance,
+                        COALESCE(bud.budget_total, 0) AS budget_total
+                 FROM chart_of_accounts coa
+                 LEFT JOIN journal_entry_lines jel ON jel.account_id = coa.id
+                 LEFT JOIN journal_entries je ON jel.entry_id = je.id
+                     AND je.is_deleted = 0 AND je.entry_date BETWEEN ? AND ?
+                 LEFT JOIN (
+                     SELECT account_id, SUM(amount) AS budget_total
+                     FROM account_budgets
+                     WHERE fiscal_year = ? AND is_deleted = 0
+                     GROUP BY account_id
+                 ) bud ON bud.account_id = coa.id
+                 WHERE coa.is_active = 1
+                 GROUP BY coa.id, coa.account_number, coa.name, coa.account_class, bud.budget_total
+                 HAVING (total_debit > 0 OR total_credit > 0 OR budget_total > 0)
+                 ORDER BY coa.account_number"
+            );
+            $stmt->execute([$from, $to, $year]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     /**
@@ -154,25 +158,29 @@ class FinanceReportRepository
      */
     public function getPreviousYearComparison(string $from, string $to): array
     {
-        $year = (int) date('Y', strtotime($from));
-        $prevFrom = ($year - 1) . substr($from, 4);
-        $prevTo   = ($year - 1) . substr($to, 4);
+        try {
+            $year = (int) date('Y', strtotime($from));
+            $prevFrom = ($year - 1) . substr($from, 4);
+            $prevTo   = ($year - 1) . substr($to, 4);
 
-        $stmt = Database::pdo()->prepare(
-            "SELECT coa.account_number, coa.name AS account_name, coa.account_class,
-                    COALESCE(SUM(CASE WHEN je.entry_date BETWEEN ? AND ? THEN jel.debit ELSE 0 END), 0) AS total_debit,
-                    COALESCE(SUM(CASE WHEN je.entry_date BETWEEN ? AND ? THEN jel.credit ELSE 0 END), 0) AS total_credit,
-                    COALESCE(SUM(CASE WHEN je.entry_date BETWEEN ? AND ? THEN jel.debit - jel.credit ELSE 0 END), 0) AS balance,
-                    COALESCE(SUM(CASE WHEN je.entry_date BETWEEN ? AND ? THEN jel.debit - jel.credit ELSE 0 END), 0) AS prev_balance
-             FROM chart_of_accounts coa
-             LEFT JOIN journal_entry_lines jel ON jel.account_id = coa.id
-             LEFT JOIN journal_entries je ON jel.entry_id = je.id AND je.is_deleted = 0
-             WHERE coa.is_active = 1
-             GROUP BY coa.id, coa.account_number, coa.name, coa.account_class
-             HAVING (total_debit > 0 OR total_credit > 0 OR prev_balance <> 0)
-             ORDER BY coa.account_number"
-        );
-        $stmt->execute([$from, $to, $from, $to, $from, $to, $prevFrom, $prevTo]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt = Database::pdo()->prepare(
+                "SELECT coa.account_number, coa.name AS account_name, coa.account_class,
+                        COALESCE(SUM(CASE WHEN je.entry_date BETWEEN ? AND ? THEN jel.debit ELSE 0 END), 0) AS total_debit,
+                        COALESCE(SUM(CASE WHEN je.entry_date BETWEEN ? AND ? THEN jel.credit ELSE 0 END), 0) AS total_credit,
+                        COALESCE(SUM(CASE WHEN je.entry_date BETWEEN ? AND ? THEN jel.debit - jel.credit ELSE 0 END), 0) AS balance,
+                        COALESCE(SUM(CASE WHEN je.entry_date BETWEEN ? AND ? THEN jel.debit - jel.credit ELSE 0 END), 0) AS prev_balance
+                 FROM chart_of_accounts coa
+                 LEFT JOIN journal_entry_lines jel ON jel.account_id = coa.id
+                 LEFT JOIN journal_entries je ON jel.entry_id = je.id AND je.is_deleted = 0
+                 WHERE coa.is_active = 1
+                 GROUP BY coa.id, coa.account_number, coa.name, coa.account_class
+                 HAVING (total_debit > 0 OR total_credit > 0 OR prev_balance <> 0)
+                 ORDER BY coa.account_number"
+            );
+            $stmt->execute([$from, $to, $from, $to, $from, $to, $prevFrom, $prevTo]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 }

@@ -511,16 +511,21 @@ class FinanceController extends Controller
         $to = $params['to'] ?? date('Y-12-31');
         $compare = $params['compare'] ?? null;
 
-        $data = $this->journal->trialBalance($from, $to);
-        if ($compare === 'previous_year') {
-            $data = $this->reports->getPreviousYearComparison($from, $to);
+        try {
+            $data = $this->journal->trialBalance($from, $to);
+            if ($compare === 'previous_year') {
+                $data = $this->reports->getPreviousYearComparison($from, $to);
+            }
+        } catch (\Exception $e) {
+            $data = [];
+            Flash::set('error', 'Rapporten kunde inte laddas. Kontrollera att alla tabeller är skapade.');
         }
 
         return $this->render($response, 'finance/reports/trial-balance', [
-            'title' => 'Resultat- & balansräkning',
-            'data' => $data,
-            'from' => $from,
-            'to' => $to,
+            'title'   => 'Resultat- & balansräkning',
+            'data'    => $data,
+            'from'    => $from,
+            'to'      => $to,
             'compare' => $compare,
         ]);
     }

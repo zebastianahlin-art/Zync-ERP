@@ -44,21 +44,25 @@ class InventoryRepository
 
     public function getStockKPIs(): array
     {
-        $row = Database::pdo()->query(
-            "SELECT
-                COUNT(DISTINCT s.article_id) AS total_articles,
-                SUM(CASE WHEN s.min_quantity IS NOT NULL AND s.quantity < s.min_quantity THEN 1 ELSE 0 END) AS below_minimum,
-                SUM(s.quantity * COALESCE(a.purchase_price, 0)) AS total_value
-             FROM inventory_stock s
-             LEFT JOIN articles a ON s.article_id = a.id
-             WHERE s.is_deleted = 0"
-        )->fetch(\PDO::FETCH_ASSOC);
+        try {
+            $row = Database::pdo()->query(
+                "SELECT
+                    COUNT(DISTINCT s.article_id) AS total_articles,
+                    SUM(CASE WHEN s.min_quantity IS NOT NULL AND s.quantity < s.min_quantity THEN 1 ELSE 0 END) AS below_minimum,
+                    SUM(s.quantity * COALESCE(a.purchase_price, 0)) AS total_value
+                 FROM inventory_stock s
+                 LEFT JOIN articles a ON s.article_id = a.id
+                 WHERE s.is_deleted = 0"
+            )->fetch(\PDO::FETCH_ASSOC);
 
-        return [
-            'total_articles' => (int) ($row['total_articles'] ?? 0),
-            'below_minimum'  => (int) ($row['below_minimum'] ?? 0),
-            'total_value'    => (float) ($row['total_value'] ?? 0.0),
-        ];
+            return [
+                'total_articles' => (int) ($row['total_articles'] ?? 0),
+                'below_minimum'  => (int) ($row['below_minimum'] ?? 0),
+                'total_value'    => (float) ($row['total_value'] ?? 0.0),
+            ];
+        } catch (\Exception $e) {
+            return ['total_articles' => 0, 'below_minimum' => 0, 'total_value' => 0.0];
+        }
     }
 
     public function allStock(): array
@@ -196,17 +200,21 @@ class InventoryRepository
 
     public function getReceivingOrders(): array
     {
-        $stmt = Database::pdo()->prepare(
-            "SELECT po.*, s.name AS supplier_name, COUNT(pol.id) AS line_count
-             FROM purchase_orders po
-             LEFT JOIN suppliers s ON po.supplier_id = s.id
-             LEFT JOIN purchase_order_lines pol ON pol.order_id = po.id AND pol.is_deleted = 0
-             WHERE po.status IN ('sent','confirmed','partially_received') AND po.is_deleted = 0
-             GROUP BY po.id
-             ORDER BY po.created_at DESC"
-        );
-        $stmt->execute();
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = Database::pdo()->prepare(
+                "SELECT po.*, s.name AS supplier_name, COUNT(pol.id) AS line_count
+                 FROM purchase_orders po
+                 LEFT JOIN suppliers s ON po.supplier_id = s.id
+                 LEFT JOIN purchase_order_lines pol ON pol.order_id = po.id AND pol.is_deleted = 0
+                 WHERE po.status IN ('sent','confirmed','partially_received') AND po.is_deleted = 0
+                 GROUP BY po.id
+                 ORDER BY po.created_at DESC"
+            );
+            $stmt->execute();
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function getReceivingOrder(int $poId): ?array
@@ -341,14 +349,18 @@ class InventoryRepository
 
     public function getStocktakings(): array
     {
-        return Database::pdo()->query(
-            "SELECT st.*, w.name AS warehouse_name, u.full_name AS approved_by_name
-             FROM stocktakings st
-             LEFT JOIN warehouses w ON st.warehouse_id = w.id
-             LEFT JOIN users u ON st.approved_by = u.id
-             WHERE st.is_deleted = 0
-             ORDER BY st.created_at DESC"
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query(
+                "SELECT st.*, w.name AS warehouse_name, u.full_name AS approved_by_name
+                 FROM stocktakings st
+                 LEFT JOIN warehouses w ON st.warehouse_id = w.id
+                 LEFT JOIN users u ON st.approved_by = u.id
+                 WHERE st.is_deleted = 0
+                 ORDER BY st.created_at DESC"
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function getStocktakingById(int $id): ?array
@@ -503,13 +515,17 @@ class InventoryRepository
 
     public function getWarehouses(): array
     {
-        return Database::pdo()->query(
-            "SELECT w.*, u.full_name AS responsible_name
-             FROM warehouses w
-             LEFT JOIN users u ON w.responsible_user_id = u.id
-             WHERE w.is_deleted = 0
-             ORDER BY w.name ASC"
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query(
+                "SELECT w.*, u.full_name AS responsible_name
+                 FROM warehouses w
+                 LEFT JOIN users u ON w.responsible_user_id = u.id
+                 WHERE w.is_deleted = 0
+                 ORDER BY w.name ASC"
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function getWarehouseById(int $id): ?array

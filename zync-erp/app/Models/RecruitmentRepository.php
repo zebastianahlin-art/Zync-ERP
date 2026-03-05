@@ -10,21 +10,29 @@ class RecruitmentRepository
 {
     public function allDepartments(): array
     {
-        return Database::pdo()->query(
-            'SELECT id, name FROM departments WHERE is_deleted = 0 ORDER BY name ASC'
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query(
+                'SELECT id, name FROM departments WHERE is_deleted = 0 ORDER BY name ASC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function allPositions(): array
     {
-        return Database::pdo()->query(
-            'SELECT p.*, d.name AS department_name,
-             (SELECT COUNT(*) FROM recruitment_applicants a WHERE a.position_id = p.id AND a.is_deleted = 0) AS applicant_count
-             FROM recruitment_positions p
-             LEFT JOIN departments d ON p.department_id = d.id
-             WHERE p.is_deleted = 0
-             ORDER BY p.created_at DESC'
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query(
+                'SELECT p.*, d.name AS department_name,
+                 (SELECT COUNT(*) FROM recruitment_applicants a WHERE a.position_id = p.id AND a.is_deleted = 0) AS applicant_count
+                 FROM recruitment_positions p
+                 LEFT JOIN departments d ON p.department_id = d.id
+                 WHERE p.is_deleted = 0
+                 ORDER BY p.created_at DESC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function findPosition(int $id): ?array
@@ -41,11 +49,15 @@ class RecruitmentRepository
 
     public function positionApplicants(int $positionId): array
     {
-        $stmt = Database::pdo()->prepare(
-            'SELECT * FROM recruitment_applicants WHERE position_id = ? AND is_deleted = 0 ORDER BY applied_at DESC'
-        );
-        $stmt->execute([$positionId]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT * FROM recruitment_applicants WHERE position_id = ? AND is_deleted = 0 ORDER BY applied_at DESC'
+            );
+            $stmt->execute([$positionId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function createPosition(array $data): int
@@ -72,12 +84,16 @@ class RecruitmentRepository
 
     public function allApplicants(): array
     {
-        return Database::pdo()->query(
-            'SELECT a.*, p.title AS position_title
-             FROM recruitment_applicants a
-             LEFT JOIN recruitment_positions p ON a.position_id = p.id
-             WHERE a.is_deleted = 0
-             ORDER BY a.applied_at DESC'
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query(
+                'SELECT a.*, p.title AS position_title
+                 FROM recruitment_applicants a
+                 LEFT JOIN recruitment_positions p ON a.position_id = p.id
+                 WHERE a.is_deleted = 0
+                 ORDER BY a.applied_at DESC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 }
