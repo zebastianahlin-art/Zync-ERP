@@ -1,8 +1,8 @@
 <?php
 
-use App\Core\Database;
+declare(strict_types=1);
 
-$pdo = Database::pdo();
+return function (\PDO $pdo): void {
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS saas_tenants (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -95,3 +95,5 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS saas_support_comments (
     INDEX idx_ssc_ticket (ticket_id),
     CONSTRAINT fk_ssc_ticket FOREIGN KEY (ticket_id) REFERENCES saas_support_tickets(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+};

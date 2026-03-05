@@ -1,8 +1,6 @@
+<?php $breadcrumbs = [['label' => 'Dashboard', 'url' => '/dashboard'], ['label' => 'Projekt']]; ?>
+<?php include dirname(__DIR__) . '/partials/breadcrumbs.php'; ?>
 <div class="space-y-6">
-    <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Projekt</h1>
-        <a href="/projects/create" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">+ Nytt projekt</a>
-    </div>
 
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
         <div class="overflow-x-auto">

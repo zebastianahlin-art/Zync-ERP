@@ -78,7 +78,16 @@ class SaasAdminController extends Controller
             ]);
         }
 
-        $id = $this->repo->createTenant($data);
+        try {
+            $id = $this->repo->createTenant($data);
+        } catch (\Throwable $e) {
+            Flash::set('error', 'Ett fel uppstod när kunden skapades.');
+            return $this->render($response, 'saas/tenants/create', [
+                'title'  => 'Ny kund – SaaS Admin – ZYNC ERP',
+                'errors' => ['db' => $e->getMessage()],
+                'old'    => $data,
+            ]);
+        }
         Flash::set('success', 'Kunden har skapats.');
         return $this->redirect($response, "/saas-admin/tenants/{$id}");
     }
@@ -144,7 +153,16 @@ class SaasAdminController extends Controller
             ]);
         }
 
-        $this->repo->updateTenant($id, $data);
+        try {
+            $this->repo->updateTenant($id, $data);
+        } catch (\Throwable $e) {
+            Flash::set('error', 'Ett fel uppstod när kunden uppdaterades.');
+            return $this->render($response, 'saas/tenants/edit', [
+                'title'  => 'Redigera kund – SaaS Admin – ZYNC ERP',
+                'tenant' => array_merge($tenant, $data),
+                'errors' => ['db' => $e->getMessage()],
+            ]);
+        }
         Flash::set('success', 'Kunden har uppdaterats.');
         return $this->redirect($response, "/saas-admin/tenants/{$id}");
     }
@@ -154,7 +172,12 @@ class SaasAdminController extends Controller
     {
         $id = (int) $args['id'];
         if ($this->repo->findTenant($id) !== null) {
-            $this->repo->deleteTenant($id);
+            try {
+                $this->repo->deleteTenant($id);
+            } catch (\Throwable) {
+                Flash::set('error', 'Ett fel uppstod när kunden togs bort.');
+                return $this->redirect($response, '/saas-admin/tenants');
+            }
             Flash::set('success', 'Kunden har tagits bort.');
         }
         return $this->redirect($response, '/saas-admin/tenants');
@@ -228,8 +251,18 @@ class SaasAdminController extends Controller
             ]);
         }
 
-        $data['invoice_number'] = $this->repo->generateInvoiceNumber();
-        $id = $this->repo->createInvoice($data);
+        try {
+            $data['invoice_number'] = $this->repo->generateInvoiceNumber();
+            $id = $this->repo->createInvoice($data);
+        } catch (\Throwable $e) {
+            Flash::set('error', 'Ett fel uppstod när fakturan skapades.');
+            return $this->render($response, 'saas/invoices/create', [
+                'title'   => 'Ny faktura – SaaS Admin – ZYNC ERP',
+                'tenants' => $this->repo->allTenants(),
+                'errors'  => ['db' => $e->getMessage()],
+                'old'     => $data,
+            ]);
+        }
         Flash::set('success', 'Fakturan har skapats.');
         return $this->redirect($response, "/saas-admin/invoices/{$id}");
     }
@@ -283,7 +316,17 @@ class SaasAdminController extends Controller
             ]);
         }
 
-        $this->repo->updateInvoice($id, $data);
+        try {
+            $this->repo->updateInvoice($id, $data);
+        } catch (\Throwable $e) {
+            Flash::set('error', 'Ett fel uppstod när fakturan uppdaterades.');
+            return $this->render($response, 'saas/invoices/edit', [
+                'title'   => 'Redigera faktura – SaaS Admin – ZYNC ERP',
+                'invoice' => array_merge($invoice, $data),
+                'tenants' => $this->repo->allTenants(),
+                'errors'  => ['db' => $e->getMessage()],
+            ]);
+        }
         Flash::set('success', 'Fakturan har uppdaterats.');
         return $this->redirect($response, "/saas-admin/invoices/{$id}");
     }

@@ -724,5 +724,24 @@ return function (App $app) {
         $group->post('/token/refresh', [AuthApiController::class, 'refresh']);
         $group->get('/me', [AuthApiController::class, 'me']);
     })->add(new JwtAuthMiddleware(new JwtService()));
+
+    // Notification routes
+    $app->group('', function (RouteCollectorProxy $group) {
+        $group->get('/notifications', [\App\Controllers\NotificationController::class, 'index']);
+        $group->post('/notifications/{id}/read', [\App\Controllers\NotificationController::class, 'markRead']);
+        $group->post('/notifications/read-all', [\App\Controllers\NotificationController::class, 'markAllRead']);
+    })->add(new CsrfMiddleware())->add(new AuthMiddleware());
+
+    // Notification API (AJAX, no CSRF needed)
+    $app->group('/api/notifications', function (RouteCollectorProxy $group) {
+        $group->get('/unread-count', [\App\Controllers\NotificationController::class, 'unreadCount']);
+        $group->get('/recent', [\App\Controllers\NotificationController::class, 'recent']);
+    })->add(new AuthMiddleware());
+
+    // Integration admin routes — require role_level >= 8
+    $app->group('/admin/integrations', function (RouteCollectorProxy $group) {
+        $group->get('', [\App\Controllers\IntegrationController::class, 'index']);
+        $group->post('/{slug}/test', [\App\Controllers\IntegrationController::class, 'test']);
+    })->add(new CsrfMiddleware())->add(new \App\Middleware\RoleMiddleware(minLevel: 8))->add(new AuthMiddleware());
 };
 

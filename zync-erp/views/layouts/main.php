@@ -353,6 +353,74 @@ function mobileActive(string $path, string $currentPath): string {
                 <a href="/login" class="px-3 py-2 rounded-md transition-colors <?= navActive('/login', $currentPath) ?>">Logga in</a>
                 <?php endif; ?>
 
+                <!-- Notification bell -->
+                <?php if ($_layoutUser): ?>
+                <div class="relative" x-data="{
+                    open: false,
+                    unread: 0,
+                    notifications: [],
+                    async fetchUnread() {
+                        try {
+                            const r = await fetch('/api/notifications/unread-count');
+                            const d = await r.json();
+                            this.unread = d.count ?? 0;
+                        } catch(e) {}
+                    },
+                    async fetchNotifications() {
+                        try {
+                            const r = await fetch('/api/notifications/recent');
+                            const d = await r.json();
+                            this.notifications = d.notifications ?? [];
+                        } catch(e) {}
+                    },
+                    async markAllRead() {
+                        await fetch('/notifications/read-all', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                            body: '_csrf=' + encodeURIComponent(document.querySelector('meta[name=csrf-token]')?.content ?? '')
+                        });
+                        this.unread = 0;
+                        this.notifications = this.notifications.map(n => ({...n, is_read: 1}));
+                    }
+                }" x-init="fetchUnread(); setInterval(() => fetchUnread(), 60000)">
+                    <button @click="open = !open; if(open) fetchNotifications()"
+                            class="relative rounded-lg p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            aria-label="Notifikationer">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                        <span x-show="unread > 0"
+                              class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white"
+                              x-text="unread > 9 ? '9+' : unread"></span>
+                    </button>
+                    <div x-show="open" x-transition @click.outside="open = false"
+                         class="absolute right-0 mt-1 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50">
+                        <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                            <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">Notifikationer</span>
+                            <button @click="markAllRead()" x-show="unread > 0"
+                                    class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Markera alla som lästa</button>
+                        </div>
+                        <div class="max-h-72 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
+                            <template x-if="notifications.length === 0">
+                                <p class="px-4 py-6 text-center text-sm text-gray-400">Inga notifikationer</p>
+                            </template>
+                            <template x-for="n in notifications" :key="n.id">
+                                <div :class="n.is_read ? 'bg-white dark:bg-gray-800' : 'bg-indigo-50 dark:bg-indigo-900/20'"
+                                     class="px-4 py-2.5">
+                                    <p class="text-sm font-medium text-gray-800 dark:text-gray-100" x-text="n.title"></p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5" x-text="n.message"></p>
+                                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5" x-text="n.created_at"></p>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-2">
+                            <a href="/notifications" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Visa alla notifikationer</a>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <!-- Dark mode toggle -->
                 <button
                     @click="
@@ -560,17 +628,75 @@ function mobileActive(string $path, string $currentPath): string {
     <?php
     $flashError   = App\Core\Flash::get('error');
     $flashSuccess = App\Core\Flash::get('success');
+    $flashWarning = App\Core\Flash::get('warning');
+    $flashInfo    = App\Core\Flash::get('info');
+    $toasts = [];
+    if ($flashSuccess !== null) {
+        $toasts[] = ['type' => 'success', 'message' => $flashSuccess];
+    }
+    if ($flashError !== null) {
+        $toasts[] = ['type' => 'error', 'message' => $flashError];
+    }
+    if ($flashWarning !== null) {
+        $toasts[] = ['type' => 'warning', 'message' => $flashWarning];
+    }
+    if ($flashInfo !== null) {
+        $toasts[] = ['type' => 'info', 'message' => $flashInfo];
+    }
     ?>
-    <?php if ($flashError !== null): ?>
-        <div class="mb-6 rounded-lg bg-red-50 dark:bg-red-900/30 px-4 py-3 text-sm text-red-700 dark:text-red-400">
-            <?= htmlspecialchars($flashError, ENT_QUOTES, 'UTF-8') ?>
+    <!-- Toast container (B4) -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 w-80"
+         x-data="{
+             toasts: <?= json_encode($toasts, JSON_UNESCAPED_UNICODE) ?>,
+             remove(i) { this.toasts.splice(i, 1); }
+         }"
+         x-init="toasts.forEach((t, i) => setTimeout(() => remove(i), 5000))">
+        <template x-for="(toast, i) in toasts" :key="i">
+            <div x-show="true" x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-x-4"
+                 x-transition:enter-end="opacity-100 translate-x-0"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 :class="{
+                     'bg-green-50 dark:bg-green-900/30 border-green-400 text-green-800 dark:text-green-300': toast.type === 'success',
+                     'bg-red-50 dark:bg-red-900/30 border-red-400 text-red-800 dark:text-red-300': toast.type === 'error',
+                     'bg-yellow-50 dark:bg-yellow-900/30 border-yellow-400 text-yellow-800 dark:text-yellow-300': toast.type === 'warning',
+                     'bg-blue-50 dark:bg-blue-900/30 border-blue-400 text-blue-800 dark:text-blue-300': toast.type === 'info'
+                 }"
+                 class="flex items-start gap-3 rounded-lg border px-4 py-3 shadow-lg text-sm">
+                <!-- Icon -->
+                <svg x-show="toast.type === 'success'" class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <svg x-show="toast.type === 'error'" class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <svg x-show="toast.type === 'warning'" class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <svg x-show="toast.type === 'info'" class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="flex-1" x-text="toast.message"></span>
+                <button @click="remove(i)" class="opacity-60 hover:opacity-100 transition-opacity" aria-label="Stäng">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </template>
+    </div>
+
+    <!-- Loading spinner (B5) -->
+    <div id="loading-overlay" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black/20 dark:bg-black/40">
+        <div class="flex flex-col items-center gap-3 bg-white dark:bg-gray-800 rounded-xl shadow-xl px-8 py-6">
+            <svg class="animate-spin h-8 w-8 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            <span class="text-sm text-gray-600 dark:text-gray-300">Bearbetar...</span>
         </div>
-    <?php endif; ?>
-    <?php if ($flashSuccess !== null): ?>
-        <div class="mb-6 rounded-lg bg-green-50 dark:bg-green-900/30 px-4 py-3 text-sm text-green-700 dark:text-green-400">
-            <?= htmlspecialchars($flashSuccess, ENT_QUOTES, 'UTF-8') ?>
-        </div>
-    <?php endif; ?>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('form[data-loading]').forEach(function (form) {
+            form.addEventListener('submit', function () {
+                document.getElementById('loading-overlay').classList.remove('hidden');
+            });
+        });
+    });
+    </script>
 
     <?= $content ?>
 </main>

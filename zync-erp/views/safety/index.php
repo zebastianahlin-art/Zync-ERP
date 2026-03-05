@@ -1,7 +1,6 @@
+<?php $breadcrumbs = [['label' => 'Dashboard', 'url' => '/dashboard'], ['label' => 'Hälsa & Säkerhet']]; ?>
+<?php include dirname(__DIR__) . '/partials/breadcrumbs.php'; ?>
 <div class="space-y-6">
-    <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Hälsa &amp; Säkerhet</h1>
-    </div>
 
     <!-- Stats grid -->
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">

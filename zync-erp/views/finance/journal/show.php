@@ -45,7 +45,7 @@
                     <td class="px-4 py-3 text-right font-mono <?= (float)$l['debit'] > 0 ? 'font-bold' : 'text-gray-400' ?>"><?= number_format((float)$l['debit'], 2, ',', ' ') ?></td>
                     <td class="px-4 py-3 text-right font-mono <?= (float)$l['credit'] > 0 ? 'font-bold' : 'text-gray-400' ?>"><?= number_format((float)$l['credit'], 2, ',', ' ') ?></td>
                     <?php if (!$entry['is_locked']): ?>
-                    <td class="px-4 py-3"><form method="POST" action="/finance/journal/<?= $entry['id'] ?>/lines/<?= $l['id'] ?>/delete"><?= \App\Core\Csrf::field() ?><button class="text-red-500 hover:text-red-700 text-xs">Ta bort</button></form></td>
+                    <td class="px-4 py-3"><form method="POST" action="/finance/journal/<?= $entry['id'] ?>/lines/<?= $l['id'] ?>/delete" onsubmit="return confirm('Ta bort denna rad?')"><?= \App\Core\Csrf::field() ?><button class="text-red-500 hover:text-red-700 text-xs">Ta bort</button></form></td>
                     <?php endif; ?>
                 </tr>
                 <?php endforeach; ?>
