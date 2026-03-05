@@ -419,10 +419,14 @@ return function (App $app) {
         $group->post('/departments/{id}', [\App\Controllers\DepartmentController::class, 'update']);
         $group->post('/departments/{id}/delete', [\App\Controllers\DepartmentController::class, 'destroy']);
 
+        // ─── HR Dashboard ────────────────────────────────────────
+        $group->get('/hr/dashboard', [\App\Controllers\HrController::class, 'dashboard']);
+
         // ─── Employees (Personal) ────────────────────────────────
         $group->get('/employees', [\App\Controllers\EmployeeController::class, 'index']);
         $group->get('/employees/create', [\App\Controllers\EmployeeController::class, 'create']);
         $group->post('/employees', [\App\Controllers\EmployeeController::class, 'store']);
+        $group->get('/employees/{id}', [\App\Controllers\EmployeeController::class, 'show']);
         $group->get('/employees/{id}/edit', [\App\Controllers\EmployeeController::class, 'edit']);
         $group->post('/employees/{id}', [\App\Controllers\EmployeeController::class, 'update']);
         $group->post('/employees/{id}/delete', [\App\Controllers\EmployeeController::class, 'destroy']);
