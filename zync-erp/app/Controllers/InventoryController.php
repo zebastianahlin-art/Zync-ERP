@@ -410,12 +410,20 @@ class InventoryController extends Controller
 
     private function getArticles(): array
     {
-        return Database::pdo()->query("SELECT id, article_number, name, unit, purchase_price FROM articles WHERE is_deleted = 0 AND is_active = 1 ORDER BY name")->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query("SELECT id, article_number, name, unit, purchase_price FROM articles WHERE is_deleted = 0 AND is_active = 1 ORDER BY name")->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     private function getUsers(): array
     {
-        return Database::pdo()->query("SELECT id, full_name FROM users WHERE is_active = 1 ORDER BY full_name")->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query("SELECT id, full_name FROM users WHERE is_active = 1 ORDER BY full_name")->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     private function parseCheckbox(array $data, string $field): int

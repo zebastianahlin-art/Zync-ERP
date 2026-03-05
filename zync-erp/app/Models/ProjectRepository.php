@@ -163,15 +163,19 @@ class ProjectRepository
 
     public function findTask(int $id): ?array
     {
-        $stmt = Database::pdo()->prepare(
-            'SELECT t.*, u.full_name AS assigned_name
-             FROM project_tasks t
-             LEFT JOIN users u ON t.assigned_to = u.id
-             WHERE t.id = ? AND t.is_deleted = 0 LIMIT 1'
-        );
-        $stmt->execute([$id]);
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        return $row !== false ? $row : null;
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT t.*, u.full_name AS assigned_name
+                 FROM project_tasks t
+                 LEFT JOIN users u ON t.assigned_to = u.id
+                 WHERE t.id = ? AND t.is_deleted = 0 LIMIT 1'
+            );
+            $stmt->execute([$id]);
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            return $row !== false ? $row : null;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function updateTask(int $id, array $data): void

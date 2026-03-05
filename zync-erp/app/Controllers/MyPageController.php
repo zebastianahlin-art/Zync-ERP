@@ -62,9 +62,14 @@ class MyPageController extends Controller
             ]);
         }
 
-        Database::pdo()->prepare(
-            'UPDATE users SET email = ?, phone = ?, full_name = ? WHERE id = ?'
-        )->execute([$email, $phone ?: null, $fullName ?: null, $id]);
+        try {
+            Database::pdo()->prepare(
+                'UPDATE users SET email = ?, phone = ?, full_name = ? WHERE id = ?'
+            )->execute([$email, $phone ?: null, $fullName ?: null, $id]);
+        } catch (\Exception $e) {
+            Flash::set('error', 'Profilen kunde inte sparas. Kontrollera att alla fält är giltiga.');
+            return $this->redirect($response, '/my-page/edit');
+        }
 
         // Clear user cache so next request reflects the update
         unset($_SESSION['_user_cache']);

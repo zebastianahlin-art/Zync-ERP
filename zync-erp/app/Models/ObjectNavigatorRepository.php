@@ -13,25 +13,29 @@ class ObjectNavigatorRepository
      */
     public function search(string $query, string $type = ''): array
     {
-        $params = [];
-        $sql = "SELECT * FROM object_registry WHERE is_deleted = 0";
+        try {
+            $params = [];
+            $sql = "SELECT * FROM object_registry WHERE is_deleted = 0";
 
-        if ($type !== '') {
-            $sql .= " AND object_type = ?";
-            $params[] = $type;
+            if ($type !== '') {
+                $sql .= " AND object_type = ?";
+                $params[] = $type;
+            }
+
+            if ($query !== '') {
+                $sql .= " AND (display_name LIKE ? OR search_text LIKE ?)";
+                $like = '%' . $query . '%';
+                $params[] = $like;
+                $params[] = $like;
+            }
+
+            $sql .= " ORDER BY object_type ASC, display_name ASC LIMIT 200";
+            $stmt = Database::pdo()->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
         }
-
-        if ($query !== '') {
-            $sql .= " AND (display_name LIKE ? OR search_text LIKE ?)";
-            $like = '%' . $query . '%';
-            $params[] = $like;
-            $params[] = $like;
-        }
-
-        $sql .= " ORDER BY object_type ASC, display_name ASC LIMIT 200";
-        $stmt = Database::pdo()->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     /**
@@ -53,13 +57,17 @@ class ObjectNavigatorRepository
      */
     public function children(string $parentType, int $parentId): array
     {
-        $stmt = Database::pdo()->prepare(
-            "SELECT * FROM object_registry WHERE is_deleted = 0
-             AND parent_type = ? AND parent_id = ?
-             ORDER BY display_name ASC"
-        );
-        $stmt->execute([$parentType, $parentId]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = Database::pdo()->prepare(
+                "SELECT * FROM object_registry WHERE is_deleted = 0
+                 AND parent_type = ? AND parent_id = ?
+                 ORDER BY display_name ASC"
+            );
+            $stmt->execute([$parentType, $parentId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     /**

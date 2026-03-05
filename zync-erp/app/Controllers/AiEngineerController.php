@@ -27,8 +27,11 @@ class AiEngineerController extends Controller
 
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+        $aiConfigured = !empty($_ENV['AI_API_KEY']);
+
         return $this->render($response, 'maintenance/ai/index', [
             'title'          => 'AI-ingenjör – ZYNC ERP',
+            'aiConfigured'   => $aiConfigured,
             'stats'          => $this->repo->dashboardStats(),
             'topFaulty'      => $this->repo->topFaultyMachines(10),
             'trending'       => $this->repo->trendingFaults(),

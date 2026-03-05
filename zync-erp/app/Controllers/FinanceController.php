@@ -566,7 +566,11 @@ class FinanceController extends Controller
 
     private function getUsers(): array
     {
-        return Database::pdo()->query("SELECT id, full_name FROM users WHERE is_active = 1 ORDER BY full_name")->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query("SELECT id, full_name FROM users WHERE is_active = 1 ORDER BY full_name")->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     private function getDepartments(): array
@@ -826,7 +830,13 @@ class FinanceController extends Controller
         $params = $request->getQueryParams();
         $from = $params['from'] ?? date('Y-01-01');
         $to = $params['to'] ?? date('Y-12-31');
-        $data = $this->reports->getBalanceSheet($from, $to);
+
+        try {
+            $data = $this->reports->getBalanceSheet($from, $to);
+        } catch (\Exception $e) {
+            $data = ['assets' => [], 'liabilities' => []];
+            Flash::set('error', 'Balansräkningen kunde inte laddas. Kontrollera att alla tabeller är skapade.');
+        }
 
         return $this->render($response, 'finance/reports/balance-sheet', [
             'title' => 'Balansräkning',

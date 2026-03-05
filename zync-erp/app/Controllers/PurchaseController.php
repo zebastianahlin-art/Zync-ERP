@@ -462,12 +462,20 @@ class PurchaseController extends Controller
 
     private function getUsers(): array
     {
-        return Database::pdo()->query("SELECT id, full_name FROM users WHERE is_active = 1 ORDER BY full_name")->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query("SELECT id, full_name FROM users WHERE is_active = 1 ORDER BY full_name")->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     private function getAccounts(): array
     {
-        return Database::pdo()->query("SELECT id, account_number, name, account_class FROM chart_of_accounts WHERE is_active = 1 ORDER BY account_number")->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query("SELECT id, account_number, name, account_class FROM chart_of_accounts WHERE is_active = 1 ORDER BY account_number")->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     private function getCostCenters(): array
