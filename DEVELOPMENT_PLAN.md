@@ -202,6 +202,8 @@ Skapa placeholder-sidor för moduler som ännu inte är uppgraderade.
 | #43 | Fas 6: H&S + Projekt + HR — Fullständig uppgradering | ✅ Mergad |
 | #45 | Fas 7: Dashboard widget-system + Rapportmodul | ✅ Mergad |
 | #46 | Fas 8: Admin + SaaS Admin — Komplett uppgradering | ✅ Klar |
+| #47 | Buggfix: diverse korrigeringar | ✅ Mergad |
+| #48 | Kodkvalitetsförbättringar: Refaktorering & Konsistens | ✅ Klar |
 | #36 | (Ersatt av #37) | ❌ Stängd |
 | #33 | Maintenance Module draft | ❌ Stängd |
 
@@ -242,4 +244,19 @@ Dashboard, Underhåll, ObjektNavigator, Lager, Inköp, Ekonomi, Hälsa & Säkerh
 - **46 migrationer** körda
 - **15 ERP-moduler** implementerade
 - **0 PlaceholderController-routes** kvar
-- **Totalt antal PRs:** #34, #35, #37, #38, #39, #40, #41, #42, #43, #45, #46
+- **Totalt antal PRs:** #34, #35, #37, #38, #39, #40, #41, #42, #43, #45, #46, #47, #48
+
+---
+
+## PR #48 — Kodkvalitetsförbättringar: Refaktorering & Konsistens
+
+### Syfte
+Kodkvalitetsförbättringar efter att alla 8 faser + buggfix-PR #47 är klara.
+
+### Åtgärder
+
+1. **Centraliserad `notFound()` i base Controller** — En enda `protected function notFound(ResponseInterface $response, string $message = 'Sidan hittades inte')` i `Controller.php` renderar `errors/404`-vyn. Alla 16 controllers fick sina privata `notFound()`-metoder borttagna.
+
+2. **Uppdaterad 404-vy** — `views/errors/404.php` visar nu `$message`-variabeln dynamiskt.
+
+3. **Customer-modulen översatt till svenska** — `CustomerController.php` och `views/customers/`-vyerna (index, create, edit) har nu genomgående svensk text.
