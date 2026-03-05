@@ -20,13 +20,10 @@ En detaljerad åtgärdslista har tagits fram för att uppgradera alla moduler ti
 - **PR #41** — Fas 4: Ekonomi (budgetar, anläggningstillgångar, kontoplansgrupper, balansräkning, kreditnotor)
 - **PR #42** — Fas 5: Produktion + Försäljning + CS & Transport (produkter CRUD, ordrar, offertmallar, prislistor, ticketsystem, transportordrar)
 - **PR #43** — Fas 6: H&S + Projekt + HR (pending/completed audits, nödlägesövningar med mallar, reseräkningar med rader, projekt tasks + budget CRUD)
+- **PR #45** — Fas 7: Dashboard widget-system + Rapportmodul (widget-grid, KPI per modul, rapportgenerator, historik-routes, alla PlaceholderController-routes ersatta)
 
 ### Kända problem:
-- Dashboard är enkel — saknar widget-system (planerat i Fas 7)
 - Admin-sidan oförändrad, SaaS-admin saknas helt (planerat i Fas 8)
-- Kvarvarande PlaceholderController-routes tillhör Fas 7+:
-  - /purchasing/requisitions/history, /purchasing/orders/history, /purchasing/agreements/history
-  - /finance/reports/kpi, /finance/reports/stocktaking
 
 ### Teknisk stack:
 - PHP 8.4, Slim Framework, Tailwind CSS (CDN), AlpineJS, MariaDB
@@ -141,7 +138,7 @@ Skapa placeholder-sidor för moduler som ännu inte är uppgraderade.
 - Reseräkningar (+ knapp på MIN SIDA)
 
 ### Fas 7: Dashboard widget-system + Rapporter
-**Status:** ⏳ Nästa
+**Status:** ✅ Klar (PR #45)
 
 **Dashboard:**
 - Konfigurerbar per användare (lägg till/ta bort widgets)
@@ -156,7 +153,7 @@ Skapa placeholder-sidor för moduler som ännu inte är uppgraderade.
 - Rollbaserad synlighet
 
 ### Fas 8: Admin + SaaS Admin
-**Status:** ⏳ Väntar
+**Status:** ⏳ Nästa
 
 **Admin (ERP):**
 - Alla systeminställningar
@@ -207,13 +204,9 @@ Skapa placeholder-sidor för moduler som ännu inte är uppgraderade.
 
 ## Kvarvarande PlaceholderController-routes
 
-Följande routes pekar fortfarande på `PlaceholderController::comingSoon` och ska ersättas i respektive fas:
-
-### Framtida faser
-| Route | Modul | Beskrivning |
-|-------|-------|-------------|
-| `/purchasing/requisitions/history` | Inköp | Historiska anmodan |
-| `/purchasing/orders/history` | Inköp | Historiska inköpsordrar |
-| `/purchasing/agreements/history` | Inköp | Historiska avtal |
-| `/finance/reports/kpi` | Ekonomi | KPI från avdelningar |
-| `/finance/reports/stocktaking` | Ekonomi | Inventering ekonomi |
+✅ **Alla PlaceholderController-routes är nu ersatta.** Fas 7 (PR #45) ersatte de sista 5 routerna:
+- `/purchasing/requisitions/history` → `PurchaseController::requisitionHistory`
+- `/purchasing/orders/history` → `PurchaseController::orderHistory`
+- `/purchasing/agreements/history` → `PurchaseController::agreementHistory`
+- `/finance/reports/kpi` → `FinanceController::reportKpi`
+- `/finance/reports/stocktaking` → `FinanceController::reportStocktaking`

@@ -113,6 +113,19 @@ class PurchaseAgreementRepository
         $stmt->execute([$filePath, $id]);
     }
 
+    public function history(): array
+    {
+        $sql = "SELECT pa.*, s.name AS supplier_name, u.full_name AS responsible_name
+                FROM purchase_agreements pa
+                LEFT JOIN suppliers s ON pa.supplier_id = s.id
+                LEFT JOIN users u ON pa.responsible_id = u.id
+                WHERE pa.is_deleted = 0
+                  AND (pa.status IN ('expired', 'terminated')
+                       OR (pa.end_date IS NOT NULL AND pa.end_date < NOW()))
+                ORDER BY pa.created_at DESC";
+        return Database::pdo()->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
     private function generateNumber(): string
     {
         $year = (int) date('Y');

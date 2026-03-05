@@ -155,6 +155,20 @@ class PurchaseRequisitionRepository
         $stmt->execute([$id, $id]);
     }
 
+    public function history(): array
+    {
+        $sql = "SELECT pr.*, u.full_name AS requested_by_name,
+                       u2.full_name AS approved_by_name, d.name AS department_name
+                FROM purchase_requisitions pr
+                LEFT JOIN users u ON pr.requested_by = u.id
+                LEFT JOIN users u2 ON pr.approved_by = u2.id
+                LEFT JOIN departments d ON pr.department_id = d.id
+                WHERE pr.is_deleted = 0
+                  AND pr.status IN ('completed', 'rejected', 'cancelled')
+                ORDER BY pr.created_at DESC";
+        return Database::pdo()->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
     private function generateNumber(): string
     {
         $year = (int) date('Y');

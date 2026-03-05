@@ -24,6 +24,10 @@ return function (App $app) {
     // Protected routes — require authentication
     $app->group('', function (RouteCollectorProxy $group) {
         $group->get('/dashboard', [\App\Controllers\DashboardController::class, 'index']);
+        $group->get('/dashboard/configure', [\App\Controllers\DashboardController::class, 'configure']);
+        $group->post('/dashboard/widgets/add', [\App\Controllers\DashboardController::class, 'addWidget']);
+        $group->post('/dashboard/widgets/remove', [\App\Controllers\DashboardController::class, 'removeWidget']);
+        $group->post('/dashboard/widgets/reorder', [\App\Controllers\DashboardController::class, 'reorderWidgets']);
 
         // Customer routes (will be migrated to companies module later)
         $group->get('/customers', [\App\Controllers\CustomerController::class, 'index']);
@@ -80,7 +84,7 @@ return function (App $app) {
         $group->get('/purchasing/requisitions', [\App\Controllers\PurchaseController::class, 'requisitions']);
         $group->get('/purchasing/requisitions/create', [\App\Controllers\PurchaseController::class, 'createRequisition']);
         $group->post('/purchasing/requisitions', [\App\Controllers\PurchaseController::class, 'storeRequisition']);
-        $group->get('/purchasing/requisitions/history', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Historiska Anmodan');
+        $group->get('/purchasing/requisitions/history', [\App\Controllers\PurchaseController::class, 'requisitionHistory']);
         $group->get('/purchasing/requisitions/{id}', [\App\Controllers\PurchaseController::class, 'showRequisition']);
         $group->get('/purchasing/requisitions/{id}/edit', [\App\Controllers\PurchaseController::class, 'editRequisition']);
         $group->post('/purchasing/requisitions/{id}', [\App\Controllers\PurchaseController::class, 'updateRequisition']);
@@ -96,7 +100,7 @@ return function (App $app) {
         $group->get('/purchasing/orders', [\App\Controllers\PurchaseController::class, 'orders']);
         $group->get('/purchasing/orders/create', [\App\Controllers\PurchaseController::class, 'createOrder']);
         $group->post('/purchasing/orders', [\App\Controllers\PurchaseController::class, 'storeOrder']);
-        $group->get('/purchasing/orders/history', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Historiska Inköpsordrar');
+        $group->get('/purchasing/orders/history', [\App\Controllers\PurchaseController::class, 'orderHistory']);
         $group->get('/purchasing/orders/{id}', [\App\Controllers\PurchaseController::class, 'showOrder']);
         $group->get('/purchasing/orders/{id}/edit', [\App\Controllers\PurchaseController::class, 'editOrder']);
         $group->post('/purchasing/orders/{id}', [\App\Controllers\PurchaseController::class, 'updateOrder']);
@@ -109,7 +113,7 @@ return function (App $app) {
         $group->get('/purchasing/agreements', [\App\Controllers\PurchaseController::class, 'agreements']);
         $group->get('/purchasing/agreements/create', [\App\Controllers\PurchaseController::class, 'createAgreement']);
         $group->post('/purchasing/agreements', [\App\Controllers\PurchaseController::class, 'storeAgreement']);
-        $group->get('/purchasing/agreements/history', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Historiska Avtal');
+        $group->get('/purchasing/agreements/history', [\App\Controllers\PurchaseController::class, 'agreementHistory']);
         // Supplier Audits
         $group->get('/purchasing/supplier-audits', [\App\Controllers\PurchaseController::class, 'supplierAuditIndex']);
         $group->get('/purchasing/supplier-audits/create', [\App\Controllers\PurchaseController::class, 'createSupplierAudit']);
@@ -201,8 +205,8 @@ return function (App $app) {
         $group->get('/finance/reports/trial-balance', [\App\Controllers\FinanceController::class, 'trialBalance']);
         $group->get('/finance/reports/balance-sheet', [\App\Controllers\FinanceController::class, 'balanceSheet']);
         $group->get('/finance/reports/cost-centers', [\App\Controllers\FinanceController::class, 'costCenterReport']);
-        $group->get('/finance/reports/kpi', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'KPI från Avdelningar');
-        $group->get('/finance/reports/stocktaking', [\App\Controllers\PlaceholderController::class, 'comingSoon'])->setArgument('module', 'Inventering Ekonomi');
+        $group->get('/finance/reports/kpi', [\App\Controllers\FinanceController::class, 'reportKpi']);
+        $group->get('/finance/reports/stocktaking', [\App\Controllers\FinanceController::class, 'reportStocktaking']);
 
         // Kontoplansgrupper
         $group->get('/finance/account-groups', [\App\Controllers\FinanceController::class, 'accountGroups']);
@@ -636,6 +640,16 @@ return function (App $app) {
 
         // ─── Reports (Rapporter) ─────────────────────────────────────────────
         $group->get('/reports', [\App\Controllers\ReportController::class, 'index']);
+        $group->get('/reports/maintenance', [\App\Controllers\ReportController::class, 'maintenance']);
+        $group->get('/reports/inventory', [\App\Controllers\ReportController::class, 'inventory']);
+        $group->get('/reports/purchasing', [\App\Controllers\ReportController::class, 'purchasing']);
+        $group->get('/reports/finance', [\App\Controllers\ReportController::class, 'finance']);
+        $group->get('/reports/safety', [\App\Controllers\ReportController::class, 'safety']);
+        $group->get('/reports/production', [\App\Controllers\ReportController::class, 'production']);
+        $group->get('/reports/sales', [\App\Controllers\ReportController::class, 'sales']);
+        $group->get('/reports/hr', [\App\Controllers\ReportController::class, 'hr']);
+        $group->get('/reports/projects', [\App\Controllers\ReportController::class, 'projects']);
+        $group->get('/reports/cs', [\App\Controllers\ReportController::class, 'cs']);
     })->add(new CsrfMiddleware())->add(new AuthMiddleware());
 
     // Admin routes — require Chef level (7) or higher

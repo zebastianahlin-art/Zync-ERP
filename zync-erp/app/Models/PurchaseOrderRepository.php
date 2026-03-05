@@ -213,6 +213,18 @@ class PurchaseOrderRepository
         $stmt2->execute([$subtotal, $vat, $subtotal + $vat, $id]);
     }
 
+    public function history(): array
+    {
+        $sql = "SELECT po.*, s.name AS supplier_name, u.full_name AS buyer_name
+                FROM purchase_orders po
+                LEFT JOIN suppliers s ON po.supplier_id = s.id
+                LEFT JOIN users u ON po.buyer_id = u.id
+                WHERE po.is_deleted = 0
+                  AND po.status IN ('received', 'cancelled')
+                ORDER BY po.created_at DESC";
+        return Database::pdo()->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
     private function generateNumber(): string
     {
         $year = (int) date('Y');

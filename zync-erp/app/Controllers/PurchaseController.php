@@ -652,4 +652,31 @@ class PurchaseController extends Controller
         Flash::set('success', 'Avtalsmall borttagen.');
         return $this->redirect($response, '/purchasing/agreement-templates');
     }
+
+    public function requisitionHistory(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $requisitions = $this->reqRepo->history();
+        return $this->render($response, 'purchasing/requisitions/history', [
+            'title'        => 'Historiska Anmodan – ZYNC ERP',
+            'requisitions' => $requisitions,
+        ]);
+    }
+
+    public function orderHistory(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $orders = $this->orderRepo->history();
+        return $this->render($response, 'purchasing/orders/history', [
+            'title'  => 'Historiska Inköpsordrar – ZYNC ERP',
+            'orders' => $orders,
+        ]);
+    }
+
+    public function agreementHistory(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $agreements = $this->agreementRepo->history();
+        return $this->render($response, 'purchasing/agreements/history', [
+            'title'      => 'Historiska Avtal – ZYNC ERP',
+            'agreements' => $agreements,
+        ]);
+    }
 }

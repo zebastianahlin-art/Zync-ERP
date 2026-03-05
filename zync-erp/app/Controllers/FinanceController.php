@@ -980,4 +980,55 @@ class FinanceController extends Controller
         return $this->redirect($response, "/finance/assets/{$id}");
     }
 
+    public function reportKpi(Request $request, Response $response): Response
+    {
+        $kpiData = $this->getFinanceKpiData();
+        return $this->render($response, 'finance/reports/kpi', [
+            'title'   => 'KPI från Avdelningar – ZYNC ERP',
+            'kpiData' => $kpiData,
+        ]);
+    }
+
+    public function reportStocktaking(Request $request, Response $response): Response
+    {
+        $filters   = (array) $request->getQueryParams();
+        $stockData = $this->getStocktakingData($filters);
+        return $this->render($response, 'finance/reports/stocktaking', [
+            'title'     => 'Inventering Ekonomi – ZYNC ERP',
+            'stockData' => $stockData,
+            'filters'   => $filters,
+        ]);
+    }
+
+    private function getFinanceKpiData(): array
+    {
+        try {
+            $pdo = \App\Core\Database::pdo();
+            return [
+                'unpaid_out'    => $pdo->query("SELECT COUNT(*) FROM invoices_outgoing WHERE status != 'paid' AND is_deleted = 0")->fetchColumn(),
+                'unpaid_in'     => $pdo->query("SELECT COUNT(*) FROM invoices_incoming WHERE status != 'paid' AND is_deleted = 0")->fetchColumn(),
+                'open_reqs'     => $pdo->query("SELECT COUNT(*) FROM purchase_requisitions WHERE status = 'pending_approval' AND is_deleted = 0")->fetchColumn(),
+                'active_orders' => $pdo->query("SELECT COUNT(*) FROM purchase_orders WHERE status IN ('sent','confirmed','partially_received') AND is_deleted = 0")->fetchColumn(),
+            ];
+        } catch (\Throwable $e) {
+            return ['unpaid_out' => 0, 'unpaid_in' => 0, 'open_reqs' => 0, 'active_orders' => 0];
+        }
+    }
+
+    private function getStocktakingData(array $filters): array
+    {
+        try {
+            $pdo  = \App\Core\Database::pdo();
+            $rows = $pdo->query(
+                "SELECT a.article_number, a.name, a.unit, a.stock_quantity,
+                        a.min_stock_level, (a.stock_quantity * COALESCE(a.purchase_price, 0)) AS value
+                 FROM articles a WHERE a.is_deleted = 0 ORDER BY a.name ASC"
+            )->fetchAll(\PDO::FETCH_ASSOC);
+            $total = array_sum(array_column($rows, 'value'));
+            return ['items' => $rows, 'total_value' => $total];
+        } catch (\Throwable $e) {
+            return ['items' => [], 'total_value' => 0];
+        }
+    }
+
 }
