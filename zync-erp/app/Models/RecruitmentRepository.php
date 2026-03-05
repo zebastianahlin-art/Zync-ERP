@@ -170,18 +170,22 @@ class RecruitmentRepository
         $stmt = Database::pdo()->prepare(
             'UPDATE recruitment_applicants SET
              first_name=:first_name, last_name=:last_name, email=:email, phone=:phone,
-             applied_at=:applied_at, status=:status, notes=:notes
+             applied_at=:applied_at, status=:status, notes=:notes,
+             cv_url=:cv_url, cover_letter=:cover_letter, salary_expectation=:salary_expectation
              WHERE id=:id AND is_deleted=0'
         );
         $stmt->execute([
-            'first_name' => $data['first_name'],
-            'last_name'  => $data['last_name'],
-            'email'      => $data['email'] ?: null,
-            'phone'      => $data['phone'] ?: null,
-            'applied_at' => $data['applied_at'] ?: null,
-            'status'     => $data['status'] ?? 'new',
-            'notes'      => $data['notes'] ?: null,
-            'id'         => $id,
+            'first_name'         => $data['first_name'],
+            'last_name'          => $data['last_name'],
+            'email'              => $data['email'] ?: null,
+            'phone'              => $data['phone'] ?: null,
+            'applied_at'         => $data['applied_at'] ?: null,
+            'status'             => $data['status'] ?? 'new',
+            'notes'              => $data['notes'] ?: null,
+            'cv_url'             => $data['cv_url'] ?: null,
+            'cover_letter'       => $data['cover_letter'] ?: null,
+            'salary_expectation' => ($data['salary_expectation'] ?? '') !== '' ? $data['salary_expectation'] : null,
+            'id'                 => $id,
         ]);
     }
 
@@ -194,7 +198,7 @@ class RecruitmentRepository
     public function updateApplicantStatus(int $id, string $status): void
     {
         $stmt = Database::pdo()->prepare('UPDATE recruitment_applicants SET status=:status WHERE id=:id AND is_deleted=0');
-        $stmt->execute(['status'=>$status,'id'=>$id]);
+        $stmt->execute(['status' => $status, 'id' => $id]);
     }
 
     public function positionStats(int $positionId): array
@@ -208,11 +212,70 @@ class RecruitmentRepository
             $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             $stats = [];
             foreach ($rows as $r) {
-                $stats[$r['status']] = (int)$r['cnt'];
+                $stats[$r['status']] = (int) $r['cnt'];
             }
             return $stats;
         } catch (\Exception $e) {
             return [];
         }
+    }
+
+    public function pipelineStats(int $positionId): array
+    {
+        return $this->positionStats($positionId);
+    }
+
+    public function convertToEmployee(int $applicantId): array
+    {
+        $applicant = $this->findApplicant($applicantId);
+        if ($applicant === null) {
+            return [];
+        }
+
+        // Return data pre-populated for new employee form
+        return [
+            'first_name'          => $applicant['first_name'] ?? '',
+            'last_name'           => $applicant['last_name'] ?? '',
+            'email'               => $applicant['email'] ?? '',
+            'phone'               => $applicant['phone'] ?? '',
+            'hire_date'           => date('Y-m-d'),
+            'status'              => 'active',
+            'position'            => $applicant['position_title'] ?? '',
+            'notes'               => 'Rekryterad via: ' . ($applicant['position_title'] ?? ''),
+        ];
+    }
+
+    public function updateApplicantPipeline(int $id, string $step): void
+    {
+        $validSteps = ['new', 'screening', 'interview', 'offer', 'hired', 'rejected'];
+        if (!in_array($step, $validSteps, true)) {
+            return;
+        }
+        $stmt = Database::pdo()->prepare(
+            'UPDATE recruitment_applicants SET pipeline_step = :step, status = :status WHERE id = :id AND is_deleted = 0'
+        );
+        $stmt->execute(['step' => $step, 'status' => $step, 'id' => $id]);
+    }
+
+    public function updateApplicantRating(int $id, int $rating): void
+    {
+        $rating = max(0, min(5, $rating));
+        $stmt = Database::pdo()->prepare(
+            'UPDATE recruitment_applicants SET rating = :rating WHERE id = :id AND is_deleted = 0'
+        );
+        $stmt->execute(['rating' => $rating, 'id' => $id]);
+    }
+
+    public function markAsConverted(int $applicantId, int $employeeId): void
+    {
+        $stmt = Database::pdo()->prepare(
+            'UPDATE recruitment_applicants SET converted_employee_id = :eid, status = :status, pipeline_step = :step WHERE id = :id'
+        );
+        $stmt->execute([
+            'eid'    => $employeeId,
+            'status' => 'hired',
+            'step'   => 'hired',
+            'id'     => $applicantId,
+        ]);
     }
 }

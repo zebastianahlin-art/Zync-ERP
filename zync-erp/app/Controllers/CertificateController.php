@@ -124,6 +124,33 @@ class CertificateController extends Controller
         return $this->redirect($response, '/certificates');
     }
 
+    /** POST /certificates/{id}/renew */
+    public function renew(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id   = (int) $args['id'];
+        $cert = $this->repo->find($id);
+        if ($cert === null) {
+            return $this->notFound($response);
+        }
+
+        $body = (array) $request->getParsedBody();
+        $data = [
+            'issued_date' => trim((string) ($body['issued_date'] ?? date('Y-m-d'))),
+            'expiry_date' => trim((string) ($body['expiry_date'] ?? '')),
+            'notes'       => trim((string) ($body['notes'] ?? '')),
+            'created_by'  => Auth::id(),
+        ];
+
+        try {
+            $newId = $this->repo->renew($id, $data);
+            Flash::set('success', 'Certifikatet förnyades.');
+            return $this->redirect($response, '/certificates/' . $newId . '/edit');
+        } catch (\Exception $e) {
+            Flash::set('success', 'Kunde inte förnya certifikatet.');
+            return $this->redirect($response, '/certificates');
+        }
+    }
+
     /** @return array<string, string> */
     private function extractData(ServerRequestInterface $request): array
     {

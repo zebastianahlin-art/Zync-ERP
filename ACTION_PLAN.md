@@ -52,7 +52,7 @@
 
 ## 📌 FAS D: HR-modulen — Enterprise-nivå
 **Prio: HÖG**
-**Status: ⏳ Planerad**
+**Status: ✅ Klar (PR #62)**
 
 | # | Åtgärd |
 |---|--------|

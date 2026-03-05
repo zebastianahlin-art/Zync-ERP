@@ -41,25 +41,48 @@ class EmployeeRepository
 
     public function create(array $data): int
     {
-        $stmt = Database::pdo()->prepare(
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare(
             'INSERT INTO employees
              (first_name, last_name, employee_number, department_id, position,
-              phone, email, hire_date, created_by)
+              phone, email, hire_date, created_by,
+              personal_number, birth_date, gender, nationality, civil_status,
+              address_street, address_zip, address_city, private_email, private_phone,
+              ice_name, ice_phone, employment_category, pay_type, work_percentage, profile_image_url)
              VALUES (:first_name, :last_name, :employee_number, :department_id, :position,
-                     :phone, :email, :hire_date, :created_by)'
+                     :phone, :email, :hire_date, :created_by,
+                     :personal_number, :birth_date, :gender, :nationality, :civil_status,
+                     :address_street, :address_zip, :address_city, :private_email, :private_phone,
+                     :ice_name, :ice_phone, :employment_category, :pay_type, :work_percentage, :profile_image_url)'
         );
         $stmt->execute([
-            'first_name'       => $data['first_name'],
-            'last_name'        => $data['last_name'],
-            'employee_number'  => $data['employee_number'] ?: null,
-            'department_id'    => $data['department_id'] ?: null,
-            'position'         => $data['position'] ?: null,
-            'phone'            => $data['phone'] ?: null,
-            'email'            => $data['email'] ?: null,
-            'hire_date'        => $data['hire_date'] ?: null,
-            'created_by'       => $data['created_by'] ?? null,
+            'first_name'          => $data['first_name'],
+            'last_name'           => $data['last_name'],
+            'employee_number'     => $data['employee_number'] ?: null,
+            'department_id'       => $data['department_id'] ?: null,
+            'position'            => $data['position'] ?: null,
+            'phone'               => $data['phone'] ?: null,
+            'email'               => $data['email'] ?: null,
+            'hire_date'           => $data['hire_date'] ?: null,
+            'created_by'          => $data['created_by'] ?? null,
+            'personal_number'     => $data['personal_number'] ?: null,
+            'birth_date'          => $data['birth_date'] ?: null,
+            'gender'              => $data['gender'] ?: null,
+            'nationality'         => $data['nationality'] ?: null,
+            'civil_status'        => $data['civil_status'] ?: null,
+            'address_street'      => $data['address_street'] ?: null,
+            'address_zip'         => $data['address_zip'] ?: null,
+            'address_city'        => $data['address_city'] ?: null,
+            'private_email'       => $data['private_email'] ?: null,
+            'private_phone'       => $data['private_phone'] ?: null,
+            'ice_name'            => $data['ice_name'] ?: null,
+            'ice_phone'           => $data['ice_phone'] ?: null,
+            'employment_category' => $data['employment_category'] ?: null,
+            'pay_type'            => $data['pay_type'] ?: 'monthly',
+            'work_percentage'     => $data['work_percentage'] !== '' ? $data['work_percentage'] : 100,
+            'profile_image_url'   => $data['profile_image_url'] ?: null,
         ]);
-        return (int) Database::pdo()->lastInsertId();
+        return (int) $pdo->lastInsertId();
     }
 
     public function update(int $id, array $data): void
