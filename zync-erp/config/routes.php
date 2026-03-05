@@ -754,6 +754,18 @@ return function (App $app) {
     $app->group('/saas-admin', function (RouteCollectorProxy $group) {
         $group->get('', [\App\Controllers\SaasAdminController::class, 'index']);
 
+        // Plans
+        $group->get('/plans', [\App\Controllers\SaasAdminController::class, 'plans']);
+        $group->get('/plans/create', [\App\Controllers\SaasAdminController::class, 'createPlan']);
+        $group->post('/plans', [\App\Controllers\SaasAdminController::class, 'storePlan']);
+        $group->get('/plans/{id}/edit', [\App\Controllers\SaasAdminController::class, 'editPlan']);
+        $group->post('/plans/{id}', [\App\Controllers\SaasAdminController::class, 'updatePlan']);
+        $group->post('/plans/{id}/delete', [\App\Controllers\SaasAdminController::class, 'deletePlan']);
+
+        // Tenant provisioning (must come before {id} routes)
+        $group->get('/tenants/provision', [\App\Controllers\SaasAdminController::class, 'provision']);
+        $group->post('/tenants/provision', [\App\Controllers\SaasAdminController::class, 'storeProvision']);
+
         // Tenants
         $group->get('/tenants', [\App\Controllers\SaasAdminController::class, 'tenants']);
         $group->get('/tenants/create', [\App\Controllers\SaasAdminController::class, 'createTenant']);
@@ -764,8 +776,11 @@ return function (App $app) {
         $group->post('/tenants/{id}/delete', [\App\Controllers\SaasAdminController::class, 'deleteTenant']);
         $group->post('/tenants/{id}/modules/activate', [\App\Controllers\SaasAdminController::class, 'activateModule']);
         $group->post('/tenants/{id}/modules/deactivate', [\App\Controllers\SaasAdminController::class, 'deactivateModule']);
+        $group->get('/tenants/{id}/history', [\App\Controllers\SaasAdminController::class, 'tenantHistory']);
 
-        // Invoices
+        // Invoices (generate before {id})
+        $group->get('/invoices/generate', [\App\Controllers\SaasAdminController::class, 'generateInvoices']);
+        $group->post('/invoices/generate', [\App\Controllers\SaasAdminController::class, 'storeGeneratedInvoices']);
         $group->get('/invoices', [\App\Controllers\SaasAdminController::class, 'invoices']);
         $group->get('/invoices/create', [\App\Controllers\SaasAdminController::class, 'createInvoice']);
         $group->post('/invoices', [\App\Controllers\SaasAdminController::class, 'storeInvoice']);
@@ -780,6 +795,9 @@ return function (App $app) {
         $group->post('/support/{id}/status', [\App\Controllers\SaasAdminController::class, 'updateTicketStatus']);
         $group->post('/support/{id}/comment', [\App\Controllers\SaasAdminController::class, 'addComment']);
     })->add(new CsrfMiddleware())->add(new \App\Middleware\RoleMiddleware(minLevel: 9))->add(new AuthMiddleware());
+
+    // Tenant Info API (public, no auth — returns tenant name/plan/modules by tenant ID)
+    $app->get('/api/tenant-info', [\App\Controllers\SaasAdminController::class, 'tenantInfo']);
 
     // Public API routes (no JWT required)
     $app->group('/api/v1', function (RouteCollectorProxy $group) {

@@ -18,6 +18,15 @@ $categoryLabels = ['bug' => 'Bugg', 'feature_request' => 'Funktionsönskemål', 
 ?>
 <div class="space-y-6">
 
+    <!-- Breadcrumbs -->
+    <nav class="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+        <a href="/saas-admin" class="hover:text-indigo-600 dark:hover:text-indigo-400">SaaS Admin</a>
+        <span>/</span>
+        <a href="/saas-admin/support" class="hover:text-indigo-600 dark:hover:text-indigo-400">Support</a>
+        <span>/</span>
+        <span class="text-gray-900 dark:text-white font-medium"><?= htmlspecialchars((string) $ticket['ticket_number'], ENT_QUOTES, 'UTF-8') ?></span>
+    </nav>
+
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-xl font-bold tracking-tight text-gray-900 dark:text-white"><?= htmlspecialchars((string) $ticket['subject'], ENT_QUOTES, 'UTF-8') ?></h1>

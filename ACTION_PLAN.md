@@ -78,7 +78,7 @@
 
 ## 📌 FAS F: SaaS Admin — Multi-tenant plattform
 **Prio: MYCKET HÖG — Affärsmodellens kärna**
-**Status: ⏳ Planerad**
+**Status: ✅ Klar (PR #63)**
 
 | # | Åtgärd |
 |---|--------|

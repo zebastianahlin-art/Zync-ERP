@@ -428,6 +428,308 @@ class SaasRepository
         return sprintf('SUP-%s-%04d', $year, $count);
     }
 
+    // ── Plans ──────────────────────────────────────────────────────────────────
+
+    /** Return all subscription plans. */
+    public function allPlans(bool $activeOnly = false): array
+    {
+        try {
+            $where = $activeOnly ? 'WHERE is_active = 1' : '';
+            return Database::pdo()
+                ->query("SELECT * FROM saas_plans $where ORDER BY sort_order ASC, id ASC")
+                ->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /** Find a single plan by ID. */
+    public function findPlan(int $id): ?array
+    {
+        try {
+            $stmt = Database::pdo()->prepare('SELECT * FROM saas_plans WHERE id = ? LIMIT 1');
+            $stmt->execute([$id]);
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            return $row ?: null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /** Find a plan by slug. */
+    public function findPlanBySlug(string $slug): ?array
+    {
+        try {
+            $stmt = Database::pdo()->prepare('SELECT * FROM saas_plans WHERE slug = ? LIMIT 1');
+            $stmt->execute([$slug]);
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            return $row ?: null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /** Create a new plan. Returns new ID. */
+    public function createPlan(array $data): int
+    {
+        $stmt = Database::pdo()->prepare(
+            'INSERT INTO saas_plans
+             (name, slug, description, price_monthly, price_yearly, max_users, max_storage_gb, included_modules, features, is_active, sort_order)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        );
+        $stmt->execute([
+            $data['name'],
+            $data['slug'],
+            $data['description'] ?: null,
+            (float) ($data['price_monthly'] ?? 0),
+            (float) ($data['price_yearly']  ?? 0),
+            (int)   ($data['max_users']     ?? 10),
+            (int)   ($data['max_storage_gb'] ?? 10),
+            isset($data['included_modules']) ? (is_string($data['included_modules']) ? $data['included_modules'] : json_encode($data['included_modules'])) : null,
+            isset($data['features']) ? (is_string($data['features']) ? $data['features'] : json_encode($data['features'])) : null,
+            isset($data['is_active']) ? (int) $data['is_active'] : 1,
+            (int) ($data['sort_order'] ?? 0),
+        ]);
+        return (int) Database::pdo()->lastInsertId();
+    }
+
+    /** Update an existing plan. */
+    public function updatePlan(int $id, array $data): void
+    {
+        $stmt = Database::pdo()->prepare(
+            'UPDATE saas_plans SET
+                name             = ?,
+                slug             = ?,
+                description      = ?,
+                price_monthly    = ?,
+                price_yearly     = ?,
+                max_users        = ?,
+                max_storage_gb   = ?,
+                included_modules = ?,
+                features         = ?,
+                is_active        = ?,
+                sort_order       = ?
+             WHERE id = ?'
+        );
+        $stmt->execute([
+            $data['name'],
+            $data['slug'],
+            $data['description'] ?: null,
+            (float) ($data['price_monthly'] ?? 0),
+            (float) ($data['price_yearly']  ?? 0),
+            (int)   ($data['max_users']     ?? 10),
+            (int)   ($data['max_storage_gb'] ?? 10),
+            isset($data['included_modules']) ? (is_string($data['included_modules']) ? $data['included_modules'] : json_encode($data['included_modules'])) : null,
+            isset($data['features']) ? (is_string($data['features']) ? $data['features'] : json_encode($data['features'])) : null,
+            isset($data['is_active']) ? (int) $data['is_active'] : 1,
+            (int) ($data['sort_order'] ?? 0),
+            $id,
+        ]);
+    }
+
+    /** Delete a plan (hard delete — plans are not soft-deleted). */
+    public function deletePlan(int $id): void
+    {
+        Database::pdo()->prepare('DELETE FROM saas_plans WHERE id = ?')->execute([$id]);
+    }
+
+    /** Count tenants on each plan. */
+    public function tenantCountByPlan(): array
+    {
+        try {
+            return Database::pdo()
+                ->query(
+                    "SELECT plan, COUNT(*) AS cnt
+                     FROM saas_tenants
+                     WHERE is_deleted = 0
+                     GROUP BY plan"
+                )
+                ->fetchAll(\PDO::FETCH_KEY_PAIR);
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    // ── Tenant History ─────────────────────────────────────────────────────────
+
+    /** Return history log for a tenant. */
+    public function tenantHistory(int $tenantId): array
+    {
+        try {
+            $stmt = Database::pdo()->prepare(
+                "SELECT h.*, u.username AS changed_by_username
+                 FROM saas_tenant_history h
+                 LEFT JOIN users u ON u.id = h.changed_by
+                 WHERE h.tenant_id = ?
+                 ORDER BY h.created_at DESC"
+            );
+            $stmt->execute([$tenantId]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /** Add a history entry for a tenant. */
+    public function addTenantHistory(int $tenantId, string $action, ?string $oldValue, ?string $newValue, ?int $changedBy = null, ?string $notes = null): void
+    {
+        try {
+            $stmt = Database::pdo()->prepare(
+                'INSERT INTO saas_tenant_history (tenant_id, action, old_value, new_value, changed_by, notes)
+                 VALUES (?, ?, ?, ?, ?, ?)'
+            );
+            $stmt->execute([$tenantId, $action, $oldValue, $newValue, $changedBy, $notes]);
+        } catch (\Throwable) {
+            // Tyst fel — historik är inte kritisk
+        }
+    }
+
+    // ── Tenant Settings ────────────────────────────────────────────────────────
+
+    /** Return all settings for a tenant. */
+    public function tenantSettings(int $tenantId): array
+    {
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT setting_key, value FROM saas_tenant_settings WHERE tenant_id = ?'
+            );
+            $stmt->execute([$tenantId]);
+            return $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /** Upsert a single setting for a tenant. */
+    public function updateTenantSetting(int $tenantId, string $key, ?string $value): void
+    {
+        try {
+            $stmt = Database::pdo()->prepare(
+                'INSERT INTO saas_tenant_settings (tenant_id, setting_key, value)
+                 VALUES (?, ?, ?)
+                 ON DUPLICATE KEY UPDATE value = VALUES(value)'
+            );
+            $stmt->execute([$tenantId, $key, $value]);
+        } catch (\Throwable) {
+            // Tyst fel
+        }
+    }
+
+    // ── Invoice Stats & Batch ──────────────────────────────────────────────────
+
+    /** Return invoice KPI statistics. */
+    public function invoiceStats(): array
+    {
+        $pdo = Database::pdo();
+        try {
+            $total   = (float) $pdo->query("SELECT COALESCE(SUM(total), 0) FROM saas_invoices WHERE is_deleted = 0 AND status = 'paid'")->fetchColumn();
+            $unpaid  = (float) $pdo->query("SELECT COALESCE(SUM(total), 0) FROM saas_invoices WHERE is_deleted = 0 AND status IN ('draft','sent')")->fetchColumn();
+            $overdue = (float) $pdo->query("SELECT COALESCE(SUM(total), 0) FROM saas_invoices WHERE is_deleted = 0 AND status = 'overdue'")->fetchColumn();
+            $countUnpaid  = (int) $pdo->query("SELECT COUNT(*) FROM saas_invoices WHERE is_deleted = 0 AND status IN ('draft','sent')")->fetchColumn();
+            $countOverdue = (int) $pdo->query("SELECT COUNT(*) FROM saas_invoices WHERE is_deleted = 0 AND status = 'overdue'")->fetchColumn();
+            $mrr = (float) $pdo->query(
+                "SELECT COALESCE(SUM(total), 0) FROM saas_invoices
+                 WHERE is_deleted = 0 AND status = 'paid'
+                 AND MONTH(paid_at) = MONTH(CURDATE()) AND YEAR(paid_at) = YEAR(CURDATE())"
+            )->fetchColumn();
+        } catch (\Throwable) {
+            return ['total_paid' => 0, 'unpaid' => 0, 'overdue' => 0, 'count_unpaid' => 0, 'count_overdue' => 0, 'mrr' => 0];
+        }
+
+        return [
+            'total_paid'    => $total,
+            'unpaid'        => $unpaid,
+            'overdue'       => $overdue,
+            'count_unpaid'  => $countUnpaid,
+            'count_overdue' => $countOverdue,
+            'mrr'           => $mrr,
+        ];
+    }
+
+    /**
+     * Generate monthly invoices for all active tenants that don't already
+     * have an invoice for the given month/year.
+     *
+     * @return int Number of invoices created
+     */
+    public function generateMonthlyInvoices(int $month, int $year): int
+    {
+        $pdo      = Database::pdo();
+        $created  = 0;
+        $periodStart = sprintf('%04d-%02d-01', $year, $month);
+        $periodEnd   = date('Y-m-t', strtotime($periodStart));
+        $dueDate     = date('Y-m-d', strtotime($periodEnd . ' +14 days'));
+
+        try {
+            $tenants = $pdo->query(
+                "SELECT t.*, p.price_monthly, p.name AS plan_name
+                 FROM saas_tenants t
+                 LEFT JOIN saas_plans p ON p.slug = t.plan
+                 WHERE t.is_deleted = 0 AND t.status = 'active'"
+            )->fetchAll(\PDO::FETCH_ASSOC);
+
+            foreach ($tenants as $tenant) {
+                // Check if invoice already exists for this period
+                $check = $pdo->prepare(
+                    "SELECT COUNT(*) FROM saas_invoices
+                     WHERE tenant_id = ? AND period_start = ? AND is_deleted = 0"
+                );
+                $check->execute([(int) $tenant['id'], $periodStart]);
+                if ((int) $check->fetchColumn() > 0) {
+                    continue;
+                }
+
+                $amount = (float) ($tenant['price_monthly'] ?? 0);
+                $vat    = round($amount * 0.25, 2);
+                $total  = $amount + $vat;
+                $invoiceNumber = $this->generateInvoiceNumber();
+
+                $insert = $pdo->prepare(
+                    'INSERT INTO saas_invoices
+                     (tenant_id, invoice_number, period_start, period_end, amount, vat, total, status, due_date, notes)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                );
+                $insert->execute([
+                    (int) $tenant['id'],
+                    $invoiceNumber,
+                    $periodStart,
+                    $periodEnd,
+                    $amount,
+                    $vat,
+                    $total,
+                    'draft',
+                    $dueDate,
+                    'Auto-genererad för ' . ($tenant['plan_name'] ?? $tenant['plan']) . ' – ' . date('F Y', strtotime($periodStart)),
+                ]);
+                $created++;
+            }
+        } catch (\Throwable) {
+            // Returnera antal skapade hittills
+        }
+
+        return $created;
+    }
+
+    /** Return tenants whose trial ends within the next $days days. */
+    public function tenantsWithExpiringTrial(int $days = 7): array
+    {
+        try {
+            $stmt = Database::pdo()->prepare(
+                "SELECT * FROM saas_tenants
+                 WHERE is_deleted = 0
+                   AND status = 'trial'
+                   AND trial_ends_at IS NOT NULL
+                   AND trial_ends_at <= DATE_ADD(CURDATE(), INTERVAL ? DAY)
+                   AND trial_ends_at >= CURDATE()
+                 ORDER BY trial_ends_at ASC"
+            );
+            $stmt->execute([$days]);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     // ── Dashboard Stats ────────────────────────────────────────────────────────
 
     /** Return high-level SaaS dashboard statistics. */
@@ -440,10 +742,19 @@ class SaasRepository
             $active    = (int) $pdo->query("SELECT COUNT(*) FROM saas_tenants WHERE is_deleted = 0 AND status = 'active'")->fetchColumn();
             $trial     = (int) $pdo->query("SELECT COUNT(*) FROM saas_tenants WHERE is_deleted = 0 AND status = 'trial'")->fetchColumn();
             $suspended = (int) $pdo->query("SELECT COUNT(*) FROM saas_tenants WHERE is_deleted = 0 AND status = 'suspended'")->fetchColumn();
+            $cancelled = (int) $pdo->query("SELECT COUNT(*) FROM saas_tenants WHERE is_deleted = 0 AND status = 'cancelled'")->fetchColumn();
 
             $revenue   = (float) $pdo->query(
                 "SELECT COALESCE(SUM(total), 0) FROM saas_invoices WHERE is_deleted = 0 AND status = 'paid'
                   AND MONTH(paid_at) = MONTH(CURDATE()) AND YEAR(paid_at) = YEAR(CURDATE())"
+            )->fetchColumn();
+
+            $unpaidInvoices = (int) $pdo->query(
+                "SELECT COUNT(*) FROM saas_invoices WHERE is_deleted = 0 AND status IN ('draft','sent')"
+            )->fetchColumn();
+
+            $overdueInvoices = (int) $pdo->query(
+                "SELECT COUNT(*) FROM saas_invoices WHERE is_deleted = 0 AND status = 'overdue'"
             )->fetchColumn();
 
             $openTickets = (int) $pdo->query(
@@ -459,28 +770,50 @@ class SaasRepository
                  JOIN saas_tenants tn ON tn.id = t.tenant_id
                  WHERE t.is_deleted = 0 ORDER BY t.created_at DESC LIMIT 5"
             )->fetchAll(\PDO::FETCH_ASSOC);
+
+            // Kunder per plan (för CSS-staplar)
+            $planRows = $pdo->query(
+                "SELECT plan, COUNT(*) AS cnt FROM saas_tenants WHERE is_deleted = 0 GROUP BY plan"
+            )->fetchAll(\PDO::FETCH_ASSOC);
+            $byPlan = [];
+            foreach ($planRows as $row) {
+                $byPlan[$row['plan']] = (int) $row['cnt'];
+            }
+
+            // Trial som snart löper ut (< 7 dagar)
+            $expiringTrials = $this->tenantsWithExpiringTrial(7);
         } catch (\Throwable) {
             return [
-                'total_tenants'   => 0,
-                'active_tenants'  => 0,
-                'trial_tenants'   => 0,
-                'suspended'       => 0,
-                'monthly_revenue' => 0.0,
-                'open_tickets'    => 0,
-                'recent_tenants'  => [],
-                'recent_tickets'  => [],
+                'total_tenants'    => 0,
+                'active_tenants'   => 0,
+                'trial_tenants'    => 0,
+                'suspended'        => 0,
+                'cancelled'        => 0,
+                'monthly_revenue'  => 0.0,
+                'unpaid_invoices'  => 0,
+                'overdue_invoices' => 0,
+                'open_tickets'     => 0,
+                'recent_tenants'   => [],
+                'recent_tickets'   => [],
+                'by_plan'          => [],
+                'expiring_trials'  => [],
             ];
         }
 
         return [
-            'total_tenants'   => $total,
-            'active_tenants'  => $active,
-            'trial_tenants'   => $trial,
-            'suspended'       => $suspended,
-            'monthly_revenue' => $revenue,
-            'open_tickets'    => $openTickets,
-            'recent_tenants'  => $recentTenants,
-            'recent_tickets'  => $recentTickets,
+            'total_tenants'    => $total,
+            'active_tenants'   => $active,
+            'trial_tenants'    => $trial,
+            'suspended'        => $suspended,
+            'cancelled'        => $cancelled,
+            'monthly_revenue'  => $revenue,
+            'unpaid_invoices'  => $unpaidInvoices,
+            'overdue_invoices' => $overdueInvoices,
+            'open_tickets'     => $openTickets,
+            'recent_tenants'   => $recentTenants,
+            'recent_tickets'   => $recentTickets,
+            'by_plan'          => $byPlan,
+            'expiring_trials'  => $expiringTrials,
         ];
     }
 }
