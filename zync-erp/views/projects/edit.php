@@ -4,6 +4,12 @@
     <form method="POST" action="/projects/<?= $project['id'] ?>" class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 space-y-4">
         <?= \App\Core\Csrf::field() ?>
 
+        <?php if (!empty($errors)): ?>
+        <ul class="rounded-lg bg-red-50 dark:bg-red-900/30 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+            <?php foreach ($errors as $msg): ?><li><?= htmlspecialchars($msg, ENT_QUOTES, 'UTF-8') ?></li><?php endforeach; ?>
+        </ul>
+        <?php endif; ?>
+
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Projektnummer <span class="text-red-500">*</span></label>
@@ -17,6 +23,20 @@
                     <option value="<?= $val ?>" <?= $project['status'] === $val ? 'selected' : '' ?>><?= $label ?></option>
                     <?php endforeach; ?>
                 </select>
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Projekttyp</label>
+            <div class="flex gap-4 mt-1">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="project_type" value="internal" <?= ($project['project_type'] ?? 'internal') === 'internal' ? 'checked' : '' ?> class="text-indigo-600 focus:ring-indigo-500">
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Internt</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="project_type" value="external" <?= ($project['project_type'] ?? '') === 'external' ? 'checked' : '' ?> class="text-indigo-600 focus:ring-indigo-500">
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Externt</span>
+                </label>
             </div>
         </div>
 
@@ -62,6 +82,12 @@
         <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Budget (kr)</label>
             <input type="number" name="budget" value="<?= htmlspecialchars((string) $project['budget'], ENT_QUOTES, 'UTF-8') ?>" step="0.01"
+                class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Planerad budget (kr)</label>
+            <input type="number" name="planned_budget" value="<?= htmlspecialchars((string) ($project['planned_budget'] ?? $project['budget']), ENT_QUOTES, 'UTF-8') ?>" step="0.01"
                 class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 

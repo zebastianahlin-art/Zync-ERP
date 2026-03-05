@@ -22,6 +22,20 @@
         </div>
 
         <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Projekttyp</label>
+            <div class="flex gap-4 mt-1">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="project_type" value="internal" <?= ($old['project_type'] ?? 'internal') === 'internal' ? 'checked' : '' ?> class="text-indigo-600 focus:ring-indigo-500">
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Internt</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="project_type" value="external" <?= ($old['project_type'] ?? '') === 'external' ? 'checked' : '' ?> class="text-indigo-600 focus:ring-indigo-500">
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Externt</span>
+                </label>
+            </div>
+        </div>
+
+        <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Namn <span class="text-red-500">*</span></label>
             <input type="text" name="name" value="<?= htmlspecialchars($old['name'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
                 class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -64,6 +78,12 @@
         <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Budget (kr)</label>
             <input type="number" name="budget" value="<?= htmlspecialchars($old['budget'] ?? '0', ENT_QUOTES, 'UTF-8') ?>" step="0.01"
+                class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Planerad budget (kr)</label>
+            <input type="number" name="planned_budget" value="<?= htmlspecialchars($old['planned_budget'] ?? '0', ENT_QUOTES, 'UTF-8') ?>" step="0.01"
                 class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
