@@ -10,7 +10,10 @@ $columns = [
 ];
 
 foreach ($columns as $col => $def) {
-    $stmt = $pdo->prepare("SHOW COLUMNS FROM payroll_payslips LIKE ?");
+    $stmt = $pdo->prepare(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'payroll_payslips' AND COLUMN_NAME = ?"
+    );
     $stmt->execute([$col]);
     if (empty($stmt->fetchAll())) {
         $pdo->exec("ALTER TABLE payroll_payslips ADD COLUMN `{$col}` {$def}");
