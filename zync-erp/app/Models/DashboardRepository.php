@@ -359,7 +359,7 @@ class DashboardRepository
             )->fetchColumn();
 
             $totalBudget = (float) $this->pdo->query(
-                "SELECT COALESCE(SUM(budget), 0) FROM projects
+                "SELECT COALESCE(SUM(planned_budget), 0) FROM projects
                  WHERE status = 'active' AND is_deleted = 0"
             )->fetchColumn();
 
