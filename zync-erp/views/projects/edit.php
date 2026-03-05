@@ -4,6 +4,12 @@
     <form method="POST" action="/projects/<?= $project['id'] ?>" class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 space-y-4">
         <?= \App\Core\Csrf::field() ?>
 
+        <?php if (!empty($errors)): ?>
+        <ul class="rounded-lg bg-red-50 dark:bg-red-900/30 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+            <?php foreach ($errors as $msg): ?><li><?= htmlspecialchars($msg, ENT_QUOTES, 'UTF-8') ?></li><?php endforeach; ?>
+        </ul>
+        <?php endif; ?>
+
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Projektnummer <span class="text-red-500">*</span></label>

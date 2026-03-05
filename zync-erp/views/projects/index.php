@@ -2,6 +2,14 @@
 <?php include dirname(__DIR__) . '/partials/breadcrumbs.php'; ?>
 <div class="space-y-6">
 
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Projekt</h1>
+        <a href="/projects/create"
+           class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700 transition-colors">
+            + Nytt projekt
+        </a>
+    </div>
+
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
