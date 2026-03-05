@@ -10,13 +10,43 @@ $statusLabels = ['draft' => 'Utkast', 'sent' => 'Skickad', 'paid' => 'Betald', '
 ?>
 <div class="space-y-6">
 
+    <!-- Breadcrumbs -->
+    <nav class="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+        <a href="/saas-admin" class="hover:text-indigo-600 dark:hover:text-indigo-400">SaaS Admin</a>
+        <span>/</span>
+        <span class="text-gray-900 dark:text-white font-medium">Fakturering</span>
+    </nav>
+
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Fakturering</h1>
         <div class="flex gap-2">
-            <a href="/saas-admin" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">← Dashboard</a>
+            <a href="/saas-admin/invoices/generate" class="rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Batch-fakturera</a>
             <a href="/saas-admin/invoices/create" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 transition-colors">+ Ny faktura</a>
         </div>
     </div>
+
+    <!-- KPI stats -->
+    <?php if (!empty($stats)): ?>
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div class="rounded-2xl bg-white dark:bg-gray-800 p-4 shadow-md">
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Total betalt</p>
+            <p class="mt-1 text-xl font-bold text-green-600 dark:text-green-400"><?= number_format((float) ($stats['total_paid'] ?? 0), 0, ',', ' ') ?> kr</p>
+        </div>
+        <div class="rounded-2xl bg-white dark:bg-gray-800 p-4 shadow-md">
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">MRR (mån)</p>
+            <p class="mt-1 text-xl font-bold text-indigo-600 dark:text-indigo-400"><?= number_format((float) ($stats['mrr'] ?? 0), 0, ',', ' ') ?> kr</p>
+        </div>
+        <div class="rounded-2xl bg-white dark:bg-gray-800 p-4 shadow-md">
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Obetalda</p>
+            <p class="mt-1 text-xl font-bold text-orange-600 dark:text-orange-400"><?= (int) ($stats['count_unpaid'] ?? 0) ?> st</p>
+        </div>
+        <div class="rounded-2xl bg-white dark:bg-gray-800 p-4 shadow-md">
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Förfallna</p>
+            <p class="mt-1 text-xl font-bold text-red-600 dark:text-red-400"><?= (int) ($stats['count_overdue'] ?? 0) ?> st</p>
+        </div>
+    </div>
+    <?php endif; ?>
+
 
     <!-- Filter -->
     <form method="GET" action="/saas-admin/invoices" class="rounded-2xl bg-white dark:bg-gray-800 p-4 shadow-md">

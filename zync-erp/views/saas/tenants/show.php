@@ -11,6 +11,15 @@ $activeModules = array_column(array_filter($tenant['modules'] ?? [], fn($m) => $
 ?>
 <div class="space-y-6">
 
+    <!-- Breadcrumbs -->
+    <nav class="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+        <a href="/saas-admin" class="hover:text-indigo-600 dark:hover:text-indigo-400">SaaS Admin</a>
+        <span>/</span>
+        <a href="/saas-admin/tenants" class="hover:text-indigo-600 dark:hover:text-indigo-400">Kunder</a>
+        <span>/</span>
+        <span class="text-gray-900 dark:text-white font-medium"><?= htmlspecialchars((string) $tenant['company_name'], ENT_QUOTES, 'UTF-8') ?></span>
+    </nav>
+
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white"><?= htmlspecialchars((string) $tenant['company_name'], ENT_QUOTES, 'UTF-8') ?></h1>
@@ -19,7 +28,7 @@ $activeModules = array_column(array_filter($tenant['modules'] ?? [], fn($m) => $
             </span>
         </div>
         <div class="flex gap-2">
-            <a href="/saas-admin/tenants" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">← Kunder</a>
+            <a href="/saas-admin/tenants/<?= (int) $tenant['id'] ?>/history" class="rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Historik</a>
             <a href="/saas-admin/tenants/<?= (int) $tenant['id'] ?>/edit" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 transition-colors">Redigera</a>
             <a href="/saas-admin/invoices/create?tenant_id=<?= (int) $tenant['id'] ?>" class="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition-colors">Ny faktura</a>
         </div>

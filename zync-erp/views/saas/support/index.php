@@ -14,12 +14,36 @@ $statusColors = [
     'closed'      => 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-500',
 ];
 $statusLabels = ['open' => 'Öppen', 'in_progress' => 'Pågår', 'waiting' => 'Väntar', 'resolved' => 'Löst', 'closed' => 'Stängd'];
+
+// SLA thresholds in hours per priority
+$slaHours = ['urgent' => 4, 'high' => 24, 'normal' => 72, 'low' => 168];
+
+function slaIndicator(string $priority, string $createdAt, array $slaHours): string {
+    $hrs = (time() - strtotime($createdAt)) / 3600;
+    $limit = $slaHours[$priority] ?? 72;
+    if ($hrs > $limit) return '🔴'; // Överskriden
+    if ($hrs > $limit * 0.75) return '🟡'; // Varning
+    return '🟢'; // OK
+}
 ?>
 <div class="space-y-6">
 
+    <!-- Breadcrumbs -->
+    <nav class="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+        <a href="/saas-admin" class="hover:text-indigo-600 dark:hover:text-indigo-400">SaaS Admin</a>
+        <span>/</span>
+        <span class="text-gray-900 dark:text-white font-medium">Support</span>
+    </nav>
+
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Support</h1>
-        <a href="/saas-admin" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">← Dashboard</a>
+    </div>
+
+    <!-- SLA legend -->
+    <div class="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+        <span class="font-medium text-gray-700 dark:text-gray-300">SLA-indikator:</span>
+        <span>🟢 OK &nbsp; 🟡 Varning (&gt;75% av SLA) &nbsp; 🔴 Överskriden</span>
+        <span class="ml-4 text-gray-400 dark:text-gray-500">Kritisk: 4h &middot; Hög: 24h &middot; Normal: 72h &middot; Låg: 168h</span>
     </div>
 
     <!-- Filters -->
@@ -59,12 +83,13 @@ $statusLabels = ['open' => 'Öppen', 'in_progress' => 'Pågår', 'waiting' => 'V
                     <th class="px-5 py-3 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide text-xs">Kund</th>
                     <th class="px-5 py-3 text-center font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide text-xs">Prioritet</th>
                     <th class="px-5 py-3 text-center font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide text-xs">Status</th>
+                    <th class="px-5 py-3 text-center font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide text-xs" title="SLA-indikator">SLA</th>
                     <th class="px-5 py-3 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide text-xs">Skapad</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-700 bg-white dark:bg-gray-800">
                 <?php if (empty($tickets)): ?>
-                    <tr><td colspan="6" class="px-5 py-8 text-center text-gray-500 dark:text-gray-400">Inga ärenden hittades.</td></tr>
+                    <tr><td colspan="7" class="px-5 py-8 text-center text-gray-500 dark:text-gray-400">Inga ärenden hittades.</td></tr>
                 <?php else: ?>
                     <?php foreach ($tickets as $t): ?>
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer" onclick="window.location='/saas-admin/support/<?= (int) $t['id'] ?>'">
@@ -84,6 +109,13 @@ $statusLabels = ['open' => 'Öppen', 'in_progress' => 'Pågår', 'waiting' => 'V
                                 <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium <?= $statusColors[$t['status']] ?? '' ?>">
                                     <?= htmlspecialchars($statusLabels[$t['status']] ?? $t['status'], ENT_QUOTES, 'UTF-8') ?>
                                 </span>
+                            </td>
+                            <td class="px-5 py-3 text-center text-base leading-none" title="SLA-status">
+                                <?php if (in_array($t['status'], ['open', 'in_progress', 'waiting'], true)): ?>
+                                    <?= slaIndicator((string) $t['priority'], (string) ($t['created_at'] ?? ''), $slaHours) ?>
+                                <?php else: ?>
+                                    <span class="text-gray-300 dark:text-gray-600">–</span>
+                                <?php endif; ?>
                             </td>
                             <td class="px-5 py-3 text-gray-500 dark:text-gray-400 text-xs"><?= htmlspecialchars((string) ($t['created_at'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                         </tr>
