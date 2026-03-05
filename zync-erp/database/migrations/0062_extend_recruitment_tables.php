@@ -13,7 +13,10 @@ $applicantCols = [
 ];
 
 foreach ($applicantCols as $col => $def) {
-    $stmt = $pdo->prepare("SHOW COLUMNS FROM recruitment_applicants LIKE ?");
+    $stmt = $pdo->prepare(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'recruitment_applicants' AND COLUMN_NAME = ?"
+    );
     $stmt->execute([$col]);
     if (empty($stmt->fetchAll())) {
         $pdo->exec("ALTER TABLE recruitment_applicants ADD COLUMN `{$col}` {$def}");
@@ -29,7 +32,10 @@ $positionCols = [
     'location'       => "VARCHAR(200) NULL",
 ];
 foreach ($positionCols as $col => $def) {
-    $stmt = $pdo->prepare("SHOW COLUMNS FROM recruitment_positions LIKE ?");
+    $stmt = $pdo->prepare(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'recruitment_positions' AND COLUMN_NAME = ?"
+    );
     $stmt->execute([$col]);
     if (empty($stmt->fetchAll())) {
         $pdo->exec("ALTER TABLE recruitment_positions ADD COLUMN `{$col}` {$def}");

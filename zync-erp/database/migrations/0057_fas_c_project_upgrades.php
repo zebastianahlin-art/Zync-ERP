@@ -16,28 +16,40 @@ use App\Core\Database;
 $pdo = Database::pdo();
 
 // C1 – project_type
-$stmt = $pdo->prepare("SHOW COLUMNS FROM projects LIKE 'project_type'");
+$stmt = $pdo->prepare(
+    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'projects' AND COLUMN_NAME = 'project_type'"
+);
 $stmt->execute();
 if (empty($stmt->fetchAll())) {
     $pdo->exec("ALTER TABLE projects ADD COLUMN project_type ENUM('internal','external') NOT NULL DEFAULT 'internal' AFTER status");
 }
 
 // C6 – planned_budget on projects
-$stmt = $pdo->prepare("SHOW COLUMNS FROM projects LIKE 'planned_budget'");
+$stmt = $pdo->prepare(
+    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'projects' AND COLUMN_NAME = 'planned_budget'"
+);
 $stmt->execute();
 if (empty($stmt->fetchAll())) {
     $pdo->exec("ALTER TABLE projects ADD COLUMN planned_budget DECIMAL(14,2) NOT NULL DEFAULT 0 AFTER budget");
 }
 
 // C6 – actual_cost on projects
-$stmt = $pdo->prepare("SHOW COLUMNS FROM projects LIKE 'actual_cost'");
+$stmt = $pdo->prepare(
+    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'projects' AND COLUMN_NAME = 'actual_cost'"
+);
 $stmt->execute();
 if (empty($stmt->fetchAll())) {
     $pdo->exec("ALTER TABLE projects ADD COLUMN actual_cost DECIMAL(14,2) NOT NULL DEFAULT 0 AFTER planned_budget");
 }
 
 // C5 – start_date on project_tasks
-$stmt = $pdo->prepare("SHOW COLUMNS FROM project_tasks LIKE 'start_date'");
+$stmt = $pdo->prepare(
+    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'project_tasks' AND COLUMN_NAME = 'start_date'"
+);
 $stmt->execute();
 if (empty($stmt->fetchAll())) {
     $pdo->exec("ALTER TABLE project_tasks ADD COLUMN start_date DATE NULL AFTER due_date");

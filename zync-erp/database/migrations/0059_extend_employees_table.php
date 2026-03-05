@@ -23,7 +23,10 @@ $columns = [
 ];
 
 foreach ($columns as $col => $def) {
-    $stmt = $pdo->prepare("SHOW COLUMNS FROM employees LIKE ?");
+    $stmt = $pdo->prepare(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employees' AND COLUMN_NAME = ?"
+    );
     $stmt->execute([$col]);
     if (empty($stmt->fetchAll())) {
         $pdo->exec("ALTER TABLE employees ADD COLUMN `{$col}` {$def}");
