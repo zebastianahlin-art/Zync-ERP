@@ -68,7 +68,8 @@ class AiEngineerRepository
      */
     public function mttrPerMachine(): array
     {
-        $sql = "SELECT m.id, m.name,
+        try {
+            $sql = "SELECT m.id, m.name,
                        COUNT(wo.id) AS repair_count,
                        ROUND(AVG(wo.actual_hours), 2) AS mttr_hours,
                        ROUND(SUM(wo.actual_hours), 2) AS total_hours
@@ -80,7 +81,10 @@ class AiEngineerRepository
                 WHERE m.is_deleted = 0
                 GROUP BY m.id, m.name
                 ORDER BY mttr_hours DESC";
-        return Database::pdo()->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+            return Database::pdo()->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     /**
@@ -196,73 +200,102 @@ class AiEngineerRepository
      */
     public function machineHealth(int $machineId): ?array
     {
-        $stmt = Database::pdo()->prepare("SELECT * FROM machines WHERE id = ? AND is_deleted = 0");
-        $stmt->execute([$machineId]);
-        $machine = $stmt->fetch(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = Database::pdo()->prepare("SELECT * FROM machines WHERE id = ? AND is_deleted = 0");
+            $stmt->execute([$machineId]);
+            $machine = $stmt->fetch(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return null;
+        }
+
         if (!$machine) {
             return null;
         }
 
+        $totalFaults  = 0;
+        $faults30     = 0;
+        $mtbf         = false;
+        $mttr         = false;
+        $totalCost    = false;
+        $pmSchedules  = [];
+        $recentFaults = [];
+
         // Total faults
-        $stmt = Database::pdo()->prepare("SELECT COUNT(*) FROM fault_reports WHERE machine_id = ? AND is_deleted = 0");
-        $stmt->execute([$machineId]);
-        $totalFaults = (int) $stmt->fetchColumn();
+        try {
+            $stmt = Database::pdo()->prepare("SELECT COUNT(*) FROM fault_reports WHERE machine_id = ? AND is_deleted = 0");
+            $stmt->execute([$machineId]);
+            $totalFaults = (int) $stmt->fetchColumn();
 
-        // Faults last 30 days
-        $stmt = Database::pdo()->prepare("SELECT COUNT(*) FROM fault_reports WHERE machine_id = ? AND is_deleted = 0 AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
-        $stmt->execute([$machineId]);
-        $faults30 = (int) $stmt->fetchColumn();
+            // Faults last 30 days
+            $stmt = Database::pdo()->prepare("SELECT COUNT(*) FROM fault_reports WHERE machine_id = ? AND is_deleted = 0 AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
+            $stmt->execute([$machineId]);
+            $faults30 = (int) $stmt->fetchColumn();
 
-        // MTBF
-        $stmt = Database::pdo()->prepare(
-            "SELECT CASE WHEN COUNT(*) > 1
-                    THEN TIMESTAMPDIFF(HOUR, MIN(created_at), MAX(created_at)) / (COUNT(*) - 1)
-                    ELSE NULL END AS mtbf
-             FROM fault_reports WHERE machine_id = ? AND is_deleted = 0"
-        );
-        $stmt->execute([$machineId]);
-        $mtbf = $stmt->fetchColumn();
+            // MTBF
+            $stmt = Database::pdo()->prepare(
+                "SELECT CASE WHEN COUNT(*) > 1
+                        THEN TIMESTAMPDIFF(HOUR, MIN(created_at), MAX(created_at)) / (COUNT(*) - 1)
+                        ELSE NULL END AS mtbf
+                 FROM fault_reports WHERE machine_id = ? AND is_deleted = 0"
+            );
+            $stmt->execute([$machineId]);
+            $mtbf = $stmt->fetchColumn();
+        } catch (\Exception $e) {
+            // fault_reports table unavailable
+        }
 
         // MTTR
-        $stmt = Database::pdo()->prepare(
-            "SELECT ROUND(AVG(wo.actual_hours), 2)
-             FROM work_orders wo
-             JOIN fault_reports fr ON wo.fault_report_id = fr.id
-             WHERE fr.machine_id = ? AND wo.is_deleted = 0 AND wo.actual_hours IS NOT NULL
-               AND wo.status IN ('completed','closed')"
-        );
-        $stmt->execute([$machineId]);
-        $mttr = $stmt->fetchColumn();
+        try {
+            $stmt = Database::pdo()->prepare(
+                "SELECT ROUND(AVG(wo.actual_hours), 2)
+                 FROM work_orders wo
+                 JOIN fault_reports fr ON wo.fault_report_id = fr.id
+                 WHERE fr.machine_id = ? AND wo.is_deleted = 0 AND wo.actual_hours IS NOT NULL
+                   AND wo.status IN ('completed','closed')"
+            );
+            $stmt->execute([$machineId]);
+            $mttr = $stmt->fetchColumn();
 
-        // Total repair cost
-        $stmt = Database::pdo()->prepare(
-            "SELECT ROUND(SUM(COALESCE(wo.total_cost, 0)), 2)
-             FROM work_orders wo
-             JOIN fault_reports fr ON wo.fault_report_id = fr.id
-             WHERE fr.machine_id = ? AND wo.is_deleted = 0"
-        );
-        $stmt->execute([$machineId]);
-        $totalCost = $stmt->fetchColumn();
+            // Total repair cost
+            $stmt = Database::pdo()->prepare(
+                "SELECT ROUND(SUM(COALESCE(wo.total_cost, 0)), 2)
+                 FROM work_orders wo
+                 JOIN fault_reports fr ON wo.fault_report_id = fr.id
+                 WHERE fr.machine_id = ? AND wo.is_deleted = 0"
+            );
+            $stmt->execute([$machineId]);
+            $totalCost = $stmt->fetchColumn();
+        } catch (\Exception $e) {
+            // work_orders or fault_reports table unavailable
+        }
 
         // Active PM schedules
-        $stmt = Database::pdo()->prepare(
-            "SELECT * FROM preventive_maintenance_schedules
-             WHERE machine_id = ? AND is_deleted = 0 AND status = 'active'
-             ORDER BY next_due_at ASC"
-        );
-        $stmt->execute([$machineId]);
-        $pmSchedules = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = Database::pdo()->prepare(
+                "SELECT * FROM preventive_maintenance_schedules
+                 WHERE machine_id = ? AND is_deleted = 0 AND status = 'active'
+                 ORDER BY next_due_at ASC"
+            );
+            $stmt->execute([$machineId]);
+            $pmSchedules = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            // preventive_maintenance_schedules table unavailable
+        }
 
         // Recent faults
-        $stmt = Database::pdo()->prepare(
-            "SELECT fr.*, u.full_name AS reported_by_name
-             FROM fault_reports fr
-             LEFT JOIN users u ON fr.reported_by = u.id
-             WHERE fr.machine_id = ? AND fr.is_deleted = 0
-             ORDER BY fr.created_at DESC LIMIT 10"
-        );
-        $stmt->execute([$machineId]);
-        $recentFaults = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = Database::pdo()->prepare(
+                "SELECT fr.*, u.full_name AS reported_by_name
+                 FROM fault_reports fr
+                 LEFT JOIN users u ON fr.reported_by = u.id
+                 WHERE fr.machine_id = ? AND fr.is_deleted = 0
+                 ORDER BY fr.created_at DESC LIMIT 10"
+            );
+            $stmt->execute([$machineId]);
+            $recentFaults = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            // fault_reports table unavailable
+        }
 
         return [
             'machine'      => $machine,

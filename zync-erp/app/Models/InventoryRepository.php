@@ -37,9 +37,13 @@ class InventoryRepository
                 WHERE " . implode(' AND ', $where) . "
                 ORDER BY a.name ASC";
 
-        $stmt = Database::pdo()->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = Database::pdo()->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function getStockKPIs(): array

@@ -10,13 +10,17 @@ class EmployeeRepository
 {
     public function all(): array
     {
-        return Database::pdo()->query(
-            'SELECT e.*, d.name AS department_name
-             FROM employees e
-             LEFT JOIN departments d ON e.department_id = d.id
-             WHERE e.is_deleted = 0
-             ORDER BY e.last_name ASC, e.first_name ASC'
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query(
+                'SELECT e.*, d.name AS department_name
+                 FROM employees e
+                 LEFT JOIN departments d ON e.department_id = d.id
+                 WHERE e.is_deleted = 0
+                 ORDER BY e.last_name ASC, e.first_name ASC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function find(int $id): ?array
