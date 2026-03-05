@@ -37,14 +37,18 @@ class RecruitmentRepository
 
     public function findPosition(int $id): ?array
     {
-        $stmt = Database::pdo()->prepare(
-            'SELECT p.*, d.name AS department_name
-             FROM recruitment_positions p
-             LEFT JOIN departments d ON p.department_id = d.id
-             WHERE p.id = ? AND p.is_deleted = 0'
-        );
-        $stmt->execute([$id]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT p.*, d.name AS department_name
+                 FROM recruitment_positions p
+                 LEFT JOIN departments d ON p.department_id = d.id
+                 WHERE p.id = ? AND p.is_deleted = 0'
+            );
+            $stmt->execute([$id]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function positionApplicants(int $positionId): array

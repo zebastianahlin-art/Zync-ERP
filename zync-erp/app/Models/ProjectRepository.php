@@ -10,41 +10,57 @@ class ProjectRepository
 {
     public function allCustomers(): array
     {
-        return Database::pdo()->query(
-            'SELECT id, name FROM customers WHERE is_deleted = 0 ORDER BY name ASC'
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query(
+                'SELECT id, name FROM customers WHERE is_deleted = 0 ORDER BY name ASC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function allUsers(): array
     {
-        return Database::pdo()->query(
-            'SELECT id, full_name, username FROM users WHERE is_active = 1 ORDER BY full_name ASC'
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query(
+                'SELECT id, full_name, username FROM users WHERE is_active = 1 ORDER BY full_name ASC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function all(): array
     {
-        return Database::pdo()->query(
-            'SELECT p.*, c.name AS customer_name, u.full_name AS manager_name
-             FROM projects p
-             LEFT JOIN customers c ON p.customer_id = c.id
-             LEFT JOIN users u ON p.manager_id = u.id
-             WHERE p.is_deleted = 0
-             ORDER BY p.created_at DESC'
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            return Database::pdo()->query(
+                'SELECT p.*, c.name AS customer_name, u.full_name AS manager_name
+                 FROM projects p
+                 LEFT JOIN customers c ON p.customer_id = c.id
+                 LEFT JOIN users u ON p.manager_id = u.id
+                 WHERE p.is_deleted = 0
+                 ORDER BY p.created_at DESC'
+            )->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     public function find(int $id): ?array
     {
-        $stmt = Database::pdo()->prepare(
-            'SELECT p.*, c.name AS customer_name, u.full_name AS manager_name
-             FROM projects p
-             LEFT JOIN customers c ON p.customer_id = c.id
-             LEFT JOIN users u ON p.manager_id = u.id
-             WHERE p.id = ? AND p.is_deleted = 0'
-        );
-        $stmt->execute([$id]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        try {
+            $stmt = Database::pdo()->prepare(
+                'SELECT p.*, c.name AS customer_name, u.full_name AS manager_name
+                 FROM projects p
+                 LEFT JOIN customers c ON p.customer_id = c.id
+                 LEFT JOIN users u ON p.manager_id = u.id
+                 WHERE p.id = ? AND p.is_deleted = 0'
+            );
+            $stmt->execute([$id]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function tasks(int $projectId): array
