@@ -24,7 +24,6 @@ class ExpenseController extends Controller
     /** GET /hr/expenses */
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $filters = (array) $request->getQueryParams();
         return $this->render($response, 'hr/expenses/index', [
             'title'    => 'Reseräkningar – ZYNC ERP',
@@ -37,7 +36,6 @@ class ExpenseController extends Controller
     /** GET /hr/expenses/create */
     public function create(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'hr/expenses/create', [
             'title'     => 'Ny reseräkning – ZYNC ERP',
             'employees' => $this->repo->allEmployees(),
@@ -49,7 +47,6 @@ class ExpenseController extends Controller
     /** POST /hr/expenses */
     public function store(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $data   = $this->extractData($request);
         $errors = $this->validate($data);
         if (!empty($errors)) {
@@ -69,7 +66,6 @@ class ExpenseController extends Controller
     /** GET /hr/expenses/{id} */
     public function show(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $report = $this->repo->find((int) $args['id']);
         if ($report === null) { return $this->notFound($response); }
         return $this->render($response, 'hr/expenses/show', [
@@ -83,7 +79,6 @@ class ExpenseController extends Controller
     /** GET /hr/expenses/{id}/edit */
     public function edit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $report = $this->repo->find((int) $args['id']);
         if ($report === null) { return $this->notFound($response); }
         return $this->render($response, 'hr/expenses/edit', [
@@ -97,7 +92,6 @@ class ExpenseController extends Controller
     /** POST /hr/expenses/{id} */
     public function update(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id     = (int) $args['id'];
         $report = $this->repo->find($id);
         if ($report === null) { return $this->notFound($response); }
@@ -119,7 +113,6 @@ class ExpenseController extends Controller
     /** POST /hr/expenses/{id}/delete */
     public function delete(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id = (int) $args['id'];
         if ($this->repo->find($id) !== null) {
             $this->repo->delete($id);
@@ -131,7 +124,6 @@ class ExpenseController extends Controller
     /** POST /hr/expenses/{id}/submit */
     public function submit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id = (int) $args['id'];
         if ($this->repo->find($id) !== null) {
             $this->repo->submit($id);
@@ -143,7 +135,6 @@ class ExpenseController extends Controller
     /** POST /hr/expenses/{id}/approve */
     public function approve(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id = (int) $args['id'];
         if ($this->repo->find($id) !== null) {
             $this->repo->approve($id, (int) Auth::id());
@@ -155,7 +146,6 @@ class ExpenseController extends Controller
     /** POST /hr/expenses/{id}/reject */
     public function reject(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id = (int) $args['id'];
         if ($this->repo->find($id) !== null) {
             $this->repo->reject($id);
@@ -167,7 +157,6 @@ class ExpenseController extends Controller
     /** POST /hr/expenses/{id}/lines */
     public function addLine(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id     = (int) $args['id'];
         $report = $this->repo->find($id);
         if ($report === null) { return $this->notFound($response); }
@@ -191,7 +180,6 @@ class ExpenseController extends Controller
     /** POST /hr/expenses/{id}/lines/{lineId}/delete */
     public function removeLine(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id     = (int) $args['id'];
         $lineId = (int) $args['lineId'];
         if ($this->repo->find($id) !== null) {

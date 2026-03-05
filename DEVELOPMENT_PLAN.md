@@ -204,6 +204,7 @@ Skapa placeholder-sidor för moduler som ännu inte är uppgraderade.
 | #46 | Fas 8: Admin + SaaS Admin — Komplett uppgradering | ✅ Klar |
 | #47 | Buggfix: diverse korrigeringar | ✅ Mergad |
 | #48 | Kodkvalitetsförbättringar: Refaktorering & Konsistens | ✅ Klar |
+| #49 | Ta bort redundanta Auth::check()-guards, rensa deprecated requireAuth() | ✅ Mergad |
 | #36 | (Ersatt av #37) | ❌ Stängd |
 | #33 | Maintenance Module draft | ❌ Stängd |
 

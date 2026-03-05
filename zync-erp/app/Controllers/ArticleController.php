@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Flash;
 use App\Models\ArticleRepository;
@@ -24,10 +23,6 @@ class ArticleController extends Controller
     /** GET /articles */
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         return $this->render($response, 'articles/index', [
             'title'    => 'Artiklar – ZYNC ERP',
             'articles' => $this->repo->all(),
@@ -38,10 +33,6 @@ class ArticleController extends Controller
     /** GET /articles/create */
     public function create(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         return $this->render($response, 'articles/create', [
             'title'     => 'Ny artikel – ZYNC ERP',
             'errors'    => [],
@@ -53,10 +44,6 @@ class ArticleController extends Controller
     /** POST /articles */
     public function store(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $data   = $this->extractData($request);
         $errors = $this->validate($data);
 
@@ -88,10 +75,6 @@ class ArticleController extends Controller
     /** GET /articles/{id}/edit */
     public function edit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $article = $this->repo->find((int) $args['id']);
         if ($article === null) {
             return $this->notFound($response);
@@ -108,10 +91,6 @@ class ArticleController extends Controller
     /** POST /articles/{id} */
     public function update(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $id      = (int) $args['id'];
         $article = $this->repo->find($id);
         if ($article === null) {
@@ -149,10 +128,6 @@ class ArticleController extends Controller
     /** POST /articles/{id}/delete */
     public function destroy(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $id = (int) $args['id'];
         if ($this->repo->find($id) !== null) {
             $this->repo->delete($id);

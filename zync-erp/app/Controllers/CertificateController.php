@@ -27,10 +27,6 @@ class CertificateController extends Controller
     /** GET /certificates */
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         return $this->render($response, 'certificates/index', [
             'title'        => 'Certifikat – ZYNC ERP',
             'certificates' => $this->repo->all(),
@@ -41,10 +37,6 @@ class CertificateController extends Controller
     /** GET /certificates/create */
     public function create(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         return $this->render($response, 'certificates/create', [
             'title'     => 'Nytt certifikat – ZYNC ERP',
             'employees' => $this->empRepo->all(),
@@ -57,10 +49,6 @@ class CertificateController extends Controller
     /** POST /certificates */
     public function store(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $data   = $this->extractData($request);
         $errors = $this->validate($data);
 
@@ -83,10 +71,6 @@ class CertificateController extends Controller
     /** GET /certificates/{id}/edit */
     public function edit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $cert = $this->repo->find((int) $args['id']);
         if ($cert === null) {
             return $this->notFound($response);
@@ -104,10 +88,6 @@ class CertificateController extends Controller
     /** POST /certificates/{id} */
     public function update(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $id   = (int) $args['id'];
         $cert = $this->repo->find($id);
         if ($cert === null) {
@@ -135,10 +115,6 @@ class CertificateController extends Controller
     /** POST /certificates/{id}/delete */
     public function destroy(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) {
-            return $this->redirect($response, '/login');
-        }
-
         $id = (int) $args['id'];
         if ($this->repo->find($id) !== null) {
             $this->repo->delete($id);

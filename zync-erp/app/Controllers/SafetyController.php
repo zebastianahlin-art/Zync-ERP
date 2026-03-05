@@ -42,7 +42,6 @@ class SafetyController extends Controller
 
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
 
         return $this->render($response, 'safety/index', [
             'title'          => 'Hälsa & Säkerhet – ZYNC ERP',
@@ -57,7 +56,6 @@ class SafetyController extends Controller
 
     public function risks(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $filters = (array) $request->getQueryParams();
         return $this->render($response, 'safety/risks/index', [
             'title'   => 'Riskbedömningar – ZYNC ERP',
@@ -69,7 +67,6 @@ class SafetyController extends Controller
 
     public function createRisk(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/risks/create', [
             'title'  => 'Ny riskbedömning – ZYNC ERP',
             'errors' => [],
@@ -79,7 +76,6 @@ class SafetyController extends Controller
 
     public function storeRisk(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $data   = $this->extractRiskData($request);
         $errors = $this->validateRisk($data);
         if (!empty($errors)) {
@@ -97,7 +93,6 @@ class SafetyController extends Controller
 
     public function showRisk(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $risk = $this->risks->find((int) $args['id']);
         if ($risk === null) { return $this->notFound($response); }
         return $this->render($response, 'safety/risks/show', [
@@ -108,7 +103,6 @@ class SafetyController extends Controller
 
     public function editRisk(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $risk = $this->risks->find((int) $args['id']);
         if ($risk === null) { return $this->notFound($response); }
         return $this->render($response, 'safety/risks/edit', [
@@ -120,7 +114,6 @@ class SafetyController extends Controller
 
     public function updateRisk(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id   = (int) $args['id'];
         $risk = $this->risks->find($id);
         if ($risk === null) { return $this->notFound($response); }
@@ -140,7 +133,6 @@ class SafetyController extends Controller
 
     public function deleteRisk(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $this->risks->delete((int) $args['id']);
         Flash::set('success', 'Riskbedömningen har tagits bort.');
         return $this->redirect($response, '/safety/risks');
@@ -148,7 +140,6 @@ class SafetyController extends Controller
 
     public function updateRiskStatus(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $body   = (array) $request->getParsedBody();
         $status = trim((string) ($body['status'] ?? ''));
         $valid  = ['draft', 'active', 'under_review', 'closed', 'archived'];
@@ -163,7 +154,6 @@ class SafetyController extends Controller
 
     public function reports(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $filters = (array) $request->getQueryParams();
         return $this->render($response, 'safety/reports/index', [
             'title'   => 'Riskrapporter – ZYNC ERP',
@@ -175,7 +165,6 @@ class SafetyController extends Controller
 
     public function createReport(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/reports/create', [
             'title'  => 'Ny riskrapport – ZYNC ERP',
             'errors' => [],
@@ -185,7 +174,6 @@ class SafetyController extends Controller
 
     public function storeReport(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $data   = $this->extractReportData($request);
         $errors = $this->validateReport($data);
         if (!empty($errors)) {
@@ -203,7 +191,6 @@ class SafetyController extends Controller
 
     public function showReport(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $report = $this->reports->find((int) $args['id']);
         if ($report === null) { return $this->notFound($response); }
         return $this->render($response, 'safety/reports/show', [
@@ -214,7 +201,6 @@ class SafetyController extends Controller
 
     public function editReport(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $report = $this->reports->find((int) $args['id']);
         if ($report === null) { return $this->notFound($response); }
         return $this->render($response, 'safety/reports/edit', [
@@ -226,7 +212,6 @@ class SafetyController extends Controller
 
     public function updateReport(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id     = (int) $args['id'];
         $report = $this->reports->find($id);
         if ($report === null) { return $this->notFound($response); }
@@ -246,7 +231,6 @@ class SafetyController extends Controller
 
     public function deleteReport(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $this->reports->delete((int) $args['id']);
         Flash::set('success', 'Riskrapporten har tagits bort.');
         return $this->redirect($response, '/safety/reports');
@@ -254,7 +238,6 @@ class SafetyController extends Controller
 
     public function updateReportStatus(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $body   = (array) $request->getParsedBody();
         $status = trim((string) ($body['status'] ?? ''));
         $valid  = ['reported', 'acknowledged', 'investigating', 'action_taken', 'closed'];
@@ -269,7 +252,6 @@ class SafetyController extends Controller
 
     public function audits(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $filters = (array) $request->getQueryParams();
         return $this->render($response, 'safety/audits/index', [
             'title'   => 'Audits – ZYNC ERP',
@@ -281,7 +263,6 @@ class SafetyController extends Controller
 
     public function createAudit(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/audits/create', [
             'title'     => 'Ny audit – ZYNC ERP',
             'templates' => $this->audits->allTemplates(),
@@ -292,7 +273,6 @@ class SafetyController extends Controller
 
     public function storeAudit(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $data   = $this->extractAuditData($request);
         $errors = $this->validateAudit($data);
         if (!empty($errors)) {
@@ -311,7 +291,6 @@ class SafetyController extends Controller
 
     public function showAudit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $audit = $this->audits->findAudit((int) $args['id']);
         if ($audit === null) { return $this->notFound($response); }
         $items = $audit['template_id'] ? $this->audits->templateItems((int) $audit['template_id']) : [];
@@ -324,7 +303,6 @@ class SafetyController extends Controller
 
     public function editAudit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $audit = $this->audits->findAudit((int) $args['id']);
         if ($audit === null) { return $this->notFound($response); }
         return $this->render($response, 'safety/audits/edit', [
@@ -337,7 +315,6 @@ class SafetyController extends Controller
 
     public function updateAudit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id    = (int) $args['id'];
         $audit = $this->audits->findAudit($id);
         if ($audit === null) { return $this->notFound($response); }
@@ -358,7 +335,6 @@ class SafetyController extends Controller
 
     public function deleteAudit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $this->audits->deleteAudit((int) $args['id']);
         Flash::set('success', 'Auditen har tagits bort.');
         return $this->redirect($response, '/safety/audits');
@@ -366,7 +342,6 @@ class SafetyController extends Controller
 
     public function updateAuditStatus(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $body   = (array) $request->getParsedBody();
         $status = trim((string) ($body['status'] ?? ''));
         $valid  = ['planned', 'in_progress', 'completed', 'cancelled'];
@@ -379,7 +354,6 @@ class SafetyController extends Controller
 
     public function saveAuditResponses(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id    = (int) $args['id'];
         $body  = (array) $request->getParsedBody();
         $responses = is_array($body['responses'] ?? null) ? $body['responses'] : [];
@@ -390,7 +364,6 @@ class SafetyController extends Controller
 
     public function pendingAudits(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/audits/pending', [
             'title'   => 'Ej slutförda åtgärder – ZYNC ERP',
             'audits'  => $this->audits->allAudits(['status_not' => 'completed']),
@@ -400,7 +373,6 @@ class SafetyController extends Controller
 
     public function completedAudits(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/audits/completed', [
             'title'   => 'Slutförda åtgärder – ZYNC ERP',
             'audits'  => $this->audits->allAudits(['status' => 'completed']),
@@ -412,7 +384,6 @@ class SafetyController extends Controller
 
     public function drills(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $filters = (array) $request->getQueryParams();
         return $this->render($response, 'safety/emergency/drills/index', [
             'title'   => 'Nödlägesövningar – ZYNC ERP',
@@ -424,7 +395,6 @@ class SafetyController extends Controller
 
     public function createDrill(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/emergency/drills/create', [
             'title'     => 'Ny nödlägesövning – ZYNC ERP',
             'templates' => $this->drills->allTemplates(),
@@ -435,7 +405,6 @@ class SafetyController extends Controller
 
     public function storeDrill(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $data   = $this->extractDrillData($request);
         $errors = $this->validateDrill($data);
         if (!empty($errors)) {
@@ -454,7 +423,6 @@ class SafetyController extends Controller
 
     public function showDrill(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $drill = $this->drills->find((int) $args['id']);
         if ($drill === null) { return $this->notFound($response); }
         return $this->render($response, 'safety/emergency/drills/show', [
@@ -465,7 +433,6 @@ class SafetyController extends Controller
 
     public function editDrill(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $drill = $this->drills->find((int) $args['id']);
         if ($drill === null) { return $this->notFound($response); }
         return $this->render($response, 'safety/emergency/drills/edit', [
@@ -478,7 +445,6 @@ class SafetyController extends Controller
 
     public function updateDrill(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id    = (int) $args['id'];
         $drill = $this->drills->find($id);
         if ($drill === null) { return $this->notFound($response); }
@@ -499,7 +465,6 @@ class SafetyController extends Controller
 
     public function deleteDrill(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $this->drills->delete((int) $args['id']);
         Flash::set('success', 'Nödlägesövningen har tagits bort.');
         return $this->redirect($response, '/safety/emergency/drills');
@@ -509,7 +474,6 @@ class SafetyController extends Controller
 
     public function drillTemplates(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/emergency/drills/templates/index', [
             'title'     => 'Övningsmallar – ZYNC ERP',
             'templates' => $this->drills->allTemplates(),
@@ -519,7 +483,6 @@ class SafetyController extends Controller
 
     public function createDrillTemplate(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/emergency/drills/templates/create', [
             'title'  => 'Ny övningsmall – ZYNC ERP',
             'errors' => [],
@@ -529,7 +492,6 @@ class SafetyController extends Controller
 
     public function storeDrillTemplate(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $data   = $this->extractDrillTemplateData($request);
         $errors = $this->validateDrillTemplate($data);
         if (!empty($errors)) {
@@ -547,7 +509,6 @@ class SafetyController extends Controller
 
     public function editDrillTemplate(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $template = $this->drills->findTemplate((int) $args['id']);
         if ($template === null) { return $this->notFound($response); }
         return $this->render($response, 'safety/emergency/drills/templates/edit', [
@@ -559,7 +520,6 @@ class SafetyController extends Controller
 
     public function updateDrillTemplate(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id       = (int) $args['id'];
         $template = $this->drills->findTemplate($id);
         if ($template === null) { return $this->notFound($response); }
@@ -579,7 +539,6 @@ class SafetyController extends Controller
 
     public function deleteDrillTemplate(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $this->drills->deleteTemplate((int) $args['id']);
         Flash::set('success', 'Övningsmallen har tagits bort.');
         return $this->redirect($response, '/safety/emergency/drills/templates');
@@ -589,7 +548,6 @@ class SafetyController extends Controller
 
     public function auditTemplates(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/audit-templates/index', [
             'title'     => 'Audit-mallar – ZYNC ERP',
             'templates' => $this->audits->allTemplates(),
@@ -599,7 +557,6 @@ class SafetyController extends Controller
 
     public function createAuditTemplate(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/audit-templates/create', [
             'title'  => 'Ny audit-mall – ZYNC ERP',
             'errors' => [],
@@ -609,7 +566,6 @@ class SafetyController extends Controller
 
     public function storeAuditTemplate(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $data   = $this->extractTemplateData($request);
         $errors = $this->validateTemplate($data);
         if (!empty($errors)) {
@@ -627,7 +583,6 @@ class SafetyController extends Controller
 
     public function showAuditTemplate(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $template = $this->audits->findTemplate((int) $args['id']);
         if ($template === null) { return $this->notFound($response); }
         $items = $this->audits->templateItems((int) $args['id']);
@@ -640,7 +595,6 @@ class SafetyController extends Controller
 
     public function editAuditTemplate(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $template = $this->audits->findTemplate((int) $args['id']);
         if ($template === null) { return $this->notFound($response); }
         return $this->render($response, 'safety/audit-templates/edit', [
@@ -652,7 +606,6 @@ class SafetyController extends Controller
 
     public function updateAuditTemplate(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id       = (int) $args['id'];
         $template = $this->audits->findTemplate($id);
         if ($template === null) { return $this->notFound($response); }
@@ -672,7 +625,6 @@ class SafetyController extends Controller
 
     public function deleteAuditTemplate(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $this->audits->deleteTemplate((int) $args['id']);
         Flash::set('success', 'Audit-mallen har tagits bort.');
         return $this->redirect($response, '/safety/audit-templates');
@@ -680,7 +632,6 @@ class SafetyController extends Controller
 
     public function addTemplateItem(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id   = (int) $args['id'];
         $body = (array) $request->getParsedBody();
         if (!empty($body['question'])) {
@@ -699,7 +650,6 @@ class SafetyController extends Controller
 
     public function removeTemplateItem(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $this->audits->removeTemplateItem((int) $args['itemId']);
         Flash::set('success', 'Frågan har tagits bort.');
         return $this->redirect($response, '/safety/audit-templates/' . $args['id']);
@@ -709,7 +659,6 @@ class SafetyController extends Controller
 
     public function emergency(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/emergency/index', [
             'title'      => 'Krishantering – ZYNC ERP',
             'contacts'   => $this->contacts->all(),
@@ -719,7 +668,6 @@ class SafetyController extends Controller
 
     public function emergencyContacts(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/emergency/contacts/index', [
             'title'    => 'Nödkontakter – ZYNC ERP',
             'contacts' => $this->contacts->all(),
@@ -729,7 +677,6 @@ class SafetyController extends Controller
 
     public function createEmergencyContact(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/emergency/contacts/create', [
             'title'  => 'Ny nödkontakt – ZYNC ERP',
             'errors' => [],
@@ -739,7 +686,6 @@ class SafetyController extends Controller
 
     public function storeEmergencyContact(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $data   = $this->extractContactData($request);
         $errors = $this->validateContact($data);
         if (!empty($errors)) {
@@ -757,7 +703,6 @@ class SafetyController extends Controller
 
     public function editEmergencyContact(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $contact = $this->contacts->find((int) $args['id']);
         if ($contact === null) { return $this->notFound($response); }
         return $this->render($response, 'safety/emergency/contacts/edit', [
@@ -769,7 +714,6 @@ class SafetyController extends Controller
 
     public function updateEmergencyContact(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id      = (int) $args['id'];
         $contact = $this->contacts->find($id);
         if ($contact === null) { return $this->notFound($response); }
@@ -789,7 +733,6 @@ class SafetyController extends Controller
 
     public function deleteEmergencyContact(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $this->contacts->delete((int) $args['id']);
         Flash::set('success', 'Nödkontakten har tagits bort.');
         return $this->redirect($response, '/safety/emergency/contacts');
@@ -799,7 +742,6 @@ class SafetyController extends Controller
 
     public function emergencyProcedures(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $category = (string) ($request->getQueryParams()['category'] ?? '');
         return $this->render($response, 'safety/emergency/procedures/index', [
             'title'      => 'Nödprocedurer – ZYNC ERP',
@@ -811,7 +753,6 @@ class SafetyController extends Controller
 
     public function createEmergencyProcedure(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/emergency/procedures/create', [
             'title'  => 'Ny nödprocedur – ZYNC ERP',
             'errors' => [],
@@ -821,7 +762,6 @@ class SafetyController extends Controller
 
     public function storeEmergencyProcedure(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $data   = $this->extractProcedureData($request);
         $errors = $this->validateProcedure($data);
         if (!empty($errors)) {
@@ -839,7 +779,6 @@ class SafetyController extends Controller
 
     public function showEmergencyProcedure(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $procedure = $this->procedures->find((int) $args['id']);
         if ($procedure === null) { return $this->notFound($response); }
         return $this->render($response, 'safety/emergency/procedures/show', [
@@ -850,7 +789,6 @@ class SafetyController extends Controller
 
     public function editEmergencyProcedure(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $procedure = $this->procedures->find((int) $args['id']);
         if ($procedure === null) { return $this->notFound($response); }
         return $this->render($response, 'safety/emergency/procedures/edit', [
@@ -862,7 +800,6 @@ class SafetyController extends Controller
 
     public function updateEmergencyProcedure(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id        = (int) $args['id'];
         $procedure = $this->procedures->find($id);
         if ($procedure === null) { return $this->notFound($response); }
@@ -882,7 +819,6 @@ class SafetyController extends Controller
 
     public function deleteEmergencyProcedure(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $this->procedures->delete((int) $args['id']);
         Flash::set('success', 'Nödproceduren har tagits bort.');
         return $this->redirect($response, '/safety/emergency/procedures');
@@ -892,7 +828,6 @@ class SafetyController extends Controller
 
     public function resources(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $filters = (array) $request->getQueryParams();
         return $this->render($response, 'safety/resources/index', [
             'title'     => 'Nödresurser – ZYNC ERP',
@@ -905,7 +840,6 @@ class SafetyController extends Controller
 
     public function resourcesMap(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/resources/map', [
             'title'     => 'Resurskarta – ZYNC ERP',
             'resources' => $this->resources->all(),
@@ -914,7 +848,6 @@ class SafetyController extends Controller
 
     public function createResource(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/resources/create', [
             'title'  => 'Ny nödresurs – ZYNC ERP',
             'errors' => [],
@@ -924,7 +857,6 @@ class SafetyController extends Controller
 
     public function storeResource(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $data   = $this->extractResourceData($request);
         $errors = $this->validateResource($data);
         if (!empty($errors)) {
@@ -942,7 +874,6 @@ class SafetyController extends Controller
 
     public function showResource(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $resource = $this->resources->find((int) $args['id']);
         if ($resource === null) { return $this->notFound($response); }
         $inspections = $this->resources->inspections((int) $args['id']);
@@ -955,7 +886,6 @@ class SafetyController extends Controller
 
     public function editResource(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $resource = $this->resources->find((int) $args['id']);
         if ($resource === null) { return $this->notFound($response); }
         return $this->render($response, 'safety/resources/edit', [
@@ -967,7 +897,6 @@ class SafetyController extends Controller
 
     public function updateResource(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id       = (int) $args['id'];
         $resource = $this->resources->find($id);
         if ($resource === null) { return $this->notFound($response); }
@@ -987,7 +916,6 @@ class SafetyController extends Controller
 
     public function deleteResource(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $this->resources->delete((int) $args['id']);
         Flash::set('success', 'Nödresursen har tagits bort.');
         return $this->redirect($response, '/safety/resources');
@@ -995,7 +923,6 @@ class SafetyController extends Controller
 
     public function inspectResource(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         $id      = (int) $args['id'];
         $body    = (array) $request->getParsedBody();
         $this->resources->addInspection([
@@ -1012,7 +939,6 @@ class SafetyController extends Controller
 
     public function overdueInspections(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if (!Auth::check()) { return $this->redirect($response, '/login'); }
         return $this->render($response, 'safety/resources/overdue', [
             'title'     => 'Förfallna kontroller – ZYNC ERP',
             'resources' => $this->resources->overdue(),

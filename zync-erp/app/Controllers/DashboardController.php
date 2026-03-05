@@ -23,7 +23,6 @@ class DashboardController extends Controller
 
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if ($guard = $this->requireAuth($response)) { return $guard; }
         $user = Auth::user();
         $roleLevel = (int) ($user['role_level'] ?? 1);
         $userId = Auth::id();
@@ -50,7 +49,6 @@ class DashboardController extends Controller
 
     public function configure(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if ($guard = $this->requireAuth($response)) { return $guard; }
         $user = Auth::user();
         $roleLevel = (int) ($user['role_level'] ?? 1);
         $userId = Auth::id();
@@ -70,7 +68,6 @@ class DashboardController extends Controller
 
     public function addWidget(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if ($guard = $this->requireAuth($response)) { return $guard; }
         $body = (array) $request->getParsedBody();
         $widgetId = (int) ($body['widget_id'] ?? 0);
         if ($widgetId > 0) {
@@ -82,7 +79,6 @@ class DashboardController extends Controller
 
     public function removeWidget(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if ($guard = $this->requireAuth($response)) { return $guard; }
         $body = (array) $request->getParsedBody();
         $widgetId = (int) ($body['widget_id'] ?? 0);
         if ($widgetId > 0) {
@@ -94,7 +90,6 @@ class DashboardController extends Controller
 
     public function reorderWidgets(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if ($guard = $this->requireAuth($response)) { return $guard; }
         $body = (array) $request->getParsedBody();
         $widgetIds = array_map('intval', (array) ($body['widget_ids'] ?? []));
         if (!empty($widgetIds)) {

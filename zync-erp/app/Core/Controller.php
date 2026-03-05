@@ -59,23 +59,4 @@ abstract class Controller
         $response->getBody()->write($html);
         return $response->withStatus(404);
     }
-
-    /**
-     * Require an authenticated session.
-     *
-     * Returns null when authenticated so callers can continue normally:
-     *
-     *   if ($guard = $this->requireAuth($response)) return $guard;
-     *
-     * @deprecated Use AuthMiddleware instead of calling this in controllers.
-     */
-    protected function requireAuth(ResponseInterface $response): ?ResponseInterface
-    {
-        if (Auth::check()) {
-            return null;
-        }
-
-        Flash::set('error', 'Please log in to continue.');
-        return $this->redirect($response, '/login');
-    }
 }
