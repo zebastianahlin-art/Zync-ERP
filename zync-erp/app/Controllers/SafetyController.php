@@ -8,6 +8,7 @@ use App\Core\Controller;
 use App\Core\Flash;
 use App\Models\AuditRepository;
 use App\Models\EmergencyContactRepository;
+use App\Models\EmergencyDrillRepository;
 use App\Models\EmergencyProcedureRepository;
 use App\Models\EmergencyResourceRepository;
 use App\Models\RiskAssessmentRepository;
@@ -23,6 +24,7 @@ class SafetyController extends Controller
     private EmergencyContactRepository   $contacts;
     private EmergencyProcedureRepository $procedures;
     private EmergencyResourceRepository  $resources;
+    private EmergencyDrillRepository     $drills;
 
     public function __construct()
     {
@@ -33,6 +35,7 @@ class SafetyController extends Controller
         $this->contacts   = new EmergencyContactRepository();
         $this->procedures = new EmergencyProcedureRepository();
         $this->resources  = new EmergencyResourceRepository();
+        $this->drills     = new EmergencyDrillRepository();
     }
 
     // ── Dashboard ─────────────────────────────────────────────
@@ -383,6 +386,203 @@ class SafetyController extends Controller
         $this->audits->saveResponses($id, $responses);
         Flash::set('success', 'Svar har sparats.');
         return $this->redirect($response, '/safety/audits/' . $id);
+    }
+
+    public function pendingAudits(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        if (!Auth::check()) { return $this->redirect($response, '/login'); }
+        return $this->render($response, 'safety/audits/pending', [
+            'title'   => 'Ej slutförda åtgärder – ZYNC ERP',
+            'audits'  => $this->audits->allAudits(['status_not' => 'completed']),
+            'success' => Flash::get('success'),
+        ]);
+    }
+
+    public function completedAudits(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        if (!Auth::check()) { return $this->redirect($response, '/login'); }
+        return $this->render($response, 'safety/audits/completed', [
+            'title'   => 'Slutförda åtgärder – ZYNC ERP',
+            'audits'  => $this->audits->allAudits(['status' => 'completed']),
+            'success' => Flash::get('success'),
+        ]);
+    }
+
+    // ── Emergency Drills ──────────────────────────────────────
+
+    public function drills(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        if (!Auth::check()) { return $this->redirect($response, '/login'); }
+        $filters = (array) $request->getQueryParams();
+        return $this->render($response, 'safety/emergency/drills/index', [
+            'title'   => 'Nödlägesövningar – ZYNC ERP',
+            'drills'  => $this->drills->all($filters),
+            'filters' => $filters,
+            'success' => Flash::get('success'),
+        ]);
+    }
+
+    public function createDrill(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        if (!Auth::check()) { return $this->redirect($response, '/login'); }
+        return $this->render($response, 'safety/emergency/drills/create', [
+            'title'     => 'Ny nödlägesövning – ZYNC ERP',
+            'templates' => $this->drills->allTemplates(),
+            'errors'    => [],
+            'old'       => [],
+        ]);
+    }
+
+    public function storeDrill(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        if (!Auth::check()) { return $this->redirect($response, '/login'); }
+        $data   = $this->extractDrillData($request);
+        $errors = $this->validateDrill($data);
+        if (!empty($errors)) {
+            return $this->render($response, 'safety/emergency/drills/create', [
+                'title'     => 'Ny nödlägesövning – ZYNC ERP',
+                'templates' => $this->drills->allTemplates(),
+                'errors'    => $errors,
+                'old'       => $data,
+            ]);
+        }
+        $data['created_by'] = Auth::id();
+        $id = $this->drills->create($data);
+        Flash::set('success', 'Nödlägesövningen har skapats.');
+        return $this->redirect($response, '/safety/emergency/drills/' . $id);
+    }
+
+    public function showDrill(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        if (!Auth::check()) { return $this->redirect($response, '/login'); }
+        $drill = $this->drills->find((int) $args['id']);
+        if ($drill === null) { return $this->notFound($response); }
+        return $this->render($response, 'safety/emergency/drills/show', [
+            'title' => 'Nödlägesövning – ZYNC ERP',
+            'drill' => $drill,
+        ]);
+    }
+
+    public function editDrill(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        if (!Auth::check()) { return $this->redirect($response, '/login'); }
+        $drill = $this->drills->find((int) $args['id']);
+        if ($drill === null) { return $this->notFound($response); }
+        return $this->render($response, 'safety/emergency/drills/edit', [
+            'title'     => 'Redigera nödlägesövning – ZYNC ERP',
+            'drill'     => $drill,
+            'templates' => $this->drills->allTemplates(),
+            'errors'    => [],
+        ]);
+    }
+
+    public function updateDrill(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        if (!Auth::check()) { return $this->redirect($response, '/login'); }
+        $id    = (int) $args['id'];
+        $drill = $this->drills->find($id);
+        if ($drill === null) { return $this->notFound($response); }
+        $data   = $this->extractDrillData($request);
+        $errors = $this->validateDrill($data);
+        if (!empty($errors)) {
+            return $this->render($response, 'safety/emergency/drills/edit', [
+                'title'     => 'Redigera nödlägesövning – ZYNC ERP',
+                'drill'     => array_merge($drill, $data),
+                'templates' => $this->drills->allTemplates(),
+                'errors'    => $errors,
+            ]);
+        }
+        $this->drills->update($id, $data);
+        Flash::set('success', 'Nödlägesövningen har uppdaterats.');
+        return $this->redirect($response, '/safety/emergency/drills/' . $id);
+    }
+
+    public function deleteDrill(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        if (!Auth::check()) { return $this->redirect($response, '/login'); }
+        $this->drills->delete((int) $args['id']);
+        Flash::set('success', 'Nödlägesövningen har tagits bort.');
+        return $this->redirect($response, '/safety/emergency/drills');
+    }
+
+    // ── Drill Templates ───────────────────────────────────────
+
+    public function drillTemplates(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        if (!Auth::check()) { return $this->redirect($response, '/login'); }
+        return $this->render($response, 'safety/emergency/drills/templates/index', [
+            'title'     => 'Övningsmallar – ZYNC ERP',
+            'templates' => $this->drills->allTemplates(),
+            'success'   => Flash::get('success'),
+        ]);
+    }
+
+    public function createDrillTemplate(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        if (!Auth::check()) { return $this->redirect($response, '/login'); }
+        return $this->render($response, 'safety/emergency/drills/templates/create', [
+            'title'  => 'Ny övningsmall – ZYNC ERP',
+            'errors' => [],
+            'old'    => [],
+        ]);
+    }
+
+    public function storeDrillTemplate(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        if (!Auth::check()) { return $this->redirect($response, '/login'); }
+        $data   = $this->extractDrillTemplateData($request);
+        $errors = $this->validateDrillTemplate($data);
+        if (!empty($errors)) {
+            return $this->render($response, 'safety/emergency/drills/templates/create', [
+                'title'  => 'Ny övningsmall – ZYNC ERP',
+                'errors' => $errors,
+                'old'    => $data,
+            ]);
+        }
+        $data['created_by'] = Auth::id();
+        $this->drills->createTemplate($data);
+        Flash::set('success', 'Övningsmallen har skapats.');
+        return $this->redirect($response, '/safety/emergency/drills/templates');
+    }
+
+    public function editDrillTemplate(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        if (!Auth::check()) { return $this->redirect($response, '/login'); }
+        $template = $this->drills->findTemplate((int) $args['id']);
+        if ($template === null) { return $this->notFound($response); }
+        return $this->render($response, 'safety/emergency/drills/templates/edit', [
+            'title'    => 'Redigera övningsmall – ZYNC ERP',
+            'template' => $template,
+            'errors'   => [],
+        ]);
+    }
+
+    public function updateDrillTemplate(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        if (!Auth::check()) { return $this->redirect($response, '/login'); }
+        $id       = (int) $args['id'];
+        $template = $this->drills->findTemplate($id);
+        if ($template === null) { return $this->notFound($response); }
+        $data   = $this->extractDrillTemplateData($request);
+        $errors = $this->validateDrillTemplate($data);
+        if (!empty($errors)) {
+            return $this->render($response, 'safety/emergency/drills/templates/edit', [
+                'title'    => 'Redigera övningsmall – ZYNC ERP',
+                'template' => array_merge($template, $data),
+                'errors'   => $errors,
+            ]);
+        }
+        $this->drills->updateTemplate($id, $data);
+        Flash::set('success', 'Övningsmallen har uppdaterats.');
+        return $this->redirect($response, '/safety/emergency/drills/templates');
+    }
+
+    public function deleteDrillTemplate(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        if (!Auth::check()) { return $this->redirect($response, '/login'); }
+        $this->drills->deleteTemplate((int) $args['id']);
+        Flash::set('success', 'Övningsmallen har tagits bort.');
+        return $this->redirect($response, '/safety/emergency/drills/templates');
     }
 
     // ── Audit Templates ───────────────────────────────────────
@@ -994,6 +1194,58 @@ class SafetyController extends Controller
         $errors = [];
         if ($data['name'] === '') { $errors['name'] = 'Namn är obligatoriskt.'; }
         if ($data['location'] === '') { $errors['location'] = 'Plats är obligatorisk.'; }
+        return $errors;
+    }
+
+    private function extractDrillData(ServerRequestInterface $request): array
+    {
+        $body = (array) $request->getParsedBody();
+        return [
+            'title'            => trim((string) ($body['title'] ?? '')),
+            'description'      => trim((string) ($body['description'] ?? '')),
+            'drill_type'       => trim((string) ($body['drill_type'] ?? 'fire')),
+            'template_id'      => trim((string) ($body['template_id'] ?? '')),
+            'location'         => trim((string) ($body['location'] ?? '')),
+            'department_id'    => trim((string) ($body['department_id'] ?? '')),
+            'scheduled_date'   => trim((string) ($body['scheduled_date'] ?? '')),
+            'executed_date'    => trim((string) ($body['executed_date'] ?? '')),
+            'duration_minutes' => trim((string) ($body['duration_minutes'] ?? '')),
+            'participants'     => trim((string) ($body['participants'] ?? '')),
+            'coordinator_id'   => trim((string) ($body['coordinator_id'] ?? '')),
+            'status'           => trim((string) ($body['status'] ?? 'planned')),
+            'evaluation'       => trim((string) ($body['evaluation'] ?? '')),
+            'score'            => trim((string) ($body['score'] ?? '')),
+            'improvements'     => trim((string) ($body['improvements'] ?? '')),
+            'next_drill_date'  => trim((string) ($body['next_drill_date'] ?? '')),
+        ];
+    }
+
+    private function validateDrill(array $data): array
+    {
+        $errors = [];
+        if ($data['title'] === '') { $errors['title'] = 'Titel är obligatorisk.'; }
+        if ($data['scheduled_date'] === '') { $errors['scheduled_date'] = 'Planerat datum är obligatoriskt.'; }
+        return $errors;
+    }
+
+    private function extractDrillTemplateData(ServerRequestInterface $request): array
+    {
+        $body = (array) $request->getParsedBody();
+        return [
+            'name'               => trim((string) ($body['name'] ?? '')),
+            'description'        => trim((string) ($body['description'] ?? '')),
+            'drill_type'         => trim((string) ($body['drill_type'] ?? 'fire')),
+            'checklist'          => trim((string) ($body['checklist'] ?? '')),
+            'duration_estimate'  => trim((string) ($body['duration_estimate'] ?? '')),
+            'required_resources' => trim((string) ($body['required_resources'] ?? '')),
+            'is_active'          => isset($body['is_active']) ? 1 : 0,
+        ];
+    }
+
+    private function validateDrillTemplate(array $data): array
+    {
+        $errors = [];
+        if ($data['name'] === '') { $errors['name'] = 'Namn är obligatoriskt.'; }
         return $errors;
     }
 

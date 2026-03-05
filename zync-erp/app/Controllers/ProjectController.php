@@ -77,6 +77,7 @@ class ProjectController extends Controller
             'project' => $project,
             'tasks'   => $this->repo->tasks((int) $args['id']),
             'budget'  => $this->repo->budgetLines((int) $args['id']),
+            'success' => Flash::get('success'),
         ]);
     }
 
@@ -133,6 +134,87 @@ class ProjectController extends Controller
             Flash::set('success', 'Projektet togs bort.');
         }
         return $this->redirect($response, '/projects');
+    }
+
+    /** POST /projects/{id}/tasks */
+    public function addTask(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id = (int) $args['id'];
+        if ($this->repo->find($id) === null) { return $this->notFound($response); }
+        $body = (array) $request->getParsedBody();
+        $title = trim((string) ($body['title'] ?? ''));
+        if ($title !== '') {
+            $this->repo->addTask($id, [
+                'title'       => $title,
+                'assigned_to' => trim((string) ($body['assigned_to'] ?? '')),
+                'due_date'    => trim((string) ($body['due_date'] ?? '')),
+                'priority'    => in_array($body['priority'] ?? '', ['low','normal','high','urgent'], true) ? $body['priority'] : 'normal',
+                'status'      => in_array($body['status'] ?? '', ['todo','in_progress','done','cancelled'], true) ? $body['status'] : 'todo',
+            ]);
+            Flash::set('success', 'Uppgiften lades till.');
+        }
+        return $this->redirect($response, '/projects/' . $id);
+    }
+
+    /** POST /projects/{id}/tasks/{taskId} */
+    public function updateTask(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id     = (int) $args['id'];
+        $taskId = (int) $args['taskId'];
+        if ($this->repo->find($id) === null) { return $this->notFound($response); }
+        $body = (array) $request->getParsedBody();
+        $title = trim((string) ($body['title'] ?? ''));
+        if ($title !== '') {
+            $this->repo->updateTask($taskId, [
+                'title'       => $title,
+                'assigned_to' => trim((string) ($body['assigned_to'] ?? '')),
+                'due_date'    => trim((string) ($body['due_date'] ?? '')),
+                'priority'    => in_array($body['priority'] ?? '', ['low','normal','high','urgent'], true) ? $body['priority'] : 'normal',
+                'status'      => in_array($body['status'] ?? '', ['todo','in_progress','done','cancelled'], true) ? $body['status'] : 'todo',
+            ]);
+            Flash::set('success', 'Uppgiften uppdaterades.');
+        }
+        return $this->redirect($response, '/projects/' . $id);
+    }
+
+    /** POST /projects/{id}/tasks/{taskId}/delete */
+    public function deleteTask(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id     = (int) $args['id'];
+        $taskId = (int) $args['taskId'];
+        if ($this->repo->find($id) === null) { return $this->notFound($response); }
+        $this->repo->deleteTask($taskId);
+        Flash::set('success', 'Uppgiften togs bort.');
+        return $this->redirect($response, '/projects/' . $id);
+    }
+
+    /** POST /projects/{id}/budget */
+    public function addBudgetLine(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id = (int) $args['id'];
+        if ($this->repo->find($id) === null) { return $this->notFound($response); }
+        $body = (array) $request->getParsedBody();
+        $desc = trim((string) ($body['description'] ?? ''));
+        if ($desc !== '') {
+            $this->repo->addBudgetLine($id, [
+                'description'     => $desc,
+                'budgeted_amount' => trim((string) ($body['budgeted_amount'] ?? '0')),
+                'actual_amount'   => trim((string) ($body['actual_amount'] ?? '0')),
+            ]);
+            Flash::set('success', 'Budgetraden lades till.');
+        }
+        return $this->redirect($response, '/projects/' . $id);
+    }
+
+    /** POST /projects/{id}/budget/{lineId}/delete */
+    public function deleteBudgetLine(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $id     = (int) $args['id'];
+        $lineId = (int) $args['lineId'];
+        if ($this->repo->find($id) === null) { return $this->notFound($response); }
+        $this->repo->deleteBudgetLine($lineId);
+        Flash::set('success', 'Budgetraden togs bort.');
+        return $this->redirect($response, '/projects/' . $id);
     }
 
     /** @return array<string, string> */

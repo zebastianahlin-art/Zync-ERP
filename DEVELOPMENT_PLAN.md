@@ -19,16 +19,14 @@ En detaljerad åtgärdslista har tagits fram för att uppgradera alla moduler ti
 - **PR #40** — Fas 3: Lager + Inköp (lagerställen, transaktioner, inventering, leverantörsaudit, avtalsmallar)
 - **PR #41** — Fas 4: Ekonomi (budgetar, anläggningstillgångar, kontoplansgrupper, balansräkning, kreditnotor)
 - **PR #42** — Fas 5: Produktion + Försäljning + CS & Transport (produkter CRUD, ordrar, offertmallar, prislistor, ticketsystem, transportordrar)
+- **PR #43** — Fas 6: H&S + Projekt + HR (pending/completed audits, nödlägesövningar med mallar, reseräkningar med rader, projekt tasks + budget CRUD)
 
 ### Kända problem:
 - Dashboard är enkel — saknar widget-system (planerat i Fas 7)
 - Admin-sidan oförändrad, SaaS-admin saknas helt (planerat i Fas 8)
-- Kvarvarande PlaceholderController-routes tillhör Fas 6+:
+- Kvarvarande PlaceholderController-routes tillhör Fas 7+:
   - /purchasing/requisitions/history, /purchasing/orders/history, /purchasing/agreements/history
   - /finance/reports/kpi, /finance/reports/stocktaking
-  - /safety/audits/pending, /safety/audits/completed
-  - /safety/emergency/drills, /safety/emergency/drills/create, /safety/emergency/drills/templates
-  - /hr/expenses (Reseräkningar)
 
 ### Teknisk stack:
 - PHP 8.4, Slim Framework, Tailwind CSS (CDN), AlpineJS, MariaDB
@@ -126,7 +124,7 @@ Skapa placeholder-sidor för moduler som ännu inte är uppgraderade.
 - Transporthantering (internt + kontrakterade åkerier)
 
 ### Fas 6: H&S + Projekt + HR (uppgradering)
-**Status:** ⏳ Nästa
+**Status:** ✅ Klar (PR #43)
 
 **Health & Safety:**
 - Riskhantering (rapportera + hantera, obligatorisk dashboard-knapp)
@@ -143,7 +141,7 @@ Skapa placeholder-sidor för moduler som ännu inte är uppgraderade.
 - Reseräkningar (+ knapp på MIN SIDA)
 
 ### Fas 7: Dashboard widget-system + Rapporter
-**Status:** ⏳ Väntar
+**Status:** ⏳ Nästa
 
 **Dashboard:**
 - Konfigurerbar per användare (lägg till/ta bort widgets)
@@ -201,6 +199,7 @@ Skapa placeholder-sidor för moduler som ännu inte är uppgraderade.
 | #40 | Fas 3: Lager + Inköp — Full upgrade | ✅ Mergad |
 | #41 | Fas 4: Ekonomi — Finance Module Upgrade | ✅ Mergad |
 | #42 | Fas 5: Produktion + Försäljning + CS & Transport | ✅ Mergad |
+| #43 | Fas 6: H&S + Projekt + HR — Fullständig uppgradering | ✅ Mergad |
 | #36 | (Ersatt av #37) | ❌ Stängd |
 | #33 | Maintenance Module draft | ❌ Stängd |
 
@@ -209,16 +208,6 @@ Skapa placeholder-sidor för moduler som ännu inte är uppgraderade.
 ## Kvarvarande PlaceholderController-routes
 
 Följande routes pekar fortfarande på `PlaceholderController::comingSoon` och ska ersättas i respektive fas:
-
-### Fas 6 (H&S + Projekt + HR)
-| Route | Modul | Beskrivning |
-|-------|-------|-------------|
-| `/safety/audits/pending` | H&S | Ej slutförda åtgärder |
-| `/safety/audits/completed` | H&S | Slutförda åtgärder |
-| `/safety/emergency/drills` | H&S | Nödlägesövningar lista |
-| `/safety/emergency/drills/create` | H&S | Skapa nödlägesövning |
-| `/safety/emergency/drills/templates` | H&S | Nödlägesövning mallar |
-| `/hr/expenses` | HR | Reseräkningar |
 
 ### Framtida faser
 | Route | Modul | Beskrivning |
