@@ -12,3 +12,7 @@ return [
     'pass'    => Config::env('DB_PASS', ''),
     'charset' => Config::env('DB_CHARSET', 'utf8mb4'),
 ];
+public function tenantId()
+{
+    return Tenant::get();
+}
