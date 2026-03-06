@@ -5,8 +5,8 @@ declare(strict_types=1);
 /**
  * ZYNC ERP – Application Entry Point
  *
- * Apache document root: /zync-erp/public
- * All requests are routed through this file via .htaccess.
+ * Web root should point to: /zync-erp/public
+ * All requests are routed through this file.
  */
 
 // ── Autoloader ───────────────────────────────────────────────────────────────
