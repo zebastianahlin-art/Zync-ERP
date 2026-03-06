@@ -451,10 +451,10 @@ return function (App $app) {
         $group->post('/inventory/warehouses/{id}/delete', [\App\Modules\Inventory\Controllers\InventoryWarehouseController::class, 'delete']);
 
         // Transactions
-        $group->get('/inventory/transactions', [\App\Controllers\InventoryController::class, 'transactionIndex']);
-        $group->get('/inventory/transactions/create', [\App\Controllers\InventoryController::class, 'createTransaction']);
-        $group->post('/inventory/transactions', [\App\Controllers\InventoryController::class, 'storeTransaction']);
-        $group->get('/inventory/transactions/{id}', [\App\Controllers\InventoryController::class, 'showTransaction']);
+        $group->get('/inventory/transactions', [\App\Modules\Inventory\Controllers\InventoryTransactionController::class, 'index']);
+        $group->get('/inventory/transactions/create', [\App\Modules\Inventory\Controllers\InventoryTransactionController::class, 'create']);
+        $group->post('/inventory/transactions', [\App\Modules\Inventory\Controllers\InventoryTransactionController::class, 'store']);
+        $group->get('/inventory/transactions/{id}', [\App\Modules\Inventory\Controllers\InventoryTransactionController::class, 'show']);
 
         // Receiving
         $group->get('/inventory/receiving', [\App\Controllers\InventoryController::class, 'receivingIndex']);
