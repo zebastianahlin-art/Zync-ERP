@@ -24,3 +24,43 @@ foreach ($folders as $folder) {
         echo "Created: $folder\n";
     }
 }
+file_put_contents(
+    "$base/Controllers/{$module}Controller.php",
+"<?php
+
+namespace App\Modules\\$module\Controllers;
+
+use App\Core\Controller;
+
+class {$module}Controller extends Controller
+{
+    public function index()
+    {
+        return \$this->view(strtolower('$module').'/index');
+    }
+}
+");
+
+file_put_contents(
+    "$base/Services/{$module}Service.php",
+"<?php
+
+namespace App\Modules\\$module\Services;
+
+class {$module}Service
+{
+
+}
+");
+
+file_put_contents(
+    "$base/Routes/routes.php",
+"<?php
+
+\$router->get('/".strtolower($module)."', '{$module}Controller@index');
+");
+
+file_put_contents(
+    "$base/Views/index.php",
+"<h1>$module module</h1>"
+);
