@@ -8,7 +8,9 @@ declare(strict_types=1);
  * Apache document root: /zync-erp/public
  * All requests are routed through this file via .htaccess.
  */
+use App\Core\TenantResolver;
 
+TenantResolver::resolve();
 // ── Autoloader ───────────────────────────────────────────────────────────────
 require __DIR__ . '/../vendor/autoload.php';
 
