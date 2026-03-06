@@ -43,17 +43,11 @@ final class Database
         return self::$connection;
     }
 
-    /**
-     * Bakåtkompatibilitet för äldre kod.
-     */
     public static function pdo(): PDO
     {
         return self::connection();
     }
 
-    /**
-     * Bakåtkompatibilitet för äldre kod.
-     */
     public static function getInstance(): PDO
     {
         return self::connection();
