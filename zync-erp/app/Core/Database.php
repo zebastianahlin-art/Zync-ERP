@@ -20,15 +20,16 @@ final class Database
 
         $host = $_ENV['DB_HOST'] ?? '127.0.0.1';
         $port = $_ENV['DB_PORT'] ?? '3306';
-        $database = $_ENV['DB_DATABASE'] ?? '';
-        $username = $_ENV['DB_USERNAME'] ?? '';
-        $password = $_ENV['DB_PASSWORD'] ?? '';
+        $database = $_ENV['DB_NAME'] ?? '';
+        $username = $_ENV['DB_USER'] ?? '';
+        $password = $_ENV['DB_PASS'] ?? '';
+        $charset = $_ENV['DB_CHARSET'] ?? 'utf8mb4';
 
         if ($database === '' || $username === '') {
             throw new RuntimeException('Databasinställningar saknas i .env');
         }
 
-        $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
+        $dsn = "mysql:host={$host};port={$port};dbname={$database};charset={$charset}";
 
         try {
             self::$connection = new PDO($dsn, $username, $password, [
