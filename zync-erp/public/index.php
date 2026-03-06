@@ -53,4 +53,9 @@ $errorMiddleware->setDefaultErrorHandler($errorHandler);
 (require __DIR__ . '/../config/routes.php')($app);
 
 // ── Run ──────────────────────────────────────────────────────────────────────
+use App\Services\ModuleManager;
+
+$moduleManager = new ModuleManager();
+$moduleManager->loadModules();
+$moduleManager->loadRoutes($router);
 $app->run();
