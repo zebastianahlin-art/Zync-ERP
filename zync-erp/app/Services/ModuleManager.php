@@ -4,9 +4,9 @@ namespace App\Services;
 
 class ModuleManager
 {
-    protected $modules = [];
+    protected array $modules = [];
 
-    public function loadModules()
+    public function loadModules(): void
     {
         $path = __DIR__ . '/../Modules';
 
@@ -29,19 +29,19 @@ class ModuleManager
         }
     }
 
-    public function getModules()
+    public function getModules(): array
     {
         return $this->modules;
     }
-}
-public function loadRoutes($router)
-{
-    foreach ($this->modules as $module) {
 
-        $routeFile = __DIR__ . "/../Modules/$module/Routes/routes.php";
+    public function loadRoutes($router): void
+    {
+        foreach ($this->modules as $module) {
+            $routeFile = __DIR__ . '/../Modules/' . $module . '/Routes/routes.php';
 
-        if (file_exists($routeFile)) {
-            require $routeFile;
+            if (file_exists($routeFile)) {
+                require $routeFile;
+            }
         }
     }
 }
