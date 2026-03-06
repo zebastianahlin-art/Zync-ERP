@@ -457,9 +457,9 @@ return function (App $app) {
         $group->get('/inventory/transactions/{id}', [\App\Modules\Inventory\Controllers\InventoryTransactionController::class, 'show']);
 
         // Receiving
-        $group->get('/inventory/receiving', [\App\Controllers\InventoryController::class, 'receivingIndex']);
-        $group->get('/inventory/receiving/{poId}', [\App\Controllers\InventoryController::class, 'receivingShow']);
-        $group->post('/inventory/receiving/{poId}', [\App\Controllers\InventoryController::class, 'storeReceiving']);
+        $group->get('/inventory/receiving', [\App\Modules\Inventory\Controllers\InventoryReceivingController::class, 'index']);
+        $group->get('/inventory/receiving/{poId}', [\App\Modules\Inventory\Controllers\InventoryReceivingController::class, 'show']);
+        $group->post('/inventory/receiving/{poId}', [\App\Modules\Inventory\Controllers\InventoryReceivingController::class, 'store']);
 
         // Issues
         $group->get('/inventory/issues', [\App\Controllers\InventoryController::class, 'issueIndex']);
