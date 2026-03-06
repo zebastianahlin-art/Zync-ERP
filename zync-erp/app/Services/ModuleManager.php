@@ -1,6 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
+
+use Slim\App;
 
 class ModuleManager
 {
@@ -34,13 +38,17 @@ class ModuleManager
         return $this->modules;
     }
 
-    public function loadRoutes($router): void
+    public function loadRoutes(App $app): void
     {
         foreach ($this->modules as $module) {
             $routeFile = __DIR__ . '/../Modules/' . $module . '/Routes/routes.php';
 
             if (file_exists($routeFile)) {
-                require $routeFile;
+                $registerRoutes = require $routeFile;
+
+                if (is_callable($registerRoutes)) {
+                    $registerRoutes($app);
+                }
             }
         }
     }
