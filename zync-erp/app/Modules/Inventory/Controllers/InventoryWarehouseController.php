@@ -13,10 +13,12 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class InventoryWarehouseController extends Controller
 {
-    public function __construct(
-        private ?InventoryWarehouseService $service = null
-    ) {
-        $this->service ??= new InventoryWarehouseService();
+    private InventoryWarehouseService $service;
+
+    public function __construct(?InventoryWarehouseService $service = null)
+    {
+        parent::__construct();
+        $this->service = $service ?? new InventoryWarehouseService();
     }
 
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
@@ -34,6 +36,8 @@ final class InventoryWarehouseController extends Controller
         return $this->render($response, 'inventory/warehouses/create', [
             'title' => 'Nytt lagerställe – ZYNC ERP',
             'users' => $this->service->getAssignableUsers(),
+            'success' => Flash::get('success'),
+            'error' => Flash::get('error'),
         ]);
     }
 
@@ -55,7 +59,8 @@ final class InventoryWarehouseController extends Controller
 
     public function edit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $warehouse = $this->service->getWarehouseById((int) ($args['id'] ?? 0));
+        $id = (int) ($args['id'] ?? 0);
+        $warehouse = $this->service->getWarehouseById($id);
 
         if (!$warehouse) {
             Flash::set('error', 'Lagerställe hittades inte.');
@@ -66,6 +71,8 @@ final class InventoryWarehouseController extends Controller
             'title' => 'Redigera lagerställe – ZYNC ERP',
             'warehouse' => $warehouse,
             'users' => $this->service->getAssignableUsers(),
+            'success' => Flash::get('success'),
+            'error' => Flash::get('error'),
         ]);
     }
 
