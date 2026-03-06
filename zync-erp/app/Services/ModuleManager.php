@@ -43,12 +43,14 @@ class ModuleManager
         foreach ($this->modules as $module) {
             $routeFile = __DIR__ . '/../Modules/' . $module . '/Routes/routes.php';
 
-            if (file_exists($routeFile)) {
-                $registerRoutes = require $routeFile;
+            if (!file_exists($routeFile)) {
+                continue;
+            }
 
-                if (is_callable($registerRoutes)) {
-                    $registerRoutes($app);
-                }
+            $registerRoutes = require $routeFile;
+
+            if (is_callable($registerRoutes)) {
+                $registerRoutes($app);
             }
         }
     }
