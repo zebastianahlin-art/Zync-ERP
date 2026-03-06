@@ -34,3 +34,14 @@ class ModuleManager
         return $this->modules;
     }
 }
+public function loadRoutes($router)
+{
+    foreach ($this->modules as $module) {
+
+        $routeFile = __DIR__ . "/../Modules/$module/Routes/routes.php";
+
+        if (file_exists($routeFile)) {
+            require $routeFile;
+        }
+    }
+}
