@@ -8,15 +8,16 @@ declare(strict_types=1);
  * Apache document root: /zync-erp/public
  * All requests are routed through this file via .htaccess.
  */
-use App\Core\TenantResolver;
 
-TenantResolver::resolve();
 // ── Autoloader ───────────────────────────────────────────────────────────────
 require __DIR__ . '/../vendor/autoload.php';
 
 // ── Load .env ────────────────────────────────────────────────────────────────
 $dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
 $dotenv->safeLoad();
+
+// ── Tenant resolution ────────────────────────────────────────────────────────
+\App\Core\TenantResolver::resolve();
 
 // ── Container ────────────────────────────────────────────────────────────────
 $containerBuilder = new \DI\ContainerBuilder();
@@ -30,32 +31,35 @@ $app = \DI\Bridge\Slim\Bridge::create($container);
 session_set_cookie_params([
     'httponly' => true,
     'samesite' => 'Lax',
-    'secure'   => ($_ENV['APP_ENV'] ?? 'production') === 'production',
+    'secure' => ($_ENV['APP_ENV'] ?? 'production') === 'production',
 ]);
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// ── Error middleware ──────────────────────────────────────────────────────────
+// ── Error middleware ─────────────────────────────────────────────────────────
 $errorMiddleware = $app->addErrorMiddleware(
     (bool) ($_ENV['APP_DEBUG'] ?? false),
     true,
     true
 );
+
 $errorHandler = new \App\Core\ErrorHandler(
     $app->getCallableResolver(),
     $app->getResponseFactory(),
     $container->get(\Psr\Log\LoggerInterface::class)
 );
+
 $errorMiddleware->setDefaultErrorHandler($errorHandler);
 
-// ── Routes ───────────────────────────────────────────────────────────────────
+// ── Core routes ──────────────────────────────────────────────────────────────
 (require __DIR__ . '/../config/routes.php')($app);
 
-// ── Run ──────────────────────────────────────────────────────────────────────
-use App\Services\ModuleManager;
-
-$moduleManager = new ModuleManager();
+// ── Module routes ────────────────────────────────────────────────────────────
+$moduleManager = new \App\Services\ModuleManager();
 $moduleManager->loadModules();
-$moduleManager->loadRoutes($router);
+$moduleManager->loadRoutes($app);
+
+// ── Run ──────────────────────────────────────────────────────────────────────
 $app->run();
