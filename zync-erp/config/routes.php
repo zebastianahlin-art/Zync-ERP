@@ -56,7 +56,7 @@ return function (App $app) {
         // Theme preference
         $group->post('/settings/theme', function (
             \Psr\Http\Message\ServerRequestInterface $request,
-            \Psr\Http\Message\ResponseInterface      $response
+            \Psr\Http\Message\ResponseInterface $response
         ): \Psr\Http\Message\ResponseInterface {
             $body  = (array) $request->getParsedBody();
             $theme = in_array($body['theme'] ?? '', ['dark', 'light'], true) ? $body['theme'] : 'light';
@@ -65,7 +65,6 @@ return function (App $app) {
                 \App\Core\Database::pdo()
                     ->prepare('UPDATE users SET theme = ? WHERE id = ?')
                     ->execute([$theme, $id]);
-                // Clear cached user so next Auth::user() picks up new theme
                 unset($_SESSION['_user_cache']);
             }
             $response->getBody()->write((string) json_encode(['success' => true]));
@@ -238,7 +237,6 @@ return function (App $app) {
         $group->get('/maintenance', [\App\Controllers\MaintenanceController::class, 'dashboard']);
 
         // ─── Preventive Maintenance (Förebyggande Underhåll) ──
-        // Static routes BEFORE parameterised routes
         $group->get('/maintenance/preventive/calendar', [\App\Controllers\MaintenanceController::class, 'preventiveCalendar']);
         $group->get('/maintenance/preventive/create', [\App\Controllers\MaintenanceController::class, 'preventiveCreate']);
         $group->get('/maintenance/preventive', [\App\Controllers\MaintenanceController::class, 'preventiveIndex']);
@@ -253,8 +251,6 @@ return function (App $app) {
         $group->get('/maintenance/ai', [\App\Controllers\AiEngineerController::class, 'index']);
         $group->get('/maintenance/ai/recommendations', [\App\Controllers\AiEngineerController::class, 'recommendations']);
         $group->get('/maintenance/ai/machine/{id}', [\App\Controllers\AiEngineerController::class, 'machineHealth']);
-
-        // Old placeholder kept for backwards compatibility with menu links
         $group->get('/maintenance/ai-engineer', [\App\Controllers\AiEngineerController::class, 'index']);
 
         // Equipment (Utrustning)
@@ -327,6 +323,7 @@ return function (App $app) {
         $group->post('/maintenance/inspections/{id}', [\App\Controllers\MaintenanceController::class, 'inspectionUpdate']);
         $group->post('/maintenance/inspections/{id}/delete', [\App\Controllers\MaintenanceController::class, 'inspectionDelete']);
         $group->post('/maintenance/inspections/{id}/record', [\App\Controllers\MaintenanceController::class, 'inspectionRecord']);
+
         // ─── Health & Safety (Hälsa & Säkerhet) ─────────────
         $group->get('/safety', [\App\Controllers\SafetyController::class, 'index']);
 
@@ -381,7 +378,6 @@ return function (App $app) {
         $group->get('/safety/emergency/procedures', [\App\Controllers\SafetyController::class, 'emergencyProcedures']);
         $group->get('/safety/emergency/procedures/create', [\App\Controllers\SafetyController::class, 'createEmergencyProcedure']);
         $group->post('/safety/emergency/procedures', [\App\Controllers\SafetyController::class, 'storeEmergencyProcedure']);
-        // ─── Emergency Drills (static routes BEFORE {id} routes) ─────────────
         $group->get('/safety/emergency/drills', [\App\Controllers\SafetyController::class, 'drills']);
         $group->get('/safety/emergency/drills/create', [\App\Controllers\SafetyController::class, 'createDrill']);
         $group->post('/safety/emergency/drills', [\App\Controllers\SafetyController::class, 'storeDrill']);
@@ -445,26 +441,31 @@ return function (App $app) {
 
         // ─── Inventory (Lager) ───────────────────────────────────
         $group->get('/inventory', [\App\Controllers\InventoryController::class, 'index']);
+
         // Warehouses
-        $group->get('/inventory/warehouses', [\App\Controllers\InventoryController::class, 'warehouseIndex']);
-        $group->get('/inventory/warehouses/create', [\App\Controllers\InventoryController::class, 'createWarehouse']);
-        $group->post('/inventory/warehouses', [\App\Controllers\InventoryController::class, 'storeWarehouse']);
-        $group->get('/inventory/warehouses/{id}/edit', [\App\Controllers\InventoryController::class, 'editWarehouse']);
-        $group->post('/inventory/warehouses/{id}', [\App\Controllers\InventoryController::class, 'updateWarehouse']);
-        $group->post('/inventory/warehouses/{id}/delete', [\App\Controllers\InventoryController::class, 'deleteWarehouse']);
+        $group->get('/inventory/warehouses', [\App\Modules\Inventory\Controllers\InventoryWarehouseController::class, 'index']);
+        $group->get('/inventory/warehouses/create', [\App\Modules\Inventory\Controllers\InventoryWarehouseController::class, 'create']);
+        $group->post('/inventory/warehouses', [\App\Modules\Inventory\Controllers\InventoryWarehouseController::class, 'store']);
+        $group->get('/inventory/warehouses/{id}/edit', [\App\Modules\Inventory\Controllers\InventoryWarehouseController::class, 'edit']);
+        $group->post('/inventory/warehouses/{id}', [\App\Modules\Inventory\Controllers\InventoryWarehouseController::class, 'update']);
+        $group->post('/inventory/warehouses/{id}/delete', [\App\Modules\Inventory\Controllers\InventoryWarehouseController::class, 'delete']);
+
         // Transactions
         $group->get('/inventory/transactions', [\App\Controllers\InventoryController::class, 'transactionIndex']);
         $group->get('/inventory/transactions/create', [\App\Controllers\InventoryController::class, 'createTransaction']);
         $group->post('/inventory/transactions', [\App\Controllers\InventoryController::class, 'storeTransaction']);
         $group->get('/inventory/transactions/{id}', [\App\Controllers\InventoryController::class, 'showTransaction']);
+
         // Receiving
         $group->get('/inventory/receiving', [\App\Controllers\InventoryController::class, 'receivingIndex']);
         $group->get('/inventory/receiving/{poId}', [\App\Controllers\InventoryController::class, 'receivingShow']);
         $group->post('/inventory/receiving/{poId}', [\App\Controllers\InventoryController::class, 'storeReceiving']);
+
         // Issues
         $group->get('/inventory/issues', [\App\Controllers\InventoryController::class, 'issueIndex']);
         $group->get('/inventory/issues/create', [\App\Controllers\InventoryController::class, 'createIssue']);
         $group->post('/inventory/issues', [\App\Controllers\InventoryController::class, 'storeIssue']);
+
         // Stocktaking
         $group->get('/inventory/stocktaking', [\App\Controllers\InventoryController::class, 'stocktakingIndex']);
         $group->get('/inventory/stocktaking/create', [\App\Controllers\InventoryController::class, 'createStocktaking']);
@@ -472,6 +473,7 @@ return function (App $app) {
         $group->get('/inventory/stocktaking/{id}', [\App\Controllers\InventoryController::class, 'showStocktaking']);
         $group->post('/inventory/stocktaking/{id}/count', [\App\Controllers\InventoryController::class, 'storeCount']);
         $group->post('/inventory/stocktaking/{id}/approve', [\App\Controllers\InventoryController::class, 'approveStocktaking']);
+
         $group->get('/inventory/{id}', [\App\Controllers\InventoryController::class, 'show']);
 
         // ─── My Page (Min Sida) ──────────────────────────────────
@@ -486,7 +488,6 @@ return function (App $app) {
 
         // ─── Production (Produktion) ─────────────────────────────────────────
         $group->get('/production', [\App\Controllers\ProductionController::class, 'index']);
-        // Lines
         $group->get('/production/lines', [\App\Controllers\ProductionController::class, 'lines']);
         $group->get('/production/lines/create', [\App\Controllers\ProductionController::class, 'createLine']);
         $group->post('/production/lines', [\App\Controllers\ProductionController::class, 'storeLine']);
@@ -494,7 +495,6 @@ return function (App $app) {
         $group->get('/production/lines/{id}/edit', [\App\Controllers\ProductionController::class, 'editLine']);
         $group->post('/production/lines/{id}', [\App\Controllers\ProductionController::class, 'updateLine']);
         $group->post('/production/lines/{id}/delete', [\App\Controllers\ProductionController::class, 'deleteLine']);
-        // Products
         $group->get('/production/products', [\App\Controllers\ProductionController::class, 'products']);
         $group->get('/production/products/create', [\App\Controllers\ProductionController::class, 'createProduct']);
         $group->post('/production/products', [\App\Controllers\ProductionController::class, 'storeProduct']);
@@ -502,7 +502,6 @@ return function (App $app) {
         $group->get('/production/products/{id}/edit', [\App\Controllers\ProductionController::class, 'editProduct']);
         $group->post('/production/products/{id}', [\App\Controllers\ProductionController::class, 'updateProduct']);
         $group->post('/production/products/{id}/delete', [\App\Controllers\ProductionController::class, 'deleteProduct']);
-        // Orders
         $group->get('/production/orders', [\App\Controllers\ProductionController::class, 'orders']);
         $group->get('/production/orders/create', [\App\Controllers\ProductionController::class, 'createOrder']);
         $group->post('/production/orders', [\App\Controllers\ProductionController::class, 'storeOrder']);
@@ -511,7 +510,6 @@ return function (App $app) {
         $group->post('/production/orders/{id}', [\App\Controllers\ProductionController::class, 'updateOrder']);
         $group->post('/production/orders/{id}/status', [\App\Controllers\ProductionController::class, 'updateOrderStatus']);
         $group->post('/production/orders/{id}/delete', [\App\Controllers\ProductionController::class, 'deleteOrder']);
-        // Stock
         $group->get('/production/stock', [\App\Controllers\ProductionController::class, 'stock']);
         $group->get('/production/stock/manage', [\App\Controllers\ProductionController::class, 'manageStock']);
         $group->get('/production/stock/create', [\App\Controllers\ProductionController::class, 'createStockEntry']);
@@ -575,18 +573,13 @@ return function (App $app) {
         $group->post('/projects/{id}/tasks/{taskId}/delete', [\App\Controllers\ProjectController::class, 'deleteTask']);
         $group->post('/projects/{id}/budget', [\App\Controllers\ProjectController::class, 'addBudgetLine']);
         $group->post('/projects/{id}/budget/{lineId}/delete', [\App\Controllers\ProjectController::class, 'deleteBudgetLine']);
-        // C2 – Stakeholders
         $group->post('/projects/{id}/stakeholders', [\App\Controllers\ProjectController::class, 'addStakeholder']);
         $group->post('/projects/{id}/stakeholders/{stakeholderId}/delete', [\App\Controllers\ProjectController::class, 'deleteStakeholder']);
-        // C3 – Koppling till Inköp
         $group->post('/projects/{id}/purchase-orders', [\App\Controllers\ProjectController::class, 'linkPurchaseOrder']);
         $group->post('/projects/{id}/purchase-orders/{linkId}/delete', [\App\Controllers\ProjectController::class, 'unlinkPurchaseOrder']);
-        // C4 – PDF-rapport
         $group->get('/projects/{id}/report', [\App\Controllers\ProjectController::class, 'report']);
-        // C5 – Kanban
         $group->get('/projects/{id}/kanban', [\App\Controllers\ProjectController::class, 'kanban']);
         $group->post('/projects/{id}/tasks/{taskId}/status', [\App\Controllers\ProjectController::class, 'updateTaskStatus']);
-        // C6 – Kostnader
         $group->post('/projects/{id}/costs', [\App\Controllers\ProjectController::class, 'addCost']);
         $group->post('/projects/{id}/costs/{costId}/delete', [\App\Controllers\ProjectController::class, 'deleteCost']);
 
@@ -667,12 +660,10 @@ return function (App $app) {
         $group->post('/hr/expenses/{id}/lines/{lineId}/delete', [\App\Controllers\ExpenseController::class, 'removeLine']);
 
         // ─── ObjektNavigator ─────────────────────────────────────────────────
-        // Static routes BEFORE parameterised routes
         $group->get('/objects/tree', [\App\Controllers\ObjectNavigatorController::class, 'tree']);
         $group->get('/objects/search', [\App\Controllers\ObjectNavigatorController::class, 'search']);
         $group->get('/objects', [\App\Controllers\ObjectNavigatorController::class, 'index']);
         $group->post('/objects/sync', [\App\Controllers\ObjectNavigatorController::class, 'sync']);
-        // Static sub-routes before parameterised routes
         $group->get('/objects/{type}/{id}/children', [\App\Controllers\ObjectNavigatorController::class, 'children']);
         $group->get('/objects/{type}/{id}', [\App\Controllers\ObjectNavigatorController::class, 'show']);
 
@@ -731,7 +722,6 @@ return function (App $app) {
         $group->post('/users/{id}', [\App\Controllers\AdminController::class, 'updateUser']);
         $group->post('/users/{id}/toggle', [\App\Controllers\AdminController::class, 'toggleUser']);
 
-        // Role management
         $group->get('/roles', [\App\Controllers\AdminController::class, 'roles']);
         $group->get('/roles/create', [\App\Controllers\AdminController::class, 'createRole']);
         $group->post('/roles', [\App\Controllers\AdminController::class, 'storeRole']);
@@ -739,7 +729,6 @@ return function (App $app) {
         $group->post('/roles/{id}', [\App\Controllers\AdminController::class, 'updateRole']);
         $group->post('/roles/{id}/delete', [\App\Controllers\AdminController::class, 'deleteRole']);
 
-        // ─── Admin: Settings, Modules, Site, Audit Log ─────────────────────────
         $group->get('/settings', [\App\Controllers\AdminController::class, 'settings']);
         $group->post('/settings', [\App\Controllers\AdminController::class, 'updateSettings']);
         $group->get('/modules', [\App\Controllers\AdminController::class, 'modules']);
@@ -754,7 +743,6 @@ return function (App $app) {
     $app->group('/saas-admin', function (RouteCollectorProxy $group) {
         $group->get('', [\App\Controllers\SaasAdminController::class, 'index']);
 
-        // Plans
         $group->get('/plans', [\App\Controllers\SaasAdminController::class, 'plans']);
         $group->get('/plans/create', [\App\Controllers\SaasAdminController::class, 'createPlan']);
         $group->post('/plans', [\App\Controllers\SaasAdminController::class, 'storePlan']);
@@ -762,11 +750,9 @@ return function (App $app) {
         $group->post('/plans/{id}', [\App\Controllers\SaasAdminController::class, 'updatePlan']);
         $group->post('/plans/{id}/delete', [\App\Controllers\SaasAdminController::class, 'deletePlan']);
 
-        // Tenant provisioning (must come before {id} routes)
         $group->get('/tenants/provision', [\App\Controllers\SaasAdminController::class, 'provision']);
         $group->post('/tenants/provision', [\App\Controllers\SaasAdminController::class, 'storeProvision']);
 
-        // Tenants
         $group->get('/tenants', [\App\Controllers\SaasAdminController::class, 'tenants']);
         $group->get('/tenants/create', [\App\Controllers\SaasAdminController::class, 'createTenant']);
         $group->post('/tenants', [\App\Controllers\SaasAdminController::class, 'storeTenant']);
@@ -778,7 +764,6 @@ return function (App $app) {
         $group->post('/tenants/{id}/modules/deactivate', [\App\Controllers\SaasAdminController::class, 'deactivateModule']);
         $group->get('/tenants/{id}/history', [\App\Controllers\SaasAdminController::class, 'tenantHistory']);
 
-        // Invoices (generate before {id})
         $group->get('/invoices/generate', [\App\Controllers\SaasAdminController::class, 'generateInvoices']);
         $group->post('/invoices/generate', [\App\Controllers\SaasAdminController::class, 'storeGeneratedInvoices']);
         $group->get('/invoices', [\App\Controllers\SaasAdminController::class, 'invoices']);
@@ -789,45 +774,37 @@ return function (App $app) {
         $group->post('/invoices/{id}', [\App\Controllers\SaasAdminController::class, 'updateInvoice']);
         $group->post('/invoices/{id}/status', [\App\Controllers\SaasAdminController::class, 'updateInvoiceStatus']);
 
-        // Support
         $group->get('/support', [\App\Controllers\SaasAdminController::class, 'tickets']);
         $group->get('/support/{id}', [\App\Controllers\SaasAdminController::class, 'showTicket']);
         $group->post('/support/{id}/status', [\App\Controllers\SaasAdminController::class, 'updateTicketStatus']);
         $group->post('/support/{id}/comment', [\App\Controllers\SaasAdminController::class, 'addComment']);
     })->add(new CsrfMiddleware())->add(new \App\Middleware\RoleMiddleware(minLevel: 9))->add(new AuthMiddleware());
 
-    // Tenant Info API (public, no auth — returns tenant name/plan/modules by tenant ID)
     $app->get('/api/tenant-info', [\App\Controllers\SaasAdminController::class, 'tenantInfo']);
 
-    // Public API routes (no JWT required)
     $app->group('/api/v1', function (RouteCollectorProxy $group) {
         $group->post('/login', [AuthApiController::class, 'login']);
         $group->post('/2fa/verify', [AuthApiController::class, 'verify2fa']);
     });
 
-    // Protected API routes (JWT required)
     $app->group('/api/v1', function (RouteCollectorProxy $group) {
         $group->post('/token/refresh', [AuthApiController::class, 'refresh']);
         $group->get('/me', [AuthApiController::class, 'me']);
     })->add(new JwtAuthMiddleware(new JwtService()));
 
-    // Notification routes
     $app->group('', function (RouteCollectorProxy $group) {
         $group->get('/notifications', [\App\Controllers\NotificationController::class, 'index']);
         $group->post('/notifications/{id}/read', [\App\Controllers\NotificationController::class, 'markRead']);
         $group->post('/notifications/read-all', [\App\Controllers\NotificationController::class, 'markAllRead']);
     })->add(new CsrfMiddleware())->add(new AuthMiddleware());
 
-    // Notification API (AJAX, no CSRF needed)
     $app->group('/api/notifications', function (RouteCollectorProxy $group) {
         $group->get('/unread-count', [\App\Controllers\NotificationController::class, 'unreadCount']);
         $group->get('/recent', [\App\Controllers\NotificationController::class, 'recent']);
     })->add(new AuthMiddleware());
 
-    // Integration admin routes — require role_level >= 8
     $app->group('/admin/integrations', function (RouteCollectorProxy $group) {
         $group->get('', [\App\Controllers\IntegrationController::class, 'index']);
         $group->post('/{slug}/test', [\App\Controllers\IntegrationController::class, 'test']);
     })->add(new CsrfMiddleware())->add(new \App\Middleware\RoleMiddleware(minLevel: 8))->add(new AuthMiddleware());
 };
-
