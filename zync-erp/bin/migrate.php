@@ -18,7 +18,7 @@ Dotenv\Dotenv::createImmutable(BASE_PATH)->safeLoad();
 
 use App\Core\Database;
 
-$pdo = Database::pdo();
+$pdo = Database::connection();
 
 // Ensure the migrations tracking table exists.
 $pdo->exec("
