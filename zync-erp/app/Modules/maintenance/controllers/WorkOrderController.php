@@ -260,14 +260,18 @@ class WorkOrderController
         $warehouseId = (int) ($_POST['warehouse_id'] ?? 0);
 
         $data = [
-            'tenant_id'        => $tenantId,
-            'work_order_id'    => $workOrderId,
-            'article_id'       => (int) ($_POST['article_id'] ?? 0),
-            'warehouse_id'     => $warehouseId,
-            'planned_quantity' => (float) ($_POST['planned_quantity'] ?? 0),
-            'issued_quantity'  => 0,
-            'unit_cost'        => (float) ($_POST['unit_cost'] ?? 0),
-            'notes'            => trim((string) ($_POST['notes'] ?? '')),
+            'tenant_id'          => $tenantId,
+            'work_order_id'      => $workOrderId,
+            'article_id'         => (int) ($_POST['article_id'] ?? 0),
+            'warehouse_id'       => $warehouseId,
+            'planned_quantity'   => (float) ($_POST['planned_quantity'] ?? 0),
+            'reserved_quantity'  => 0,
+            'issued_quantity'    => 0,
+            'returned_quantity'  => 0,
+            'reservation_status' => 'none',
+            'stock_status'       => 'not_issued',
+            'unit_cost'          => (float) ($_POST['unit_cost'] ?? 0),
+            'notes'              => trim((string) ($_POST['notes'] ?? '')),
         ];
 
         $requestedIssuedQuantity = (float) ($_POST['issued_quantity'] ?? 0);
@@ -320,7 +324,10 @@ class WorkOrderController
 
         $newWarehouseId = (int) ($_POST['warehouse_id'] ?? 0);
 
-        if ($newWarehouseId !== (int) $material['warehouse_id'] && (float) $material['issued_quantity'] > 0) {
+        if (
+            $newWarehouseId !== (int) $material['warehouse_id']
+            && (float) $material['issued_quantity'] > 0
+        ) {
             http_response_code(422);
             echo 'Du kan inte byta lager på en materialrad som redan har uttagen kvantitet. Returnera först till 0.';
             return;
@@ -332,11 +339,11 @@ class WorkOrderController
         $newNotes = trim((string) ($_POST['notes'] ?? ''));
 
         $errors = $this->service()->validateMaterialData([
-            'article_id'        => (int) $material['article_id'],
-            'warehouse_id'      => $newWarehouseId,
-            'planned_quantity'  => $newPlannedQuantity,
-            'issued_quantity'   => $newIssuedQuantity,
-            'unit_cost'         => $newUnitCost,
+            'article_id'         => (int) $material['article_id'],
+            'warehouse_id'       => $newWarehouseId,
+            'planned_quantity'   => $newPlannedQuantity,
+            'issued_quantity'    => $newIssuedQuantity,
+            'unit_cost'          => $newUnitCost,
         ]);
 
         if (!empty($errors)) {
@@ -349,11 +356,11 @@ class WorkOrderController
 
         try {
             $this->repo()->updateMaterial($tenantId, $materialId, [
-                'warehouse_id'     => $newWarehouseId,
-                'planned_quantity' => $newPlannedQuantity,
-                'issued_quantity'  => (float) $material['issued_quantity'],
-                'unit_cost'        => $newUnitCost,
-                'notes'            => $newNotes,
+                'warehouse_id'       => $newWarehouseId,
+                'planned_quantity'   => $newPlannedQuantity,
+                'issued_quantity'    => (float) $material['issued_quantity'],
+                'unit_cost'          => $newUnitCost,
+                'notes'              => $newNotes,
             ]);
 
             $this->materialInventoryService()->syncIssuedQuantity(
@@ -375,6 +382,108 @@ class WorkOrderController
             $this->db->commit();
         } catch (\Throwable $e) {
             $this->db->rollBack();
+            http_response_code(422);
+            echo htmlspecialchars($e->getMessage());
+            return;
+        }
+
+        header('Location: /maintenance/work-orders/show?id=' . (int) $material['work_order_id']);
+        exit;
+    }
+
+    public function reserveMaterial(): void
+    {
+        $tenantId = $this->tenantId();
+        $materialId = (int) ($_POST['material_id'] ?? 0);
+        $quantity = (float) ($_POST['quantity'] ?? 0);
+        $warehouseId = (int) ($_POST['warehouse_id'] ?? 0);
+
+        $material = $this->repo()->findMaterialById($tenantId, $materialId);
+        if (!$material) {
+            http_response_code(404);
+            echo 'Materialrad hittades inte.';
+            return;
+        }
+
+        if ($warehouseId <= 0) {
+            $warehouseId = (int) ($material['warehouse_id'] ?? 0);
+        }
+
+        if ($warehouseId <= 0) {
+            http_response_code(422);
+            echo 'Lager måste anges.';
+            return;
+        }
+
+        try {
+            $this->materialInventoryService()->reserveMaterialLine(
+                tenantId: $tenantId,
+                materialId: $materialId,
+                warehouseId: $warehouseId,
+                quantity: $quantity,
+                userId: $this->userId()
+            );
+        } catch (\Throwable $e) {
+            http_response_code(422);
+            echo htmlspecialchars($e->getMessage());
+            return;
+        }
+
+        header('Location: /maintenance/work-orders/show?id=' . (int) $material['work_order_id']);
+        exit;
+    }
+
+    public function issueMaterial(): void
+    {
+        $tenantId = $this->tenantId();
+        $materialId = (int) ($_POST['material_id'] ?? 0);
+        $quantity = (float) ($_POST['quantity'] ?? 0);
+
+        $material = $this->repo()->findMaterialById($tenantId, $materialId);
+        if (!$material) {
+            http_response_code(404);
+            echo 'Materialrad hittades inte.';
+            return;
+        }
+
+        try {
+            $this->materialInventoryService()->issueMaterialLine(
+                tenantId: $tenantId,
+                materialId: $materialId,
+                quantity: $quantity,
+                userId: $this->userId()
+            );
+        } catch (\Throwable $e) {
+            http_response_code(422);
+            echo htmlspecialchars($e->getMessage());
+            return;
+        }
+
+        header('Location: /maintenance/work-orders/show?id=' . (int) $material['work_order_id']);
+        exit;
+    }
+
+    public function returnMaterial(): void
+    {
+        $tenantId = $this->tenantId();
+        $materialId = (int) ($_POST['material_id'] ?? 0);
+        $quantity = (float) ($_POST['quantity'] ?? 0);
+
+        $material = $this->repo()->findMaterialById($tenantId, $materialId);
+        if (!$material) {
+            http_response_code(404);
+            echo 'Materialrad hittades inte.';
+            return;
+        }
+
+        try {
+            $this->materialInventoryService()->returnMaterialLine(
+                tenantId: $tenantId,
+                materialId: $materialId,
+                quantity: $quantity,
+                userId: $this->userId()
+            );
+        } catch (\Throwable $e) {
             http_response_code(422);
             echo htmlspecialchars($e->getMessage());
             return;
