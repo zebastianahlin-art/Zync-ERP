@@ -12,10 +12,7 @@
         input, select, textarea {
             width:100%; padding:10px; margin-top:6px; box-sizing:border-box;
         }
-        .log {
-            border-top:1px solid #eee;
-            padding:10px 0;
-        }
+        .log { border-top:1px solid #eee; padding:10px 0; }
         .muted { color:#666; font-size:13px; }
         .full { margin-top:24px; }
     </style>
@@ -32,6 +29,20 @@
             <p><strong>Typ:</strong> <?= htmlspecialchars($workOrder['type']) ?></p>
             <p><strong>Prioritet:</strong> <?= htmlspecialchars($workOrder['priority']) ?></p>
             <p><strong>Status:</strong> <?= htmlspecialchars($workOrder['status']) ?></p>
+            <p><strong>Källa:</strong> <?= htmlspecialchars($workOrder['source']) ?></p>
+
+            <?php if (!empty($workOrder['pm_schedule_id'])): ?>
+                <p>
+                    <strong>PM-schema:</strong>
+                    <a href="/maintenance/preventive/show?id=<?= (int) $workOrder['pm_schedule_id'] ?>">
+                        #<?= (int) $workOrder['pm_schedule_id'] ?>
+                        <?php if (!empty($workOrder['pm_schedule_title'])): ?>
+                            — <?= htmlspecialchars($workOrder['pm_schedule_title']) ?>
+                        <?php endif; ?>
+                    </a>
+                </p>
+            <?php endif; ?>
+
             <p><strong>Planerad start:</strong> <?= htmlspecialchars((string) ($workOrder['planned_start_at'] ?? '')) ?></p>
             <p><strong>Förfallodatum:</strong> <?= htmlspecialchars((string) ($workOrder['due_at'] ?? '')) ?></p>
             <p><strong>Estimerade timmar:</strong> <?= htmlspecialchars((string) ($workOrder['estimated_hours'] ?? '')) ?></p>
