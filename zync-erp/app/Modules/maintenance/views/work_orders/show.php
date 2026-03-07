@@ -19,8 +19,6 @@
         th, td { border:1px solid #ddd; padding:10px; text-align:left; vertical-align:top; }
         th { background:#f5f5f5; }
         .two-col { display:grid; grid-template-columns: 1fr 1fr; gap:24px; }
-        .actions-inline { display:flex; gap:8px; align-items:center; }
-        .actions-inline form { display:inline; }
     </style>
 </head>
 <body>
@@ -104,14 +102,8 @@
     <div class="card full">
         <h2>Material / reservdelar</h2>
 
-        <p>
-            <strong>Planerad materialkostnad:</strong>
-            <?= htmlspecialchars(number_format((float) ($materialTotals['planned_total_cost'] ?? 0), 2, ',', ' ')) ?>
-        </p>
-        <p>
-            <strong>Uttagen materialkostnad:</strong>
-            <?= htmlspecialchars(number_format((float) ($materialTotals['issued_total_cost'] ?? 0), 2, ',', ' ')) ?>
-        </p>
+        <p><strong>Planerad materialkostnad:</strong> <?= htmlspecialchars(number_format((float) ($materialTotals['planned_total_cost'] ?? 0), 2, ',', ' ')) ?></p>
+        <p><strong>Uttagen materialkostnad:</strong> <?= htmlspecialchars(number_format((float) ($materialTotals['issued_total_cost'] ?? 0), 2, ',', ' ')) ?></p>
 
         <table>
             <thead>
@@ -212,7 +204,7 @@
                 </div>
 
                 <div>
-                    <label for="issued_quantity">Uttagen kvantitet</label>
+                    <label for="issued_quantity">Uttagen kvantitet direkt</label>
                     <input type="number" step="0.01" name="issued_quantity" id="issued_quantity" value="0">
                 </div>
             </div>
@@ -224,6 +216,44 @@
                 <button type="submit">Lägg till material</button>
             </div>
         </form>
+    </div>
+
+    <div class="card full">
+        <h2>Lagertransaktioner kopplade till arbetsordern</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Artikel</th>
+                    <th>Typ</th>
+                    <th>Kvantitet</th>
+                    <th>Materialrad</th>
+                    <th>Inventory TX</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($inventoryMovements)): ?>
+                    <tr>
+                        <td colspan="6">Inga lagertransaktioner ännu.</td>
+                    </tr>
+                <?php else: ?>
+                    <?php foreach ($inventoryMovements as $movement): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($movement['created_at']) ?></td>
+                            <td>
+                                <?= htmlspecialchars($movement['article_name']) ?><br>
+                                <span class="muted"><?= htmlspecialchars((string) ($movement['article_number'] ?? '')) ?></span>
+                            </td>
+                            <td><?= htmlspecialchars($movement['movement_type']) ?></td>
+                            <td><?= htmlspecialchars((string) $movement['quantity']) ?></td>
+                            <td>#<?= (int) $movement['material_id'] ?></td>
+                            <td><?= htmlspecialchars((string) ($movement['inventory_transaction_id'] ?? '')) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
 
     <div class="card full">
