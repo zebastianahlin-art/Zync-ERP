@@ -193,10 +193,13 @@ class WorkOrderRepository
                 m.*,
                 a.article_number,
                 a.name AS article_name,
-                a.unit
+                a.unit,
+                w.name AS warehouse_name
             FROM maintenance_work_order_materials m
             INNER JOIN articles a
                 ON a.id = m.article_id
+            LEFT JOIN warehouses w
+                ON w.id = m.warehouse_id
             WHERE m.tenant_id = :tenant_id
               AND m.work_order_id = :work_order_id
             ORDER BY a.name ASC, a.article_number ASC
@@ -328,6 +331,7 @@ class WorkOrderRepository
                 tenant_id,
                 work_order_id,
                 article_id,
+                warehouse_id,
                 planned_quantity,
                 issued_quantity,
                 unit_cost,
@@ -336,6 +340,7 @@ class WorkOrderRepository
                 :tenant_id,
                 :work_order_id,
                 :article_id,
+                :warehouse_id,
                 :planned_quantity,
                 :issued_quantity,
                 :unit_cost,
@@ -347,6 +352,7 @@ class WorkOrderRepository
             'tenant_id'        => $data['tenant_id'],
             'work_order_id'    => $data['work_order_id'],
             'article_id'       => $data['article_id'],
+            'warehouse_id'     => $data['warehouse_id'],
             'planned_quantity' => $data['planned_quantity'],
             'issued_quantity'  => $data['issued_quantity'],
             'unit_cost'        => $data['unit_cost'],
@@ -381,6 +387,7 @@ class WorkOrderRepository
         $stmt = $this->db->prepare("
             UPDATE maintenance_work_order_materials
             SET
+                warehouse_id = :warehouse_id,
                 planned_quantity = :planned_quantity,
                 issued_quantity = :issued_quantity,
                 unit_cost = :unit_cost,
@@ -392,6 +399,7 @@ class WorkOrderRepository
         $stmt->execute([
             'tenant_id'        => $tenantId,
             'id'               => $materialId,
+            'warehouse_id'     => $data['warehouse_id'],
             'planned_quantity' => $data['planned_quantity'],
             'issued_quantity'  => $data['issued_quantity'],
             'unit_cost'        => $data['unit_cost'],
