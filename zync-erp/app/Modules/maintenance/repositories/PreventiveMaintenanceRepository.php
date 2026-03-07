@@ -28,9 +28,9 @@ class PreventiveMaintenanceRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function allSchedulesByTenant(int $tenantId): array
+    public function allSchedulesByTenant(int $tenantId, array $filters = []): array
     {
-        $stmt = $this->db->prepare("
+        $sql = "
             SELECT
                 s.*,
                 an.name AS asset_name,
@@ -40,12 +40,50 @@ class PreventiveMaintenanceRepository
             INNER JOIN asset_nodes an
                 ON an.id = s.asset_node_id
             WHERE s.tenant_id = :tenant_id
-            ORDER BY s.next_due_at ASC, s.id DESC
-        ");
+        ";
 
-        $stmt->execute([
+        $params = [
             'tenant_id' => $tenantId,
-        ]);
+        ];
+
+        if (($filters['is_active'] ?? '') !== '') {
+            $sql .= " AND s.is_active = :is_active";
+            $params['is_active'] = (int) $filters['is_active'];
+        }
+
+        if (!empty($filters['priority'])) {
+            $sql .= " AND s.priority = :priority";
+            $params['priority'] = $filters['priority'];
+        }
+
+        if (!empty($filters['interval_type'])) {
+            $sql .= " AND s.interval_type = :interval_type";
+            $params['interval_type'] = $filters['interval_type'];
+        }
+
+        if (!empty($filters['asset_node_id'])) {
+            $sql .= " AND s.asset_node_id = :asset_node_id";
+            $params['asset_node_id'] = (int) $filters['asset_node_id'];
+        }
+
+        if (($filters['due_only'] ?? '') === '1') {
+            $sql .= " AND s.next_due_at <= NOW()";
+        }
+
+        if (!empty($filters['q'])) {
+            $sql .= " AND (
+                s.title LIKE :q
+                OR s.description LIKE :q
+                OR an.name LIKE :q
+                OR an.code LIKE :q
+            )";
+            $params['q'] = '%' . $filters['q'] . '%';
+        }
+
+        $sql .= " ORDER BY s.next_due_at ASC, s.id DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -261,10 +299,10 @@ class PreventiveMaintenanceRepository
         ");
 
         $stmt->execute([
-            'tenant_id'   => $tenantId,
-            'id'          => $runId,
-            'completed_at'=> $completedAt,
-            'notes'       => $notes,
+            'tenant_id'    => $tenantId,
+            'id'           => $runId,
+            'completed_at' => $completedAt,
+            'notes'        => $notes,
         ]);
     }
 
@@ -278,9 +316,50 @@ class PreventiveMaintenanceRepository
         ");
 
         $stmt->execute([
-            'tenant_id'   => $tenantId,
-            'id'          => $scheduleId,
-            'completed_at'=> $completedAt,
+            'tenant_id'    => $tenantId,
+            'id'           => $scheduleId,
+            'completed_at' => $completedAt,
         ]);
+    }
+
+    public function dashboardCounts(int $tenantId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                COUNT(*) AS total,
+                SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) AS active_count,
+                SUM(CASE WHEN next_due_at <= NOW() AND is_active = 1 THEN 1 ELSE 0 END) AS due_count
+            FROM maintenance_pm_schedules
+            WHERE tenant_id = :tenant_id
+        ");
+
+        $stmt->execute([
+            'tenant_id' => $tenantId,
+        ]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    public function dueSoonSchedules(int $tenantId, int $limit = 10): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                s.*,
+                an.name AS asset_name,
+                an.code AS asset_code
+            FROM maintenance_pm_schedules s
+            INNER JOIN asset_nodes an
+                ON an.id = s.asset_node_id
+            WHERE s.tenant_id = :tenant_id
+              AND s.is_active = 1
+            ORDER BY s.next_due_at ASC
+            LIMIT :limit_rows
+        ");
+
+        $stmt->bindValue(':tenant_id', $tenantId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit_rows', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
