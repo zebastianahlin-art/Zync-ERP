@@ -52,6 +52,29 @@ class WorkOrderService
         return $errors;
     }
 
+    public function validateMaterialData(array $data): array
+    {
+        $errors = [];
+
+        if ((int) ($data['article_id'] ?? 0) <= 0) {
+            $errors[] = 'Artikel är obligatorisk.';
+        }
+
+        if ((float) ($data['planned_quantity'] ?? 0) < 0) {
+            $errors[] = 'Planerad kvantitet kan inte vara negativ.';
+        }
+
+        if ((float) ($data['issued_quantity'] ?? 0) < 0) {
+            $errors[] = 'Uttagen kvantitet kan inte vara negativ.';
+        }
+
+        if ((float) ($data['unit_cost'] ?? 0) < 0) {
+            $errors[] = 'Styckkostnad kan inte vara negativ.';
+        }
+
+        return $errors;
+    }
+
     public function validateStatusChange(string $currentStatus, string $newStatus): void
     {
         if (!in_array($newStatus, self::VALID_STATUSES, true)) {
