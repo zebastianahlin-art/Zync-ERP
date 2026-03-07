@@ -158,6 +158,7 @@ class WorkOrderController
         $materials = $this->repo()->materialsByWorkOrder($tenantId, $id);
         $materialTotals = $this->repo()->materialTotalsByWorkOrder($tenantId, $id);
         $articleOptions = $this->repo()->getArticleOptions($tenantId);
+        $warehouseOptions = $this->inventoryRepo()->getWarehouseOptions();
         $inventoryMovements = $this->inventoryRepo()->movementsByWorkOrder($tenantId, $id);
 
         require __DIR__ . '/../views/work_orders/show.php';
@@ -256,10 +257,13 @@ class WorkOrderController
             return;
         }
 
+        $warehouseId = (int) ($_POST['warehouse_id'] ?? 0);
+
         $data = [
             'tenant_id'        => $tenantId,
             'work_order_id'    => $workOrderId,
             'article_id'       => (int) ($_POST['article_id'] ?? 0),
+            'warehouse_id'     => $warehouseId,
             'planned_quantity' => (float) ($_POST['planned_quantity'] ?? 0),
             'issued_quantity'  => 0,
             'unit_cost'        => (float) ($_POST['unit_cost'] ?? 0),
@@ -314,6 +318,14 @@ class WorkOrderController
             return;
         }
 
+        $newWarehouseId = (int) ($_POST['warehouse_id'] ?? 0);
+
+        if ($newWarehouseId !== (int) $material['warehouse_id'] && (float) $material['issued_quantity'] > 0) {
+            http_response_code(422);
+            echo 'Du kan inte byta lager på en materialrad som redan har uttagen kvantitet. Returnera först till 0.';
+            return;
+        }
+
         $newPlannedQuantity = (float) ($_POST['planned_quantity'] ?? 0);
         $newIssuedQuantity = (float) ($_POST['issued_quantity'] ?? 0);
         $newUnitCost = (float) ($_POST['unit_cost'] ?? 0);
@@ -321,6 +333,7 @@ class WorkOrderController
 
         $errors = $this->service()->validateMaterialData([
             'article_id'        => (int) $material['article_id'],
+            'warehouse_id'      => $newWarehouseId,
             'planned_quantity'  => $newPlannedQuantity,
             'issued_quantity'   => $newIssuedQuantity,
             'unit_cost'         => $newUnitCost,
@@ -336,6 +349,7 @@ class WorkOrderController
 
         try {
             $this->repo()->updateMaterial($tenantId, $materialId, [
+                'warehouse_id'     => $newWarehouseId,
                 'planned_quantity' => $newPlannedQuantity,
                 'issued_quantity'  => (float) $material['issued_quantity'],
                 'unit_cost'        => $newUnitCost,
