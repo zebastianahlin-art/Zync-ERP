@@ -13,6 +13,9 @@ return [
     ['GET',  '/maintenance/work-orders/show',            [WorkOrderController::class, 'show']],
     ['POST', '/maintenance/work-orders/status',          [WorkOrderController::class, 'updateStatus']],
     ['POST', '/maintenance/work-orders/add-log',         [WorkOrderController::class, 'addLog']],
+    ['POST', '/maintenance/work-orders/add-material',    [WorkOrderController::class, 'addMaterial']],
+    ['POST', '/maintenance/work-orders/update-material', [WorkOrderController::class, 'updateMaterial']],
+    ['POST', '/maintenance/work-orders/delete-material', [WorkOrderController::class, 'deleteMaterial']],
 
     ['GET',  '/maintenance/preventive',                  [PreventiveMaintenanceController::class, 'index']],
     ['GET',  '/maintenance/preventive/create',           [PreventiveMaintenanceController::class, 'create']],
