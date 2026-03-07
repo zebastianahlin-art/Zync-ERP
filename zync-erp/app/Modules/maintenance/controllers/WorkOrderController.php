@@ -2,7 +2,9 @@
 
 namespace Modules\Maintenance\Controllers;
 
+use Modules\Maintenance\Repositories\InventoryIntegrationRepository;
 use Modules\Maintenance\Repositories\WorkOrderRepository;
+use Modules\Maintenance\Services\WorkOrderMaterialInventoryService;
 use Modules\Maintenance\Services\WorkOrderService;
 use PDO;
 use RuntimeException;
@@ -32,9 +34,23 @@ class WorkOrderController
         return new WorkOrderRepository($this->db);
     }
 
+    private function inventoryRepo(): InventoryIntegrationRepository
+    {
+        return new InventoryIntegrationRepository($this->db);
+    }
+
     private function service(): WorkOrderService
     {
         return new WorkOrderService($this->repo());
+    }
+
+    private function materialInventoryService(): WorkOrderMaterialInventoryService
+    {
+        return new WorkOrderMaterialInventoryService(
+            db: $this->db,
+            workOrderRepository: $this->repo(),
+            inventoryRepository: $this->inventoryRepo()
+        );
     }
 
     public function index(): void
@@ -142,6 +158,7 @@ class WorkOrderController
         $materials = $this->repo()->materialsByWorkOrder($tenantId, $id);
         $materialTotals = $this->repo()->materialTotalsByWorkOrder($tenantId, $id);
         $articleOptions = $this->repo()->getArticleOptions($tenantId);
+        $inventoryMovements = $this->inventoryRepo()->movementsByWorkOrder($tenantId, $id);
 
         require __DIR__ . '/../views/work_orders/show.php';
     }
@@ -244,12 +261,16 @@ class WorkOrderController
             'work_order_id'    => $workOrderId,
             'article_id'       => (int) ($_POST['article_id'] ?? 0),
             'planned_quantity' => (float) ($_POST['planned_quantity'] ?? 0),
-            'issued_quantity'  => (float) ($_POST['issued_quantity'] ?? 0),
+            'issued_quantity'  => 0,
             'unit_cost'        => (float) ($_POST['unit_cost'] ?? 0),
             'notes'            => trim((string) ($_POST['notes'] ?? '')),
         ];
 
-        $errors = $this->service()->validateMaterialData($data);
+        $requestedIssuedQuantity = (float) ($_POST['issued_quantity'] ?? 0);
+
+        $errors = $this->service()->validateMaterialData(array_merge($data, [
+            'issued_quantity' => $requestedIssuedQuantity,
+        ]));
 
         if (!empty($errors)) {
             http_response_code(422);
@@ -257,7 +278,16 @@ class WorkOrderController
             return;
         }
 
-        $this->repo()->addMaterial($data);
+        $materialId = $this->repo()->addMaterial($data);
+
+        if ($requestedIssuedQuantity > 0) {
+            $this->materialInventoryService()->syncIssuedQuantity(
+                tenantId: $tenantId,
+                materialId: $materialId,
+                newIssuedQuantity: $requestedIssuedQuantity,
+                userId: $this->userId()
+            );
+        }
 
         $this->repo()->addLog([
             'tenant_id'     => $tenantId,
@@ -284,16 +314,17 @@ class WorkOrderController
             return;
         }
 
-        $data = [
-            'planned_quantity' => (float) ($_POST['planned_quantity'] ?? 0),
-            'issued_quantity'  => (float) ($_POST['issued_quantity'] ?? 0),
-            'unit_cost'        => (float) ($_POST['unit_cost'] ?? 0),
-            'notes'            => trim((string) ($_POST['notes'] ?? '')),
-        ];
+        $newPlannedQuantity = (float) ($_POST['planned_quantity'] ?? 0);
+        $newIssuedQuantity = (float) ($_POST['issued_quantity'] ?? 0);
+        $newUnitCost = (float) ($_POST['unit_cost'] ?? 0);
+        $newNotes = trim((string) ($_POST['notes'] ?? ''));
 
-        $errors = $this->service()->validateMaterialData(array_merge($data, [
-            'article_id' => (int) $material['article_id'],
-        ]));
+        $errors = $this->service()->validateMaterialData([
+            'article_id'        => (int) $material['article_id'],
+            'planned_quantity'  => $newPlannedQuantity,
+            'issued_quantity'   => $newIssuedQuantity,
+            'unit_cost'         => $newUnitCost,
+        ]);
 
         if (!empty($errors)) {
             http_response_code(422);
@@ -301,16 +332,39 @@ class WorkOrderController
             return;
         }
 
-        $this->repo()->updateMaterial($tenantId, $materialId, $data);
+        $this->db->beginTransaction();
 
-        $this->repo()->addLog([
-            'tenant_id'     => $tenantId,
-            'work_order_id' => (int) $material['work_order_id'],
-            'log_type'      => 'system',
-            'message'       => 'Materialrad uppdaterad.',
-            'hours_spent'   => 0,
-            'created_by'    => $this->userId(),
-        ]);
+        try {
+            $this->repo()->updateMaterial($tenantId, $materialId, [
+                'planned_quantity' => $newPlannedQuantity,
+                'issued_quantity'  => (float) $material['issued_quantity'],
+                'unit_cost'        => $newUnitCost,
+                'notes'            => $newNotes,
+            ]);
+
+            $this->materialInventoryService()->syncIssuedQuantity(
+                tenantId: $tenantId,
+                materialId: $materialId,
+                newIssuedQuantity: $newIssuedQuantity,
+                userId: $this->userId()
+            );
+
+            $this->repo()->addLog([
+                'tenant_id'     => $tenantId,
+                'work_order_id' => (int) $material['work_order_id'],
+                'log_type'      => 'system',
+                'message'       => 'Materialrad uppdaterad och lager synkat.',
+                'hours_spent'   => 0,
+                'created_by'    => $this->userId(),
+            ]);
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            http_response_code(422);
+            echo htmlspecialchars($e->getMessage());
+            return;
+        }
 
         header('Location: /maintenance/work-orders/show?id=' . (int) $material['work_order_id']);
         exit;
@@ -325,6 +379,12 @@ class WorkOrderController
         if (!$material) {
             http_response_code(404);
             echo 'Materialrad hittades inte.';
+            return;
+        }
+
+        if ((float) $material['issued_quantity'] > 0) {
+            http_response_code(422);
+            echo 'Materialrad med uttaget material kan inte tas bort. Returnera först uttagen kvantitet till 0.';
             return;
         }
 
