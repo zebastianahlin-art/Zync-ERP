@@ -1,9 +1,12 @@
 <?php
 
+use Modules\Maintenance\Controllers\MaintenanceDashboardController;
 use Modules\Maintenance\Controllers\PreventiveMaintenanceController;
 use Modules\Maintenance\Controllers\WorkOrderController;
 
 return [
+    ['GET',  '/maintenance',                             [MaintenanceDashboardController::class, 'index']],
+
     ['GET',  '/maintenance/work-orders',                 [WorkOrderController::class, 'index']],
     ['GET',  '/maintenance/work-orders/create',          [WorkOrderController::class, 'create']],
     ['POST', '/maintenance/work-orders',                 [WorkOrderController::class, 'store']],
