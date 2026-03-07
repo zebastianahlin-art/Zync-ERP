@@ -139,6 +139,9 @@ class WorkOrderController
         }
 
         $logs = $this->repo()->logsByWorkOrder($tenantId, $id);
+        $materials = $this->repo()->materialsByWorkOrder($tenantId, $id);
+        $materialTotals = $this->repo()->materialTotalsByWorkOrder($tenantId, $id);
+        $articleOptions = $this->repo()->getArticleOptions($tenantId);
 
         require __DIR__ . '/../views/work_orders/show.php';
     }
@@ -221,6 +224,124 @@ class WorkOrderController
         }
 
         header('Location: /maintenance/work-orders/show?id=' . $id);
+        exit;
+    }
+
+    public function addMaterial(): void
+    {
+        $tenantId = $this->tenantId();
+        $workOrderId = (int) ($_POST['work_order_id'] ?? 0);
+
+        $workOrder = $this->repo()->findById($tenantId, $workOrderId);
+        if (!$workOrder) {
+            http_response_code(404);
+            echo 'Arbetsorder hittades inte.';
+            return;
+        }
+
+        $data = [
+            'tenant_id'        => $tenantId,
+            'work_order_id'    => $workOrderId,
+            'article_id'       => (int) ($_POST['article_id'] ?? 0),
+            'planned_quantity' => (float) ($_POST['planned_quantity'] ?? 0),
+            'issued_quantity'  => (float) ($_POST['issued_quantity'] ?? 0),
+            'unit_cost'        => (float) ($_POST['unit_cost'] ?? 0),
+            'notes'            => trim((string) ($_POST['notes'] ?? '')),
+        ];
+
+        $errors = $this->service()->validateMaterialData($data);
+
+        if (!empty($errors)) {
+            http_response_code(422);
+            echo htmlspecialchars(implode(' ', $errors));
+            return;
+        }
+
+        $this->repo()->addMaterial($data);
+
+        $this->repo()->addLog([
+            'tenant_id'     => $tenantId,
+            'work_order_id' => $workOrderId,
+            'log_type'      => 'system',
+            'message'       => 'Material tillagt på arbetsorder.',
+            'hours_spent'   => 0,
+            'created_by'    => $this->userId(),
+        ]);
+
+        header('Location: /maintenance/work-orders/show?id=' . $workOrderId);
+        exit;
+    }
+
+    public function updateMaterial(): void
+    {
+        $tenantId = $this->tenantId();
+        $materialId = (int) ($_POST['material_id'] ?? 0);
+
+        $material = $this->repo()->findMaterialById($tenantId, $materialId);
+        if (!$material) {
+            http_response_code(404);
+            echo 'Materialrad hittades inte.';
+            return;
+        }
+
+        $data = [
+            'planned_quantity' => (float) ($_POST['planned_quantity'] ?? 0),
+            'issued_quantity'  => (float) ($_POST['issued_quantity'] ?? 0),
+            'unit_cost'        => (float) ($_POST['unit_cost'] ?? 0),
+            'notes'            => trim((string) ($_POST['notes'] ?? '')),
+        ];
+
+        $errors = $this->service()->validateMaterialData(array_merge($data, [
+            'article_id' => (int) $material['article_id'],
+        ]));
+
+        if (!empty($errors)) {
+            http_response_code(422);
+            echo htmlspecialchars(implode(' ', $errors));
+            return;
+        }
+
+        $this->repo()->updateMaterial($tenantId, $materialId, $data);
+
+        $this->repo()->addLog([
+            'tenant_id'     => $tenantId,
+            'work_order_id' => (int) $material['work_order_id'],
+            'log_type'      => 'system',
+            'message'       => 'Materialrad uppdaterad.',
+            'hours_spent'   => 0,
+            'created_by'    => $this->userId(),
+        ]);
+
+        header('Location: /maintenance/work-orders/show?id=' . (int) $material['work_order_id']);
+        exit;
+    }
+
+    public function deleteMaterial(): void
+    {
+        $tenantId = $this->tenantId();
+        $materialId = (int) ($_POST['material_id'] ?? 0);
+
+        $material = $this->repo()->findMaterialById($tenantId, $materialId);
+        if (!$material) {
+            http_response_code(404);
+            echo 'Materialrad hittades inte.';
+            return;
+        }
+
+        $workOrderId = (int) $material['work_order_id'];
+
+        $this->repo()->deleteMaterial($tenantId, $materialId);
+
+        $this->repo()->addLog([
+            'tenant_id'     => $tenantId,
+            'work_order_id' => $workOrderId,
+            'log_type'      => 'system',
+            'message'       => 'Materialrad borttagen.',
+            'hours_spent'   => 0,
+            'created_by'    => $this->userId(),
+        ]);
+
+        header('Location: /maintenance/work-orders/show?id=' . $workOrderId);
         exit;
     }
 }
