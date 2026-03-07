@@ -27,18 +27,74 @@ class WorkOrderRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function allByTenant(int $tenantId): array
+    public function allByTenant(int $tenantId, array $filters = []): array
     {
-        $stmt = $this->db->prepare("
+        $sql = "
             SELECT
                 wo.*,
                 an.name AS asset_name,
                 an.code AS asset_code,
-                an.node_type AS asset_type
+                an.node_type AS asset_type,
+                pms.title AS pm_schedule_title
             FROM maintenance_work_orders wo
             INNER JOIN asset_nodes an
                 ON an.id = wo.asset_node_id
+            LEFT JOIN maintenance_pm_schedules pms
+                ON pms.id = wo.pm_schedule_id
             WHERE wo.tenant_id = :tenant_id
+        ";
+
+        $params = [
+            'tenant_id' => $tenantId,
+        ];
+
+        if (!empty($filters['status'])) {
+            $sql .= " AND wo.status = :status";
+            $params['status'] = $filters['status'];
+        }
+
+        if (!empty($filters['priority'])) {
+            $sql .= " AND wo.priority = :priority";
+            $params['priority'] = $filters['priority'];
+        }
+
+        if (!empty($filters['type'])) {
+            $sql .= " AND wo.type = :type";
+            $params['type'] = $filters['type'];
+        }
+
+        if (!empty($filters['source'])) {
+            $sql .= " AND wo.source = :source";
+            $params['source'] = $filters['source'];
+        }
+
+        if (!empty($filters['asset_node_id'])) {
+            $sql .= " AND wo.asset_node_id = :asset_node_id";
+            $params['asset_node_id'] = (int) $filters['asset_node_id'];
+        }
+
+        if (!empty($filters['q'])) {
+            $sql .= " AND (
+                wo.work_order_no LIKE :q
+                OR wo.title LIKE :q
+                OR wo.description LIKE :q
+                OR an.name LIKE :q
+                OR an.code LIKE :q
+            )";
+            $params['q'] = '%' . $filters['q'] . '%';
+        }
+
+        if (($filters['only_open'] ?? '') === '1') {
+            $sql .= " AND wo.status NOT IN ('closed', 'cancelled')";
+        }
+
+        if (($filters['overdue'] ?? '') === '1') {
+            $sql .= " AND wo.due_at IS NOT NULL
+                      AND wo.due_at < NOW()
+                      AND wo.status NOT IN ('completed', 'closed', 'cancelled')";
+        }
+
+        $sql .= "
             ORDER BY
                 CASE wo.status
                     WHEN 'in_progress' THEN 1
@@ -53,11 +109,10 @@ class WorkOrderRepository
                 wo.due_at IS NULL,
                 wo.due_at ASC,
                 wo.created_at DESC
-        ");
+        ";
 
-        $stmt->execute([
-            'tenant_id' => $tenantId,
-        ]);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -69,10 +124,13 @@ class WorkOrderRepository
                 wo.*,
                 an.name AS asset_name,
                 an.code AS asset_code,
-                an.node_type AS asset_type
+                an.node_type AS asset_type,
+                pms.title AS pm_schedule_title
             FROM maintenance_work_orders wo
             INNER JOIN asset_nodes an
                 ON an.id = wo.asset_node_id
+            LEFT JOIN maintenance_pm_schedules pms
+                ON pms.id = wo.pm_schedule_id
             WHERE wo.tenant_id = :tenant_id
               AND wo.id = :id
             LIMIT 1
@@ -112,6 +170,7 @@ class WorkOrderRepository
             INSERT INTO maintenance_work_orders (
                 tenant_id,
                 asset_node_id,
+                pm_schedule_id,
                 work_order_no,
                 title,
                 description,
@@ -127,6 +186,7 @@ class WorkOrderRepository
             ) VALUES (
                 :tenant_id,
                 :asset_node_id,
+                :pm_schedule_id,
                 :work_order_no,
                 :title,
                 :description,
@@ -145,6 +205,7 @@ class WorkOrderRepository
         $stmt->execute([
             'tenant_id'        => $data['tenant_id'],
             'asset_node_id'    => $data['asset_node_id'],
+            'pm_schedule_id'   => $data['pm_schedule_id'] ?? null,
             'work_order_no'    => $data['work_order_no'],
             'title'            => $data['title'],
             'description'      => $data['description'],
@@ -253,5 +314,53 @@ class WorkOrderRepository
         $next = (int) $stmt->fetchColumn();
 
         return sprintf('WO-%s-%05d', $tenantId, $next);
+    }
+
+    public function dashboardCounts(int $tenantId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                COUNT(*) AS total,
+                SUM(CASE WHEN status NOT IN ('closed', 'cancelled') THEN 1 ELSE 0 END) AS open_count,
+                SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) AS in_progress_count,
+                SUM(CASE WHEN due_at IS NOT NULL
+                          AND due_at < NOW()
+                          AND status NOT IN ('completed', 'closed', 'cancelled') THEN 1 ELSE 0 END) AS overdue_count,
+                SUM(CASE WHEN source = 'pm_schedule' THEN 1 ELSE 0 END) AS pm_generated_count
+            FROM maintenance_work_orders
+            WHERE tenant_id = :tenant_id
+        ");
+
+        $stmt->execute([
+            'tenant_id' => $tenantId,
+        ]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    public function recentOpenWorkOrders(int $tenantId, int $limit = 10): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                wo.*,
+                an.name AS asset_name,
+                an.code AS asset_code
+            FROM maintenance_work_orders wo
+            INNER JOIN asset_nodes an
+                ON an.id = wo.asset_node_id
+            WHERE wo.tenant_id = :tenant_id
+              AND wo.status NOT IN ('closed', 'cancelled')
+            ORDER BY
+                wo.due_at IS NULL,
+                wo.due_at ASC,
+                wo.created_at DESC
+            LIMIT :limit_rows
+        ");
+
+        $stmt->bindValue(':tenant_id', $tenantId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit_rows', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
