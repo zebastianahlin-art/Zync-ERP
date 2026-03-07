@@ -27,6 +27,28 @@ class WorkOrderRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getArticleOptions(int $tenantId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                id,
+                article_number,
+                name,
+                unit,
+                sales_price,
+                purchase_price
+            FROM articles
+            WHERE tenant_id = :tenant_id
+            ORDER BY name ASC, article_number ASC
+        ");
+
+        $stmt->execute([
+            'tenant_id' => $tenantId,
+        ]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function allByTenant(int $tenantId, array $filters = []): array
     {
         $sql = "
@@ -164,6 +186,52 @@ class WorkOrderRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function materialsByWorkOrder(int $tenantId, int $workOrderId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                m.*,
+                a.article_number,
+                a.name AS article_name,
+                a.unit
+            FROM maintenance_work_order_materials m
+            INNER JOIN articles a
+                ON a.id = m.article_id
+            WHERE m.tenant_id = :tenant_id
+              AND m.work_order_id = :work_order_id
+            ORDER BY a.name ASC, a.article_number ASC
+        ");
+
+        $stmt->execute([
+            'tenant_id'     => $tenantId,
+            'work_order_id' => $workOrderId,
+        ]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function materialTotalsByWorkOrder(int $tenantId, int $workOrderId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                COALESCE(SUM(planned_quantity * unit_cost), 0) AS planned_total_cost,
+                COALESCE(SUM(issued_quantity * unit_cost), 0) AS issued_total_cost
+            FROM maintenance_work_order_materials
+            WHERE tenant_id = :tenant_id
+              AND work_order_id = :work_order_id
+        ");
+
+        $stmt->execute([
+            'tenant_id'     => $tenantId,
+            'work_order_id' => $workOrderId,
+        ]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [
+            'planned_total_cost' => 0,
+            'issued_total_cost' => 0,
+        ];
+    }
+
     public function create(array $data): int
     {
         $stmt = $this->db->prepare("
@@ -250,6 +318,98 @@ class WorkOrderRepository
             'message'       => $data['message'],
             'hours_spent'   => $data['hours_spent'],
             'created_by'    => $data['created_by'],
+        ]);
+    }
+
+    public function addMaterial(array $data): int
+    {
+        $stmt = $this->db->prepare("
+            INSERT INTO maintenance_work_order_materials (
+                tenant_id,
+                work_order_id,
+                article_id,
+                planned_quantity,
+                issued_quantity,
+                unit_cost,
+                notes
+            ) VALUES (
+                :tenant_id,
+                :work_order_id,
+                :article_id,
+                :planned_quantity,
+                :issued_quantity,
+                :unit_cost,
+                :notes
+            )
+        ");
+
+        $stmt->execute([
+            'tenant_id'        => $data['tenant_id'],
+            'work_order_id'    => $data['work_order_id'],
+            'article_id'       => $data['article_id'],
+            'planned_quantity' => $data['planned_quantity'],
+            'issued_quantity'  => $data['issued_quantity'],
+            'unit_cost'        => $data['unit_cost'],
+            'notes'            => $data['notes'],
+        ]);
+
+        return (int) $this->db->lastInsertId();
+    }
+
+    public function findMaterialById(int $tenantId, int $materialId): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT *
+            FROM maintenance_work_order_materials
+            WHERE tenant_id = :tenant_id
+              AND id = :id
+            LIMIT 1
+        ");
+
+        $stmt->execute([
+            'tenant_id' => $tenantId,
+            'id'        => $materialId,
+        ]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row ?: null;
+    }
+
+    public function updateMaterial(int $tenantId, int $materialId, array $data): void
+    {
+        $stmt = $this->db->prepare("
+            UPDATE maintenance_work_order_materials
+            SET
+                planned_quantity = :planned_quantity,
+                issued_quantity = :issued_quantity,
+                unit_cost = :unit_cost,
+                notes = :notes
+            WHERE tenant_id = :tenant_id
+              AND id = :id
+        ");
+
+        $stmt->execute([
+            'tenant_id'        => $tenantId,
+            'id'               => $materialId,
+            'planned_quantity' => $data['planned_quantity'],
+            'issued_quantity'  => $data['issued_quantity'],
+            'unit_cost'        => $data['unit_cost'],
+            'notes'            => $data['notes'],
+        ]);
+    }
+
+    public function deleteMaterial(int $tenantId, int $materialId): void
+    {
+        $stmt = $this->db->prepare("
+            DELETE FROM maintenance_work_order_materials
+            WHERE tenant_id = :tenant_id
+              AND id = :id
+        ");
+
+        $stmt->execute([
+            'tenant_id' => $tenantId,
+            'id'        => $materialId,
         ]);
     }
 
