@@ -40,7 +40,20 @@ class WorkOrderController
     public function index(): void
     {
         $tenantId = $this->tenantId();
-        $workOrders = $this->repo()->allByTenant($tenantId);
+
+        $filters = [
+            'status'        => trim((string) ($_GET['status'] ?? '')),
+            'priority'      => trim((string) ($_GET['priority'] ?? '')),
+            'type'          => trim((string) ($_GET['type'] ?? '')),
+            'source'        => trim((string) ($_GET['source'] ?? '')),
+            'asset_node_id' => trim((string) ($_GET['asset_node_id'] ?? '')),
+            'q'             => trim((string) ($_GET['q'] ?? '')),
+            'only_open'     => trim((string) ($_GET['only_open'] ?? '')),
+            'overdue'       => trim((string) ($_GET['overdue'] ?? '')),
+        ];
+
+        $workOrders = $this->repo()->allByTenant($tenantId, $filters);
+        $assetOptions = $this->repo()->getAssetOptions($tenantId);
 
         require __DIR__ . '/../views/work_orders/index.php';
     }
@@ -51,17 +64,17 @@ class WorkOrderController
         $assetOptions = $this->repo()->getAssetOptions($tenantId);
         $errors = [];
         $workOrder = [
-            'asset_node_id'   => '',
-            'title'           => '',
-            'description'     => '',
-            'type'            => 'corrective',
-            'priority'        => 'medium',
-            'status'          => 'reported',
-            'source'          => 'manual',
-            'assigned_to'     => '',
-            'planned_start_at'=> '',
-            'due_at'          => '',
-            'estimated_hours' => '',
+            'asset_node_id'    => '',
+            'title'            => '',
+            'description'      => '',
+            'type'             => 'corrective',
+            'priority'         => 'medium',
+            'status'           => 'reported',
+            'source'           => 'manual',
+            'assigned_to'      => '',
+            'planned_start_at' => '',
+            'due_at'           => '',
+            'estimated_hours'  => '',
         ];
 
         require __DIR__ . '/../views/work_orders/create.php';
@@ -74,6 +87,7 @@ class WorkOrderController
         $data = [
             'tenant_id'         => $tenantId,
             'asset_node_id'     => (int) ($_POST['asset_node_id'] ?? 0),
+            'pm_schedule_id'    => null,
             'work_order_no'     => $this->repo()->nextWorkOrderNumber($tenantId),
             'title'             => trim((string) ($_POST['title'] ?? '')),
             'description'       => trim((string) ($_POST['description'] ?? '')),
