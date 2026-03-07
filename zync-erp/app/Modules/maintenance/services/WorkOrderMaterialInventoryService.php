@@ -28,6 +28,11 @@ class WorkOrderMaterialInventoryService
             throw new RuntimeException('Materialrad hittades inte.');
         }
 
+        $warehouseId = (int) ($material['warehouse_id'] ?? 0);
+        if ($warehouseId <= 0) {
+            throw new RuntimeException('Materialraden saknar lager.');
+        }
+
         $currentIssued = (float) $material['issued_quantity'];
         $delta = round($newIssuedQuantity - $currentIssued, 2);
 
@@ -35,32 +40,15 @@ class WorkOrderMaterialInventoryService
             return;
         }
 
+        if ($this->db->inTransaction()) {
+            $this->performSync($tenantId, $material, $delta, $newIssuedQuantity, $userId);
+            return;
+        }
+
         $this->db->beginTransaction();
 
         try {
-            if ($delta > 0) {
-                $this->handleIssue(
-                    tenantId: $tenantId,
-                    material: $material,
-                    quantity: $delta,
-                    userId: $userId
-                );
-            } else {
-                $this->handleReturn(
-                    tenantId: $tenantId,
-                    material: $material,
-                    quantity: abs($delta),
-                    userId: $userId
-                );
-            }
-
-            $this->workOrderRepository->updateMaterial($tenantId, $materialId, [
-                'planned_quantity' => (float) $material['planned_quantity'],
-                'issued_quantity'  => $newIssuedQuantity,
-                'unit_cost'        => (float) $material['unit_cost'],
-                'notes'            => (string) ($material['notes'] ?? ''),
-            ]);
-
+            $this->performSync($tenantId, $material, $delta, $newIssuedQuantity, $userId);
             $this->db->commit();
         } catch (\Throwable $e) {
             $this->db->rollBack();
@@ -68,27 +56,52 @@ class WorkOrderMaterialInventoryService
         }
     }
 
+    private function performSync(
+        int $tenantId,
+        array $material,
+        float $delta,
+        float $newIssuedQuantity,
+        ?int $userId
+    ): void {
+        if ($delta > 0) {
+            $this->handleIssue($tenantId, $material, $delta, $userId);
+        } else {
+            $this->handleReturn($tenantId, $material, abs($delta), $userId);
+        }
+
+        $this->workOrderRepository->updateMaterial($tenantId, (int) $material['id'], [
+            'warehouse_id'     => (int) $material['warehouse_id'],
+            'planned_quantity' => (float) $material['planned_quantity'],
+            'issued_quantity'  => $newIssuedQuantity,
+            'unit_cost'        => (float) $material['unit_cost'],
+            'notes'            => (string) ($material['notes'] ?? ''),
+        ]);
+    }
+
     private function handleIssue(int $tenantId, array $material, float $quantity, ?int $userId): void
     {
         $articleId = (int) $material['article_id'];
+        $warehouseId = (int) $material['warehouse_id'];
         $workOrderId = (int) $material['work_order_id'];
         $materialId = (int) $material['id'];
 
-        $available = $this->inventoryRepository->getAvailableStock($tenantId, $articleId);
+        $available = $this->inventoryRepository->getAvailableStock($articleId, $warehouseId);
 
         if ($available < $quantity) {
-            throw new RuntimeException('Otillräckligt saldo i lager för detta uttag.');
+            throw new RuntimeException('Otillräckligt saldo i valt lager för detta uttag.');
         }
 
-        $this->inventoryRepository->decreaseStock($tenantId, $articleId, $quantity);
+        $this->inventoryRepository->decreaseStock($articleId, $warehouseId, $quantity);
 
         $transactionId = $this->inventoryRepository->createInventoryTransaction([
-            'tenant_id'        => $tenantId,
-            'article_id'       => $articleId,
-            'transaction_type' => 'maintenance_issue',
-            'quantity'         => $quantity,
-            'notes'            => 'Uttag till arbetsorder #' . $workOrderId . ', materialrad #' . $materialId,
-            'created_by'       => $userId,
+            'created_by'     => $userId,
+            'article_id'     => $articleId,
+            'warehouse_id'   => $warehouseId,
+            'type'           => 'issue',
+            'quantity'       => $quantity,
+            'reference_type' => 'maintenance_work_order',
+            'reference_id'   => $workOrderId,
+            'notes'          => 'Uttag till arbetsorder #' . $workOrderId . ', materialrad #' . $materialId,
         ]);
 
         $this->inventoryRepository->createMaintenanceMovement([
@@ -106,18 +119,21 @@ class WorkOrderMaterialInventoryService
     private function handleReturn(int $tenantId, array $material, float $quantity, ?int $userId): void
     {
         $articleId = (int) $material['article_id'];
+        $warehouseId = (int) $material['warehouse_id'];
         $workOrderId = (int) $material['work_order_id'];
         $materialId = (int) $material['id'];
 
-        $this->inventoryRepository->increaseStock($tenantId, $articleId, $quantity);
+        $this->inventoryRepository->increaseStock($articleId, $warehouseId, $quantity, $userId);
 
         $transactionId = $this->inventoryRepository->createInventoryTransaction([
-            'tenant_id'        => $tenantId,
-            'article_id'       => $articleId,
-            'transaction_type' => 'maintenance_return',
-            'quantity'         => $quantity,
-            'notes'            => 'Retur från arbetsorder #' . $workOrderId . ', materialrad #' . $materialId,
-            'created_by'       => $userId,
+            'created_by'     => $userId,
+            'article_id'     => $articleId,
+            'warehouse_id'   => $warehouseId,
+            'type'           => 'receipt',
+            'quantity'       => $quantity,
+            'reference_type' => 'maintenance_work_order_return',
+            'reference_id'   => $workOrderId,
+            'notes'          => 'Retur från arbetsorder #' . $workOrderId . ', materialrad #' . $materialId,
         ]);
 
         $this->inventoryRepository->createMaintenanceMovement([
