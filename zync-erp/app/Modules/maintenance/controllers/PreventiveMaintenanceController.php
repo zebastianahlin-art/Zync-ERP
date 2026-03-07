@@ -46,7 +46,18 @@ class PreventiveMaintenanceController
     public function index(): void
     {
         $tenantId = $this->tenantId();
-        $schedules = $this->repo()->allSchedulesByTenant($tenantId);
+
+        $filters = [
+            'is_active'     => trim((string) ($_GET['is_active'] ?? '')),
+            'priority'      => trim((string) ($_GET['priority'] ?? '')),
+            'interval_type' => trim((string) ($_GET['interval_type'] ?? '')),
+            'asset_node_id' => trim((string) ($_GET['asset_node_id'] ?? '')),
+            'due_only'      => trim((string) ($_GET['due_only'] ?? '')),
+            'q'             => trim((string) ($_GET['q'] ?? '')),
+        ];
+
+        $schedules = $this->repo()->allSchedulesByTenant($tenantId, $filters);
+        $assetOptions = $this->repo()->getAssetOptions($tenantId);
 
         require __DIR__ . '/../views/preventive_maintenance/index.php';
     }
@@ -139,6 +150,7 @@ class PreventiveMaintenanceController
             $workOrderId = $this->workOrderRepo()->create([
                 'tenant_id'         => $tenantId,
                 'asset_node_id'     => (int) $schedule['asset_node_id'],
+                'pm_schedule_id'    => (int) $schedule['id'],
                 'work_order_no'     => $this->workOrderRepo()->nextWorkOrderNumber($tenantId),
                 'title'             => $schedule['title'],
                 'description'       => $schedule['description'],
