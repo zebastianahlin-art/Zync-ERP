@@ -109,6 +109,7 @@
             <thead>
                 <tr>
                     <th>Artikel</th>
+                    <th>Lager</th>
                     <th>Planerat</th>
                     <th>Uttaget</th>
                     <th>Styckkostnad</th>
@@ -120,7 +121,7 @@
             <tbody>
                 <?php if (empty($materials)): ?>
                     <tr>
-                        <td colspan="7">Inga materialrader ännu.</td>
+                        <td colspan="8">Inga materialrader ännu.</td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($materials as $material): ?>
@@ -134,6 +135,7 @@
                                     <?php endif; ?>
                                 </span>
                             </td>
+                            <td><?= htmlspecialchars((string) ($material['warehouse_name'] ?? '')) ?></td>
                             <td><?= htmlspecialchars((string) $material['planned_quantity']) ?></td>
                             <td><?= htmlspecialchars((string) $material['issued_quantity']) ?></td>
                             <td><?= htmlspecialchars(number_format((float) $material['unit_cost'], 2, ',', ' ')) ?></td>
@@ -142,6 +144,16 @@
                             <td>
                                 <form method="POST" action="/maintenance/work-orders/update-material" style="margin-bottom:12px;">
                                     <input type="hidden" name="material_id" value="<?= (int) $material['id'] ?>">
+
+                                    <label>Lager</label>
+                                    <select name="warehouse_id">
+                                        <option value="">Välj lager</option>
+                                        <?php foreach ($warehouseOptions as $warehouse): ?>
+                                            <option value="<?= (int) $warehouse['id'] ?>" <?= ((int) ($material['warehouse_id'] ?? 0) === (int) $warehouse['id']) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($warehouse['name']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
 
                                     <label>Planerat</label>
                                     <input type="number" step="0.01" name="planned_quantity" value="<?= htmlspecialchars((string) $material['planned_quantity']) ?>">
@@ -188,6 +200,18 @@
                                 <?php if (!empty($article['article_number'])): ?>
                                     (<?= htmlspecialchars((string) $article['article_number']) ?>)
                                 <?php endif; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="warehouse_id">Lager</label>
+                    <select name="warehouse_id" id="warehouse_id" required>
+                        <option value="">Välj lager</option>
+                        <?php foreach ($warehouseOptions as $warehouse): ?>
+                            <option value="<?= (int) $warehouse['id'] ?>">
+                                <?= htmlspecialchars($warehouse['name']) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
