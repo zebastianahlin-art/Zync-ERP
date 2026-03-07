@@ -60,6 +60,10 @@ class WorkOrderService
             $errors[] = 'Artikel är obligatorisk.';
         }
 
+        if ((int) ($data['warehouse_id'] ?? 0) <= 0) {
+            $errors[] = 'Lager är obligatoriskt.';
+        }
+
         if ((float) ($data['planned_quantity'] ?? 0) < 0) {
             $errors[] = 'Planerad kvantitet kan inte vara negativ.';
         }
