@@ -19,6 +19,21 @@
         th, td { border:1px solid #ddd; padding:10px; text-align:left; vertical-align:top; }
         th { background:#f5f5f5; }
         .two-col { display:grid; grid-template-columns: 1fr 1fr; gap:24px; }
+        .three-col { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; }
+        .inline-form { margin-top:12px; padding:12px; border:1px solid #eee; border-radius:6px; }
+        .status-pill {
+            display:inline-block;
+            padding:4px 8px;
+            border:1px solid #ccc;
+            border-radius:999px;
+            font-size:12px;
+            margin-top:4px;
+            background:#fafafa;
+        }
+        .action-block { margin-top:10px; padding-top:10px; border-top:1px solid #eee; }
+        .small-input { max-width:140px; }
+        .button-row { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; }
+        button { padding:8px 12px; cursor:pointer; }
     </style>
 </head>
 <body>
@@ -56,7 +71,7 @@
 
         <div class="card">
             <h2>Byt status</h2>
-            <form method="POST" action="/maintenance/work-orders/status">
+            <form method="POST" action="/maintenance/work-orders/update-status">
                 <input type="hidden" name="id" value="<?= (int) $workOrder['id'] ?>">
 
                 <label for="status">Ny status</label>
@@ -111,7 +126,10 @@
                     <th>Artikel</th>
                     <th>Lager</th>
                     <th>Planerat</th>
+                    <th>Reserverat</th>
                     <th>Uttaget</th>
+                    <th>Returnerat</th>
+                    <th>Status</th>
                     <th>Styckkostnad</th>
                     <th>Kostnad uttag</th>
                     <th>Notering</th>
@@ -121,10 +139,19 @@
             <tbody>
                 <?php if (empty($materials)): ?>
                     <tr>
-                        <td colspan="8">Inga materialrader ännu.</td>
+                        <td colspan="11">Inga materialrader ännu.</td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($materials as $material): ?>
+                        <?php
+                            $reservedQuantity = (float) ($material['reserved_quantity'] ?? 0);
+                            $issuedQuantity = (float) ($material['issued_quantity'] ?? 0);
+                            $returnedQuantity = (float) ($material['returned_quantity'] ?? 0);
+                            $plannedQuantity = (float) ($material['planned_quantity'] ?? 0);
+                            $reservationStatus = (string) ($material['reservation_status'] ?? 'none');
+                            $stockStatus = (string) ($material['stock_status'] ?? 'not_issued');
+                            $warehouseId = (int) ($material['warehouse_id'] ?? 0);
+                        ?>
                         <tr>
                             <td>
                                 <strong><?= htmlspecialchars($material['article_name']) ?></strong><br>
@@ -136,10 +163,18 @@
                                 </span>
                             </td>
                             <td><?= htmlspecialchars((string) ($material['warehouse_name'] ?? '')) ?></td>
-                            <td><?= htmlspecialchars((string) $material['planned_quantity']) ?></td>
-                            <td><?= htmlspecialchars((string) $material['issued_quantity']) ?></td>
+                            <td><?= htmlspecialchars(number_format($plannedQuantity, 2, ',', ' ')) ?></td>
+                            <td><?= htmlspecialchars(number_format($reservedQuantity, 2, ',', ' ')) ?></td>
+                            <td><?= htmlspecialchars(number_format($issuedQuantity, 2, ',', ' ')) ?></td>
+                            <td><?= htmlspecialchars(number_format($returnedQuantity, 2, ',', ' ')) ?></td>
+                            <td>
+                                <div><strong>Reservation:</strong></div>
+                                <div class="status-pill"><?= htmlspecialchars($reservationStatus) ?></div>
+                                <div style="margin-top:8px;"><strong>Lagerstatus:</strong></div>
+                                <div class="status-pill"><?= htmlspecialchars($stockStatus) ?></div>
+                            </td>
                             <td><?= htmlspecialchars(number_format((float) $material['unit_cost'], 2, ',', ' ')) ?></td>
-                            <td><?= htmlspecialchars(number_format((float) $material['issued_quantity'] * (float) $material['unit_cost'], 2, ',', ' ')) ?></td>
+                            <td><?= htmlspecialchars(number_format($issuedQuantity * (float) $material['unit_cost'], 2, ',', ' ')) ?></td>
                             <td><?= nl2br(htmlspecialchars((string) ($material['notes'] ?? ''))) ?></td>
                             <td>
                                 <form method="POST" action="/maintenance/work-orders/update-material" style="margin-bottom:12px;">
@@ -149,7 +184,7 @@
                                     <select name="warehouse_id">
                                         <option value="">Välj lager</option>
                                         <?php foreach ($warehouseOptions as $warehouse): ?>
-                                            <option value="<?= (int) $warehouse['id'] ?>" <?= ((int) ($material['warehouse_id'] ?? 0) === (int) $warehouse['id']) ? 'selected' : '' ?>>
+                                            <option value="<?= (int) $warehouse['id'] ?>" <?= ($warehouseId === (int) $warehouse['id']) ? 'selected' : '' ?>>
                                                 <?= htmlspecialchars($warehouse['name']) ?>
                                             </option>
                                         <?php endforeach; ?>
@@ -172,7 +207,52 @@
                                     </div>
                                 </form>
 
-                                <form method="POST" action="/maintenance/work-orders/delete-material" onsubmit="return confirm('Ta bort materialraden?');">
+                                <div class="action-block">
+                                    <form method="POST" action="/maintenance/work-orders/reserve-material" class="inline-form">
+                                        <input type="hidden" name="material_id" value="<?= (int) $material['id'] ?>">
+
+                                        <label>Lager för reservation</label>
+                                        <select name="warehouse_id">
+                                            <option value="">Välj lager</option>
+                                            <?php foreach ($warehouseOptions as $warehouse): ?>
+                                                <option value="<?= (int) $warehouse['id'] ?>" <?= ($warehouseId === (int) $warehouse['id']) ? 'selected' : '' ?>>
+                                                    <?= htmlspecialchars($warehouse['name']) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+
+                                        <label>Reservera kvantitet</label>
+                                        <input class="small-input" type="number" step="0.01" name="quantity" value="0">
+
+                                        <div class="button-row">
+                                            <button type="submit">Reservera</button>
+                                        </div>
+                                    </form>
+
+                                    <form method="POST" action="/maintenance/work-orders/issue-material" class="inline-form">
+                                        <input type="hidden" name="material_id" value="<?= (int) $material['id'] ?>">
+
+                                        <label>Ta ut kvantitet</label>
+                                        <input class="small-input" type="number" step="0.01" name="quantity" value="0">
+
+                                        <div class="button-row">
+                                            <button type="submit">Ta ut</button>
+                                        </div>
+                                    </form>
+
+                                    <form method="POST" action="/maintenance/work-orders/return-material" class="inline-form">
+                                        <input type="hidden" name="material_id" value="<?= (int) $material['id'] ?>">
+
+                                        <label>Returnera kvantitet</label>
+                                        <input class="small-input" type="number" step="0.01" name="quantity" value="0">
+
+                                        <div class="button-row">
+                                            <button type="submit">Returnera</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <form method="POST" action="/maintenance/work-orders/delete-material" onsubmit="return confirm('Ta bort materialraden?');" style="margin-top:12px;">
                                     <input type="hidden" name="material_id" value="<?= (int) $material['id'] ?>">
                                     <button type="submit">Ta bort</button>
                                 </form>
