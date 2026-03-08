@@ -333,7 +333,11 @@ class WorkOrderRepository
                 article_id,
                 warehouse_id,
                 planned_quantity,
+                reserved_quantity,
                 issued_quantity,
+                returned_quantity,
+                reservation_status,
+                stock_status,
                 unit_cost,
                 notes
             ) VALUES (
@@ -342,21 +346,29 @@ class WorkOrderRepository
                 :article_id,
                 :warehouse_id,
                 :planned_quantity,
+                :reserved_quantity,
                 :issued_quantity,
+                :returned_quantity,
+                :reservation_status,
+                :stock_status,
                 :unit_cost,
                 :notes
             )
         ");
 
         $stmt->execute([
-            'tenant_id'        => $data['tenant_id'],
-            'work_order_id'    => $data['work_order_id'],
-            'article_id'       => $data['article_id'],
-            'warehouse_id'     => $data['warehouse_id'],
-            'planned_quantity' => $data['planned_quantity'],
-            'issued_quantity'  => $data['issued_quantity'],
-            'unit_cost'        => $data['unit_cost'],
-            'notes'            => $data['notes'],
+            'tenant_id'          => $data['tenant_id'],
+            'work_order_id'      => $data['work_order_id'],
+            'article_id'         => $data['article_id'],
+            'warehouse_id'       => $data['warehouse_id'],
+            'planned_quantity'   => $data['planned_quantity'],
+            'reserved_quantity'  => $data['reserved_quantity'] ?? 0,
+            'issued_quantity'    => $data['issued_quantity'] ?? 0,
+            'returned_quantity'  => $data['returned_quantity'] ?? 0,
+            'reservation_status' => $data['reservation_status'] ?? 'none',
+            'stock_status'       => $data['stock_status'] ?? 'not_issued',
+            'unit_cost'          => $data['unit_cost'],
+            'notes'              => $data['notes'],
         ]);
 
         return (int) $this->db->lastInsertId();
@@ -389,7 +401,11 @@ class WorkOrderRepository
             SET
                 warehouse_id = :warehouse_id,
                 planned_quantity = :planned_quantity,
+                reserved_quantity = :reserved_quantity,
                 issued_quantity = :issued_quantity,
+                returned_quantity = :returned_quantity,
+                reservation_status = :reservation_status,
+                stock_status = :stock_status,
                 unit_cost = :unit_cost,
                 notes = :notes
             WHERE tenant_id = :tenant_id
@@ -397,13 +413,17 @@ class WorkOrderRepository
         ");
 
         $stmt->execute([
-            'tenant_id'        => $tenantId,
-            'id'               => $materialId,
-            'warehouse_id'     => $data['warehouse_id'],
-            'planned_quantity' => $data['planned_quantity'],
-            'issued_quantity'  => $data['issued_quantity'],
-            'unit_cost'        => $data['unit_cost'],
-            'notes'            => $data['notes'],
+            'tenant_id'          => $tenantId,
+            'id'                 => $materialId,
+            'warehouse_id'       => $data['warehouse_id'],
+            'planned_quantity'   => $data['planned_quantity'],
+            'reserved_quantity'  => $data['reserved_quantity'] ?? 0,
+            'issued_quantity'    => $data['issued_quantity'] ?? 0,
+            'returned_quantity'  => $data['returned_quantity'] ?? 0,
+            'reservation_status' => $data['reservation_status'] ?? 'none',
+            'stock_status'       => $data['stock_status'] ?? 'not_issued',
+            'unit_cost'          => $data['unit_cost'],
+            'notes'              => $data['notes'],
         ]);
     }
 
