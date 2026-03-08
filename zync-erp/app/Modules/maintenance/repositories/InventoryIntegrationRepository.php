@@ -11,29 +11,36 @@ class InventoryIntegrationRepository
     {
     }
 
-    public function getWarehouseOptions(): array
+    public function getWarehouseOptions(int $tenantId): array
     {
-        $stmt = $this->db->query("
+        $stmt = $this->db->prepare("
             SELECT id, name
             FROM warehouses
+            WHERE tenant_id = :tenant_id
             ORDER BY name ASC, id ASC
         ");
+
+        $stmt->execute([
+            'tenant_id' => $tenantId,
+        ]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getStockRow(int $articleId, int $warehouseId): ?array
+    public function getStockRow(int $tenantId, int $articleId, int $warehouseId): ?array
     {
         $stmt = $this->db->prepare("
             SELECT *
             FROM inventory_stock
-            WHERE article_id = :article_id
+            WHERE tenant_id = :tenant_id
+              AND article_id = :article_id
               AND warehouse_id = :warehouse_id
               AND is_deleted = 0
             LIMIT 1
         ");
 
         $stmt->execute([
+            'tenant_id'    => $tenantId,
             'article_id'   => $articleId,
             'warehouse_id' => $warehouseId,
         ]);
@@ -43,9 +50,13 @@ class InventoryIntegrationRepository
         return $row ?: null;
     }
 
-    public function ensureStockRowExists(int $articleId, int $warehouseId, ?int $createdBy = null): void
-    {
-        $existing = $this->getStockRow($articleId, $warehouseId);
+    public function ensureStockRowExists(
+        int $tenantId,
+        int $articleId,
+        int $warehouseId,
+        ?int $createdBy = null
+    ): void {
+        $existing = $this->getStockRow($tenantId, $articleId, $warehouseId);
 
         if ($existing) {
             return;
@@ -53,12 +64,14 @@ class InventoryIntegrationRepository
 
         $stmt = $this->db->prepare("
             INSERT INTO inventory_stock (
+                tenant_id,
                 created_by,
                 is_deleted,
                 article_id,
                 warehouse_id,
                 quantity
             ) VALUES (
+                :tenant_id,
                 :created_by,
                 0,
                 :article_id,
@@ -68,15 +81,16 @@ class InventoryIntegrationRepository
         ");
 
         $stmt->execute([
+            'tenant_id'    => $tenantId,
             'created_by'   => $createdBy,
             'article_id'   => $articleId,
             'warehouse_id' => $warehouseId,
         ]);
     }
 
-    public function getAvailableStock(int $articleId, int $warehouseId): float
+    public function getAvailableStock(int $tenantId, int $articleId, int $warehouseId): float
     {
-        $row = $this->getStockRow($articleId, $warehouseId);
+        $row = $this->getStockRow($tenantId, $articleId, $warehouseId);
 
         if (!$row) {
             return 0.0;
@@ -85,13 +99,13 @@ class InventoryIntegrationRepository
         return (float) ($row['quantity'] ?? 0);
     }
 
-    public function decreaseStock(int $articleId, int $warehouseId, float $quantity): void
+    public function decreaseStock(int $tenantId, int $articleId, int $warehouseId, float $quantity): void
     {
         if ($quantity <= 0) {
             throw new RuntimeException('Kvantitet för uttag måste vara större än 0.');
         }
 
-        $available = $this->getAvailableStock($articleId, $warehouseId);
+        $available = $this->getAvailableStock($tenantId, $articleId, $warehouseId);
 
         if ($available < $quantity) {
             throw new RuntimeException('Otillräckligt lagersaldo för uttag.');
@@ -100,35 +114,44 @@ class InventoryIntegrationRepository
         $stmt = $this->db->prepare("
             UPDATE inventory_stock
             SET quantity = quantity - :quantity
-            WHERE article_id = :article_id
+            WHERE tenant_id = :tenant_id
+              AND article_id = :article_id
               AND warehouse_id = :warehouse_id
               AND is_deleted = 0
         ");
 
         $stmt->execute([
+            'tenant_id'    => $tenantId,
             'article_id'   => $articleId,
             'warehouse_id' => $warehouseId,
             'quantity'     => $quantity,
         ]);
     }
 
-    public function increaseStock(int $articleId, int $warehouseId, float $quantity, ?int $createdBy = null): void
-    {
+    public function increaseStock(
+        int $tenantId,
+        int $articleId,
+        int $warehouseId,
+        float $quantity,
+        ?int $createdBy = null
+    ): void {
         if ($quantity <= 0) {
             throw new RuntimeException('Kvantitet för retur måste vara större än 0.');
         }
 
-        $this->ensureStockRowExists($articleId, $warehouseId, $createdBy);
+        $this->ensureStockRowExists($tenantId, $articleId, $warehouseId, $createdBy);
 
         $stmt = $this->db->prepare("
             UPDATE inventory_stock
             SET quantity = quantity + :quantity
-            WHERE article_id = :article_id
+            WHERE tenant_id = :tenant_id
+              AND article_id = :article_id
               AND warehouse_id = :warehouse_id
               AND is_deleted = 0
         ");
 
         $stmt->execute([
+            'tenant_id'    => $tenantId,
             'article_id'   => $articleId,
             'warehouse_id' => $warehouseId,
             'quantity'     => $quantity,
@@ -139,6 +162,7 @@ class InventoryIntegrationRepository
     {
         $stmt = $this->db->prepare("
             INSERT INTO inventory_transactions (
+                tenant_id,
                 created_by,
                 is_deleted,
                 article_id,
@@ -150,6 +174,7 @@ class InventoryIntegrationRepository
                 notes,
                 to_warehouse_id
             ) VALUES (
+                :tenant_id,
                 :created_by,
                 0,
                 :article_id,
@@ -164,6 +189,7 @@ class InventoryIntegrationRepository
         ");
 
         $stmt->execute([
+            'tenant_id'       => $data['tenant_id'],
             'created_by'      => $data['created_by'],
             'article_id'      => $data['article_id'],
             'warehouse_id'    => $data['warehouse_id'],
