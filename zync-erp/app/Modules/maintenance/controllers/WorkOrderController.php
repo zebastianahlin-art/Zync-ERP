@@ -158,7 +158,7 @@ class WorkOrderController
         $materials = $this->repo()->materialsByWorkOrder($tenantId, $id);
         $materialTotals = $this->repo()->materialTotalsByWorkOrder($tenantId, $id);
         $articleOptions = $this->repo()->getArticleOptions($tenantId);
-        $warehouseOptions = $this->inventoryRepo()->getWarehouseOptions();
+        $warehouseOptions = $this->inventoryRepo()->getWarehouseOptions($tenantId);
         $inventoryMovements = $this->inventoryRepo()->movementsByWorkOrder($tenantId, $id);
 
         require __DIR__ . '/../views/work_orders/show.php';
@@ -356,11 +356,15 @@ class WorkOrderController
 
         try {
             $this->repo()->updateMaterial($tenantId, $materialId, [
-                'warehouse_id'       => $newWarehouseId,
-                'planned_quantity'   => $newPlannedQuantity,
-                'issued_quantity'    => (float) $material['issued_quantity'],
-                'unit_cost'          => $newUnitCost,
-                'notes'              => $newNotes,
+                'warehouse_id'        => $newWarehouseId,
+                'planned_quantity'    => $newPlannedQuantity,
+                'reserved_quantity'   => (float) ($material['reserved_quantity'] ?? 0),
+                'issued_quantity'     => (float) $material['issued_quantity'],
+                'returned_quantity'   => (float) ($material['returned_quantity'] ?? 0),
+                'reservation_status'  => (string) ($material['reservation_status'] ?? 'none'),
+                'stock_status'        => (string) ($material['stock_status'] ?? 'not_issued'),
+                'unit_cost'           => $newUnitCost,
+                'notes'               => $newNotes,
             ]);
 
             $this->materialInventoryService()->syncIssuedQuantity(
