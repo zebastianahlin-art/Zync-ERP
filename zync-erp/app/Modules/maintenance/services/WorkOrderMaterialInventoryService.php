@@ -85,7 +85,7 @@ class WorkOrderMaterialInventoryService
             throw new RuntimeException('Lager måste anges.');
         }
 
-        $available = $this->inventoryRepository->getAvailableStock($articleId, $warehouseId);
+        $available = $this->inventoryRepository->getAvailableStock($tenantId, $articleId, $warehouseId);
 
         if ($available < $quantity) {
             throw new RuntimeException('Otillräckligt saldo i valt lager för reservation.');
@@ -335,15 +335,16 @@ class WorkOrderMaterialInventoryService
             throw new RuntimeException('Materialraden saknar lager.');
         }
 
-        $available = $this->inventoryRepository->getAvailableStock($articleId, $warehouseId);
+        $available = $this->inventoryRepository->getAvailableStock($tenantId, $articleId, $warehouseId);
 
         if ($available < $quantity) {
             throw new RuntimeException('Otillräckligt saldo i valt lager för detta uttag.');
         }
 
-        $this->inventoryRepository->decreaseStock($articleId, $warehouseId, $quantity);
+        $this->inventoryRepository->decreaseStock($tenantId, $articleId, $warehouseId, $quantity);
 
         $transactionId = $this->inventoryRepository->createInventoryTransaction([
+            'tenant_id'      => $tenantId,
             'created_by'     => $userId,
             'article_id'     => $articleId,
             'warehouse_id'   => $warehouseId,
@@ -377,9 +378,10 @@ class WorkOrderMaterialInventoryService
             throw new RuntimeException('Materialraden saknar lager.');
         }
 
-        $this->inventoryRepository->increaseStock($articleId, $warehouseId, $quantity, $userId);
+        $this->inventoryRepository->increaseStock($tenantId, $articleId, $warehouseId, $quantity, $userId);
 
         $transactionId = $this->inventoryRepository->createInventoryTransaction([
+            'tenant_id'      => $tenantId,
             'created_by'     => $userId,
             'article_id'     => $articleId,
             'warehouse_id'   => $warehouseId,
