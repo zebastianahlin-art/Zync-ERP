@@ -32,7 +32,7 @@ $stmt = $pdo->prepare(
 );
 $stmt->execute();
 if (empty($stmt->fetchAll())) {
-    $pdo->exec("ALTER TABLE projects ADD COLUMN planned_budget DECIMAL(14,2) NOT NULL DEFAULT 0 AFTER budget");
+    $pdo->exec("ALTER TABLE projects ADD COLUMN planned_budget DECIMAL(14,2) NOT NULL DEFAULT 0");
 }
 
 // C6 – actual_cost on projects
@@ -42,7 +42,7 @@ $stmt = $pdo->prepare(
 );
 $stmt->execute();
 if (empty($stmt->fetchAll())) {
-    $pdo->exec("ALTER TABLE projects ADD COLUMN actual_cost DECIMAL(14,2) NOT NULL DEFAULT 0 AFTER planned_budget");
+    $pdo->exec("ALTER TABLE projects ADD COLUMN actual_cost DECIMAL(14,2) NOT NULL DEFAULT 0");
 }
 
 // C5 – start_date on project_tasks
@@ -52,7 +52,7 @@ $stmt = $pdo->prepare(
 );
 $stmt->execute();
 if (empty($stmt->fetchAll())) {
-    $pdo->exec("ALTER TABLE project_tasks ADD COLUMN start_date DATE NULL AFTER due_date");
+    $pdo->exec("ALTER TABLE project_tasks ADD COLUMN start_date DATE NULL");
 }
 
 // C2 – project_stakeholders
